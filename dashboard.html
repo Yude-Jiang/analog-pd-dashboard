@@ -184,7 +184,7 @@
         <div class="tab-group">
             <button class="tab" id="btn-tracker" onclick="switchTab('tracker',this)" data-i18n="tab_tracker" style="display:none">2026 实时追踪</button>
             <button class="tab on" id="btn-trends" onclick="switchTab('trends',this)" data-i18n="tab_trends">19-26 趋势分析</button>
-            <button class="tab" id="btn-quarterly" onclick="switchTab('quarterly',this)">季度 &amp; 预测</button>
+            <button class="tab" id="btn-quarterly" onclick="switchTab('quarterly',this)" data-i18n="tab_quarterly">季度 &amp; 预测</button>
         </div>
         <button class="icon-btn" onclick="exportExcel()" data-i18n="export_btn"
             style="margin-left:auto;background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;padding:5px 14px">
@@ -353,16 +353,16 @@
                 <div class="panel">
                     <div class="panel-hdr">
                         <span class="panel-badge" style="background:var(--accent)">ANALOG</span>
-                        <span class="panel-tag">季度营收对比 2024–2026 (M USD)</span>
-                        <span style="font-size:10px;color:var(--txt3);margin-left:8px">实色柱=实际 &nbsp;|&nbsp; 斜纹柱=预测</span>
+                        <span class="panel-tag" data-i18n="q_chart_ttl">季度营收对比 2024–2026 (M USD)</span>
+                        <span style="font-size:10px;color:var(--txt3);margin-left:8px" data-i18n="q_chart_legend">实色柱=实际 &nbsp;|&nbsp; 斜纹柱=预测</span>
                     </div>
                     <div class="chart-box" style="height:380px"><canvas id="cQAnalog"></canvas></div>
                 </div>
                 <div class="panel">
                     <div class="panel-hdr">
                         <span class="panel-badge" style="background:var(--gold)">P&amp;D</span>
-                        <span class="panel-tag">季度营收对比 2024–2026 (M USD)</span>
-                        <span style="font-size:10px;color:var(--txt3);margin-left:8px">实色柱=实际 &nbsp;|&nbsp; 斜纹柱=预测</span>
+                        <span class="panel-tag" data-i18n="q_chart_ttl">季度营收对比 2024–2026 (M USD)</span>
+                        <span style="font-size:10px;color:var(--txt3);margin-left:8px" data-i18n="q_chart_legend">实色柱=实际 &nbsp;|&nbsp; 斜纹柱=预测</span>
                     </div>
                     <div class="chart-box" style="height:380px"><canvas id="cQPD"></canvas></div>
                 </div>
@@ -370,16 +370,16 @@
             <div class="panel">
                 <div class="panel-hdr" style="flex-wrap:wrap;gap:10px">
                     <span class="panel-badge" style="background:var(--accent)">Q</span>
-                    <span class="panel-tag">季度营收 &amp; 全年预测 (M USD)</span>
+                    <span class="panel-tag" data-i18n="q_table_ttl">季度营收 &amp; 全年预测 (M USD)</span>
                     <div style="display:flex;align-items:center;gap:6px">
-                        <span style="font-size:10px;color:var(--txt3)">年份:</span>
+                        <span style="font-size:10px;color:var(--txt3)" data-i18n="q_year_lbl">年份:</span>
                         <div class="q-yr-btns">
                             <button class="q-yr-btn active" id="qyrBtn2025" onclick="setQtrYear(2025,this)">2025</button>
                             <button class="q-yr-btn"        id="qyrBtn2026" onclick="setQtrYear(2026,this)">2026</button>
                         </div>
                     </div>
                     <div style="display:flex;align-items:center;gap:6px">
-                        <span style="font-size:10px;color:var(--txt3)">类别:</span>
+                        <span style="font-size:10px;color:var(--txt3)" data-i18n="q_cat_lbl">类别:</span>
                         <select id="qtrCatFilter" class="filter-select" onchange="renderQuarterlyProjections()" style="padding:3px 8px;font-size:11px">
                             <option value="all">All</option>
                             <option value="Analog">Analog</option>
@@ -387,29 +387,29 @@
                         </select>
                     </div>
                     <div style="margin-left:auto;font-size:10px;color:var(--txt3);display:flex;align-items:center;gap:8px">
-                        <span><span style="display:inline-block;width:10px;height:10px;background:rgba(212,150,12,0.15);border:1px solid var(--gold);border-radius:2px;vertical-align:middle;margin-right:3px"></span>Estimated</span>
-                        <span><span style="display:inline-block;width:10px;height:10px;background:rgba(13,159,110,0.12);border:1px solid var(--green);border-radius:2px;vertical-align:middle;margin-right:3px"></span>Actual</span>
+                        <span><span style="display:inline-block;width:10px;height:10px;background:rgba(212,150,12,0.15);border:1px solid var(--gold);border-radius:2px;vertical-align:middle;margin-right:3px"></span><span data-i18n="q_legend_est">预测</span></span>
+                        <span><span style="display:inline-block;width:10px;height:10px;background:rgba(13,159,110,0.12);border:1px solid var(--green);border-radius:2px;vertical-align:middle;margin-right:3px"></span><span data-i18n="q_legend_act">实际</span></span>
                     </div>
                 </div>
                 <div class="dtbl-wrap" style="contain:content">
                     <table class="dtbl qtr-tbl">
                         <thead>
                             <tr>
-                                <th style="min-width:130px">公司</th>
-                                <th>类别</th>
+                                <th style="min-width:130px" data-i18n="th_company">公司</th>
+                                <th data-i18n="q_th_cat">类别</th>
                                 <th class="num">Q1 (M USD)</th>
                                 <th class="num">Q2 (M USD)</th>
                                 <th class="num">Q3 (M USD)</th>
                                 <th class="num">Q4 / FY</th>
-                                <th class="num" style="min-width:150px">全年预测 (M USD) ▼</th>
-                                <th>依据</th>
+                                <th class="num" style="min-width:150px" data-i18n="q_th_fyest">全年预测 (M USD) ▼</th>
+                                <th data-i18n="q_th_basis">依据</th>
                             </tr>
                         </thead>
                         <tbody id="qtrBody"></tbody>
                     </table>
                 </div>
                 <p style="font-size:10px;color:var(--txt3);margin-top:8px">
-                    * 预测逻辑: Q1 only → Q1×4 &nbsp;|&nbsp; H1 (Q1+Q2) → H1×2 &nbsp;|&nbsp; 3Q → H1+(Q3×2) &nbsp;|&nbsp; Full Year → Actual. All values in M USD after FX conversion.
+                    <span data-i18n="q_footnote">* 预测逻辑: Q1 only → Q1×4 | H1 (Q1+Q2) → H1×2 | 3Q → H1+(Q3×2) | Full Year → Actual. All values in M USD after FX conversion.</span>
                 </p>
             </div>
         </div>
@@ -420,7 +420,7 @@
         const I18N = {
             zh: {
                 // tabs
-                tab_tracker: '2026 实时追踪', tab_trends: '19-26 趋势分析', tab_audit: '数据溯源',
+                tab_tracker: '2026 实时追踪', tab_trends: '19-26 趋势分析', tab_audit: '数据溯源', tab_quarterly: '季度 & 预测',
                 // tracker
                 tracker_ttl: '2026 综合对比图 (月度营收爬升)', cards_ttl: '企业追踪卡卡片',
                 latest_period: '最新披露', latest_val: '营收', source_link: '查看来源',
@@ -447,6 +447,16 @@
                 axis_rev: '营收 (M USD)', axis_margin: '净利润率 (%)',
                 // y1 range selector
                 y1_label: 'NI% 轴:', y1_auto: '适配', y1_std: '-50~80%', y1_full: '完整', y1_scroll_hint: '🖱 图表内滚轮微调',
+                // quarterly tab
+                q_chart_ttl:   '季度营收对比 2024–2026 (M USD)',
+                q_chart_legend:'实色柱=实际 | 斜纹柱=预测',
+                q_table_ttl:   '季度营收 & 全年预测 (M USD)',
+                q_year_lbl:    '年份:', q_cat_lbl: '类别:',
+                q_legend_est:  '预测', q_legend_act: '实际',
+                q_th_cat:      '类别', q_th_fyest: '全年预测 (M USD) ▼', q_th_basis: '依据',
+                q_footnote:    '* 预测逻辑: Q1 only → Q1×4 | H1 (Q1+Q2) → H1×2 | 3Q → H1+(Q3×2) | Full Year → Actual. All values in M USD after FX conversion.',
+                q_basis_4q:    '4季度合计', q_basis_h1q3: 'H1+(Q3×2)', q_basis_h1: 'H1×2', q_basis_q1: 'Q1×4', q_basis_fy: '全年实际',
+                q_est_tip:     (basis, n) => `${basis} — 基于${n}季度估算`,
                 // source titles
                 src_disclosed: (date) => `AkShare yjbb · 年报已披露 ${date}`,
                 src_prev: (date) => `AkShare yjbb · 2024年报 ${date}`,
@@ -460,7 +470,7 @@
             },
             en: {
                 // tabs
-                tab_tracker: '2026 Tracker', tab_trends: 'Trend Analysis',
+                tab_tracker: '2026 Tracker', tab_trends: 'Trend Analysis', tab_quarterly: 'Quarterly & Projections',
                 // tracker
                 tracker_ttl: '2026 Combined Revenue (Monthly)', cards_ttl: 'Company Dynamic Cards',
                 latest_period: 'Latest Period', latest_val: 'Revenue', source_link: 'Source',
@@ -487,6 +497,16 @@
                 axis_rev: 'Revenue (M USD)', axis_margin: 'Margin (%)',
                 // y1 range selector
                 y1_label: 'Margin Axis:', y1_auto: 'Auto', y1_std: '-50~80%', y1_full: 'Full', y1_scroll_hint: '🖱 Scroll to zoom',
+                // quarterly tab
+                q_chart_ttl:   'Quarterly Revenue 2024–2026 (M USD)',
+                q_chart_legend:'Solid = Actual | Striped = Projected',
+                q_table_ttl:   'Quarterly Revenue & Full-Year Projection (M USD)',
+                q_year_lbl:    'Year:', q_cat_lbl: 'Category:',
+                q_legend_est:  'Projected', q_legend_act: 'Actual',
+                q_th_cat:      'Category', q_th_fyest: 'FY Projection (M USD) ▼', q_th_basis: 'Basis',
+                q_footnote:    '* Projection logic: Q1 only → Q1×4 | H1 (Q1+Q2) → H1×2 | 3Q → H1+(Q3×2) | Full Year → Actual. All values in M USD after FX conversion.',
+                q_basis_4q:    '4Q Sum', q_basis_h1q3: 'H1+(Q3×2)', q_basis_h1: 'H1×2', q_basis_q1: 'Q1×4', q_basis_fy: 'FY Actual',
+                q_est_tip:     (basis, n) => `${basis} — based on ${n}Q`,
                 // source titles
                 src_disclosed: (date) => `AkShare yjbb · Annual Disclosed ${date}`,
                 src_prev: (date) => `AkShare yjbb · 2024 Annual ${date}`,
@@ -585,6 +605,9 @@
                 if (typeof T[key] === 'string') el.textContent = T[key];
             });
             _rendered.trends = false; renderTrends();
+            if (document.getElementById('pane-quarterly').style.display !== 'none') {
+                _rendered.quarterly = false; renderQuarterlyProjections();
+            }
         }
 
         let chartTrackerAnalog, chartTrackerPD, chartA, chartP;
@@ -1510,13 +1533,13 @@
         function _qEstimate(c, yr) {
             const q1 = _qGet(c, yr, 1), q2 = _qGet(c, yr, 2);
             const q3 = _qGet(c, yr, 3), q4 = _qGet(c, yr, 4);
-            if (q1 && q2 && q3 && q4) return { rl: q1.rl+q2.rl+q3.rl+q4.rl, type: 'actual',    basis: '4Q Sum',    qCount: 4 };
-            if (q1 && q2 && q3)       return { rl: (q1.rl+q2.rl)+q3.rl*2,   type: 'estimated', basis: 'H1+(Q3×2)', qCount: 3 };
-            if (q1 && q2)             return { rl: (q1.rl+q2.rl)*2,          type: 'estimated', basis: 'H1×2',      qCount: 2 };
-            if (q1)                   return { rl: q1.rl*4,                   type: 'estimated', basis: 'Q1×4',      qCount: 1 };
+            if (q1 && q2 && q3 && q4) return { rl: q1.rl+q2.rl+q3.rl+q4.rl, type: 'actual',    basisKey: 'q_basis_4q',   qCount: 4 };
+            if (q1 && q2 && q3)       return { rl: (q1.rl+q2.rl)+q3.rl*2,   type: 'estimated', basisKey: 'q_basis_h1q3', qCount: 3 };
+            if (q1 && q2)             return { rl: (q1.rl+q2.rl)*2,          type: 'estimated', basisKey: 'q_basis_h1',   qCount: 2 };
+            if (q1)                   return { rl: q1.rl*4,                   type: 'estimated', basisKey: 'q_basis_q1',   qCount: 1 };
             // No quarterly data — fall back to disclosed FY annual
             const fy = _qFY(c, yr);
-            if (fy) return { rl: fy.rl, type: 'actual', basis: 'FY Actual', qCount: 4 };
+            if (fy) return { rl: fy.rl, type: 'actual', basisKey: 'q_basis_fy', qCount: 4 };
             return null;
         }
 
@@ -1611,19 +1634,20 @@
             const mk = (label, stack, data, bg) =>
                 ({ type:'bar', label, stack, data, backgroundColor: bg });
 
+            const P = lang === 'zh' ? '预测' : 'Est';
             const qDs = [
-                mk('2025 FY',    'yr2025', b25.map(b=>b.fy),  QC.FY),
-                mk('Q1',         'yr2025', b25.map(b=>b.q1a), QC.Q1),
-                mk('Q2',         'yr2025', b25.map(b=>b.q2a), QC.Q2),
-                mk('Q3',         'yr2025', b25.map(b=>b.q3a), QC.Q3),
-                mk('Q4',         'yr2025', b25.map(b=>b.q4a), QC.Q4),
-                mk('Q2 预测',    'yr2025', b25.map(b=>b.q2e), EST.Q2),
-                mk('Q3 预测',    'yr2025', b25.map(b=>b.q3e), EST.Q3),
-                mk('Q4 预测',    'yr2025', b25.map(b=>b.q4e), EST.Q4),
-                mk('26 Q1',      'yr2026', b26.map(b=>b.q1a), QC.Q1),
-                mk('26 Q2 预测', 'yr2026', b26.map(b=>b.q2e), EST.Q2),
-                mk('26 Q3 预测', 'yr2026', b26.map(b=>b.q3e), EST.Q3),
-                mk('26 Q4 预测', 'yr2026', b26.map(b=>b.q4e), EST.Q4),
+                mk('2025 FY',      'yr2025', b25.map(b=>b.fy),  QC.FY),
+                mk('Q1',           'yr2025', b25.map(b=>b.q1a), QC.Q1),
+                mk('Q2',           'yr2025', b25.map(b=>b.q2a), QC.Q2),
+                mk('Q3',           'yr2025', b25.map(b=>b.q3a), QC.Q3),
+                mk('Q4',           'yr2025', b25.map(b=>b.q4a), QC.Q4),
+                mk(`Q2 ${P}`,      'yr2025', b25.map(b=>b.q2e), EST.Q2),
+                mk(`Q3 ${P}`,      'yr2025', b25.map(b=>b.q3e), EST.Q3),
+                mk(`Q4 ${P}`,      'yr2025', b25.map(b=>b.q4e), EST.Q4),
+                mk('26 Q1',        'yr2026', b26.map(b=>b.q1a), QC.Q1),
+                mk(`26 Q2 ${P}`,   'yr2026', b26.map(b=>b.q2e), EST.Q2),
+                mk(`26 Q3 ${P}`,   'yr2026', b26.map(b=>b.q3e), EST.Q3),
+                mk(`26 Q4 ${P}`,   'yr2026', b26.map(b=>b.q4e), EST.Q4),
             ].filter(d => d.data.some(v => v != null));
 
             return new Chart(document.getElementById(canvasId).getContext('2d'), {
@@ -1642,7 +1666,7 @@
                             labels: {
                                 boxWidth: 8, font:{size:9}, padding:6,
                                 // Show: 2024 + Q1-Q4 (actual) + one estimated sample
-                                filter: item => ['2024','Q1','Q2','Q3','Q4','2025 FY','Q4 预测'].includes(item.text)
+                                filter: item => ['2024','Q1','Q2','Q3','Q4','2025 FY',`Q4 ${lang==='zh'?'预测':'Est'}`].includes(item.text)
                             }
                         },
                         tooltip: { bodyFont:{size:10} }
@@ -1683,15 +1707,17 @@
 
             const fmt = v => v != null ? v.toFixed(1) : '<span class="q-nil">—</span>';
 
+            const T = I18N[lang];
             document.getElementById('qtrBody').innerHTML = rows.map(({ c, q1usd, q2usd, q3usd, q4usd, estUSD, est }) => {
                 const isEst = est?.type === 'estimated';
+                const basisLabel = est ? (T[est.basisKey] || est.basisKey) : '';
                 const estCell = est
                     ? (isEst
-                        ? `<span class="q-est-val" title="${est.basis} — based on ${est.qCount}Q">${estUSD.toFixed(1)}</span>`
+                        ? `<span class="q-est-val" title="${T.q_est_tip(basisLabel, est.qCount)}">${estUSD.toFixed(1)}</span>`
                         : `<span class="q-act-val">${estUSD.toFixed(1)}</span>`)
                     : '<span class="q-nil">—</span>';
                 const basisBadge = est
-                    ? `<span class="q-badge ${isEst ? 'q-badge-est' : 'q-badge-act'}" title="Based on ${est.qCount} quarter${est.qCount!==1?'s':''}">${est.basis}</span>`
+                    ? `<span class="q-badge ${isEst ? 'q-badge-est' : 'q-badge-act'}">${basisLabel}</span>`
                     : '';
                 const catStyle = c.category === 'Analog'
                     ? 'background:var(--badge-a);color:var(--badge-at)'
