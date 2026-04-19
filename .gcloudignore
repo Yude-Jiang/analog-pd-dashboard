@@ -1,0 +1,22 @@
+# Exclude virtual environment (largest directory)
+.venv/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Excel source files (not needed in container)
+*.xlsx
+*.xlsm
+~$*.xlsx
+
+# Claude IDE config
+.claude/
+
+# Other unnecessary files
+*.zip
+*.docx
+src_inspect.zip
+CLAUDE.md
+README.md

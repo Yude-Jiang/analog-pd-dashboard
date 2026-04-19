@@ -1,0 +1,2417 @@
+{
+  "SG micro": {
+    "name": "SG micro",
+    "code": "300661",
+    "category": "Analog",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 787.0,
+      "2020": 1191.0,
+      "2021": 2225.0,
+      "2022": 3169.0,
+      "2023": 2602.416,
+      "2024": 3334.1594000000005,
+      "2025": 3783.0,
+      "2026M01": 350,
+      "2026M02": 380,
+      "2026M03": 420
+    },
+    "net_income": {
+      "2019": 174.7,
+      "2020": 283.6,
+      "2021": 689.0,
+      "2022": 874.0,
+      "2023": 280.7683,
+      "2024": 500.2442000000001,
+      "2025": 485.0
+    },
+    "margin": {
+      "2019": 0.22198221092757306,
+      "2020": 0.23811922753988246,
+      "2021": 0.3096629213483146,
+      "2022": 0.2757967813190281,
+      "2023": 0.10788755525634641,
+      "2024": 0.15003607805913538,
+      "2025": 0.1282051282051282
+    },
+    "profile": {
+      "rd_staff": "1,184",
+      "total_emp": "1,600",
+      "rd_weight": "74.09%",
+      "foundry": "TSMC / HHGrace / SMIC / CRM",
+      "source_title": "2024 Full Year Financial Report",
+      "update_time": "2025-03-25"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "rl": 787.0,
+        "ni": 174.7,
+        "np": 22.1982,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300661",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "rl": 1191.0,
+        "ni": 283.6,
+        "np": 23.8119,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300661",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "rl": 2225.0,
+        "ni": 689.0,
+        "np": 30.9663,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300661",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "rl": 3169.0,
+        "ni": 874.0,
+        "np": 27.5797,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300661",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "rl": 2602.416,
+        "ni": 280.7683,
+        "np": 10.7888,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300661",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "rl": 3334.1594000000005,
+        "ni": 500.2442000000001,
+        "np": 15.0036,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/disclosure/detail?announcementId=1223374638&stockCode=300661",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "rl": 3783.0,
+        "ni": 485.0,
+        "np": 12.8205,
+        "st": "estimate",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300661",
+        "src_name": "Analyst Estimate"
+      },
+      {
+        "yr": 2026,
+        "period": "2026M03",
+        "rl": 420,
+        "ni": null,
+        "np": null,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300661",
+        "src_name": "Monthly Disclosure"
+      }
+    ]
+  },
+  "3-Peak": {
+    "name": "3-Peak",
+    "code": "688536",
+    "category": "Analog",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 302.0,
+      "2020": 562.0,
+      "2021": 1316.0,
+      "2022": 1770.0,
+      "2023": 1094.0,
+      "2024": 1216.2161,
+      "2025": 2142.0
+    },
+    "net_income": {
+      "2019": 70.98,
+      "2020": 183.8,
+      "2021": 443.5,
+      "2022": 266.8,
+      "2023": -35.0,
+      "2024": -195.35309999999998,
+      "2025": 173.0
+    },
+    "margin": {
+      "2019": 0.23503311258278148,
+      "2020": 0.32704626334519576,
+      "2021": 0.33700607902735563,
+      "2022": 0.15073446327683618,
+      "2023": -0.031992687385740404,
+      "2024": -0.1606236753484845,
+      "2025": 0.080765639589169
+    },
+    "profile": {
+      "rd_staff": "520",
+      "total_emp": "830",
+      "rd_weight": "62.95%",
+      "foundry": "TSMC / HHGrace / SMIC",
+      "source_title": "2025 Half Year Financial Report",
+      "update_time": "2025-08-15"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "rl": 302.0,
+        "ni": 70.98,
+        "np": 23.5033,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688536",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "rl": 562.0,
+        "ni": 183.8,
+        "np": 32.7046,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688536",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "rl": 1316.0,
+        "ni": 443.5,
+        "np": 33.7006,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688536",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "rl": 1770.0,
+        "ni": 266.8,
+        "np": 15.0734,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688536",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "rl": 1094.0,
+        "ni": -35.0,
+        "np": -3.1993,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688536",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "rl": 1216.2161,
+        "ni": -195.35309999999998,
+        "np": -16.0624,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/disclosure/detail?announcementId=1223363024&stockCode=688536",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688536",
+        "rl": 2142.0,
+        "ni": 173.0,
+        "np": 8.0766
+      }
+    ]
+  },
+  "Chipown": {
+    "name": "Chipown",
+    "code": "688508",
+    "category": "Analog",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 333.119,
+      "2020": 427.464,
+      "2021": 748.157,
+      "2022": 716.434,
+      "2023": 780.064,
+      "2024": 962.2678,
+      "2025": 1143.0
+    },
+    "net_income": {
+      "2019": 66.17,
+      "2020": 99.74,
+      "2021": 201.1,
+      "2022": 88.83,
+      "2023": 59.478,
+      "2024": 111.3296,
+      "2025": 186.0
+    },
+    "margin": {
+      "2020": 0.2333295903280744,
+      "2021": 0.26879384941930634,
+      "2022": 0.12398909041167784,
+      "2023": 0.07624758994133815,
+      "2024": 0.11569502793297251,
+      "2025": 0.16272965879265092,
+      "2019": 0.19863772405656835
+    },
+    "profile": {
+      "rd_staff": "272",
+      "total_emp": "379",
+      "rd_weight": "71.77%",
+      "foundry": "SMIC / HHGrace / TSMC / VIS",
+      "source_title": "2025 Half Year Financial Report",
+      "update_time": "2025-08-20"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "rl": 333.119,
+        "ni": 66.17,
+        "np": 19.8638,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688508",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "rl": 427.464,
+        "ni": 99.74,
+        "np": 23.333,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688508",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "rl": 748.157,
+        "ni": 201.1,
+        "np": 26.8794,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688508",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "rl": 716.434,
+        "ni": 88.83,
+        "np": 12.3989,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688508",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "rl": 780.064,
+        "ni": 59.478,
+        "np": 7.6248,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688508",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "rl": 962.2678,
+        "ni": 111.3296,
+        "np": 11.5695,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688508",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688508",
+        "rl": 1143.0,
+        "ni": 186.0,
+        "np": 16.273
+      }
+    ]
+  },
+  "Fortior": {
+    "name": "Fortior",
+    "code": "688279",
+    "category": "Analog",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 142.028,
+      "2020": 232.295,
+      "2021": 327.401,
+      "2022": 320.117,
+      "2023": 451.805,
+      "2024": 646.3419,
+      "2025": 839.3174
+    },
+    "net_income": {
+      "2020": 78.35,
+      "2021": 135.3,
+      "2022": 142.0,
+      "2023": 174.846,
+      "2024": 241.0905,
+      "2025": 245.7931,
+      "2019": 35.05
+    },
+    "margin": {
+      "2019": 0.24678232461204833,
+      "2020": 0.337286639832971,
+      "2021": 0.41325469378529694,
+      "2022": 0.4435878132057966,
+      "2023": 0.38699438917231993,
+      "2024": 0.37300769144008766,
+      "2025": 0.2928488078526669
+    },
+    "profile": {
+      "source_title": "2024 Full Year Financial Report",
+      "rd_staff": "—",
+      "total_emp": "—",
+      "rd_weight": "—",
+      "foundry": "TSMC / SMIC",
+      "update_time": "2025-04-05"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688279",
+        "rl": 142.028,
+        "ni": 35.05,
+        "np": 24.6782
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688279",
+        "rl": 232.295,
+        "ni": 78.35,
+        "np": 33.7287
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688279",
+        "rl": 327.401,
+        "ni": 135.3,
+        "np": 41.3255
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688279",
+        "rl": 320.117,
+        "ni": 142.0,
+        "np": 44.3588
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688279",
+        "rl": 451.805,
+        "ni": 174.846,
+        "np": 38.6994
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688279",
+        "rl": 646.3419,
+        "ni": 241.0905,
+        "np": 37.3008
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688279",
+        "rl": 839.3174,
+        "ni": 245.7931,
+        "np": 29.2849
+      }
+    ]
+  },
+  "MPWR": {
+    "name": "MPWR",
+    "code": "MPWR",
+    "category": "Analog",
+    "currency": "M USD",
+    "revenue": {
+      "2020": 844.0,
+      "2021": 1208.0,
+      "2022": 1794.0,
+      "2023": 1821.0,
+      "2024": 2207.1,
+      "2025": 2790.0,
+      "2019": 628.0
+    },
+    "net_income": {
+      "2019": 109.0,
+      "2020": 164.0,
+      "2021": 242.0,
+      "2022": 438.0,
+      "2023": 427.374,
+      "2024": 499.5,
+      "2025": 621.0
+    },
+    "margin": {
+      "2019": 0.1735668789808917,
+      "2020": 0.1943127962085308,
+      "2021": 0.20033112582781457,
+      "2022": 0.24414715719063546,
+      "2023": 0.23469192751235587,
+      "2024": 0.22631507,
+      "2025": 0.22258064516129034
+    },
+    "profile": {
+      "source_title": "2024 Annual Report (10-K)",
+      "rd_staff": "1,650",
+      "total_emp": "2,820",
+      "rd_weight": "58.51%",
+      "foundry": "TSMC (primary)",
+      "update_time": "2025-02-20"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=MPWR&action=getcompany",
+        "rl": 628.0,
+        "ni": 109.0,
+        "np": 17.3567
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=MPWR&action=getcompany",
+        "rl": 844.0,
+        "ni": 164.0,
+        "np": 19.4313
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=MPWR&action=getcompany",
+        "rl": 1208.0,
+        "ni": 242.0,
+        "np": 20.0331
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "st": "actual",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=MPWR&action=getcompany",
+        "rl": 1794.0,
+        "ni": 438.0,
+        "np": 24.4147
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "st": "actual",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=MPWR&action=getcompany",
+        "rl": 1821.0,
+        "ni": 427.374,
+        "np": 23.4692
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "st": "actual",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=MPWR&action=getcompany",
+        "rl": 2207.1,
+        "ni": 499.5,
+        "np": 22.6315,
+        "note": "NI corrected: EDGAR 2024 10-K pulled GrossProfit tag; correct NetIncomeLoss=499.5M"
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=MPWR&action=getcompany",
+        "rl": 2790.0,
+        "ni": 621.0,
+        "np": 22.2581
+      }
+    ]
+  },
+  "NVTS": {
+    "name": "NVTS",
+    "code": "NVTS",
+    "category": "P&D",
+    "currency": "M USD",
+    "revenue": {
+      "2020": 11.849,
+      "2021": 23.736,
+      "2022": 37.243,
+      "2023": 79.456,
+      "2024": 83.30199999999999,
+      "2025": 45.916
+    },
+    "net_income": {
+      "2020": -19.144,
+      "2021": -152.685,
+      "2022": 79.913,
+      "2023": -145.433,
+      "2024": -84.599,
+      "2025": -116.953
+    },
+    "margin": {
+      "2020": -1.6156637690944382,
+      "2021": -6.432633973710819,
+      "2022": 2.1457186585398595,
+      "2023": -1.8303589407974223,
+      "2024": -1.0155698542652039,
+      "2025": -2.5471077620001745
+    },
+    "profile": {
+      "source_title": "2024 Annual Report (10-K)",
+      "rd_staff": "195",
+      "total_emp": "310",
+      "rd_weight": "62.90%",
+      "foundry": "TSMC (GaN-on-Si)",
+      "update_time": "2025-02-28"
+    },
+    "audit": [
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=NVTS&action=getcompany",
+        "rl": 11.849,
+        "ni": -19.144,
+        "np": -161.5664
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=NVTS&action=getcompany",
+        "rl": 23.736,
+        "ni": -152.685,
+        "np": -643.2634
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "st": "actual",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=NVTS&action=getcompany",
+        "rl": 37.243,
+        "ni": 79.913,
+        "np": 214.5719
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "st": "actual",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=NVTS&action=getcompany",
+        "rl": 79.456,
+        "ni": -145.433,
+        "np": -183.0359
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "st": "actual",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=NVTS&action=getcompany",
+        "rl": 83.30199999999999,
+        "ni": -84.599,
+        "np": -101.557
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=NVTS&action=getcompany",
+        "rl": 45.916,
+        "ni": -116.953,
+        "np": -254.7108
+      },
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.sec.gov/cgi-bin/browse-edgar?CIK=NVTS&action=getcompany"
+      }
+    ]
+  },
+  "Silergy": {
+    "name": "Silergy",
+    "code": "6415",
+    "category": "Analog",
+    "currency": "M TW",
+    "revenue": {
+      "2019": 10778.0,
+      "2020": 13876.0,
+      "2021": 21506.0,
+      "2022": 23511.0,
+      "2023": 15427.0,
+      "2024": 18455.0,
+      "2025": 18812.0,
+      "2026M01": 1500,
+      "2026M02": 1600,
+      "2026M03": 1750
+    },
+    "net_income": {
+      "2019": 2326.0,
+      "2020": 3278.0,
+      "2021": 5734.0,
+      "2022": 6039.0,
+      "2023": 746.0,
+      "2024": 2287.0,
+      "2025": 2349.0
+    },
+    "margin": {
+      "2019": 0.21580998329931342,
+      "2020": 0.23623522628999713,
+      "2021": 0.26662326792523017,
+      "2022": 0.25685849176980985,
+      "2023": 0.04835677707914695,
+      "2024": 0.12392305608236251,
+      "2025": 0.12486710610248777
+    },
+    "profile": {
+      "rd_staff": "1,380",
+      "total_emp": "1,760",
+      "rd_weight": "78.41%",
+      "foundry": "TSMC / HHGrace / VIS",
+      "source_title": "2024 Full Year Financial Report",
+      "update_time": "2025-03-31"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "rl": 10778.0,
+        "ni": 2326.0,
+        "np": 21.581,
+        "st": "actual",
+        "src_url": "https://mops.twse.com.tw/mops/web/t05st01?step=1&queryName=co_id&inpuType=co_id&co_id=6415",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "rl": 13876.0,
+        "ni": 3278.0,
+        "np": 23.6235,
+        "st": "actual",
+        "src_url": "https://mops.twse.com.tw/mops/web/t05st01?step=1&queryName=co_id&inpuType=co_id&co_id=6415",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "rl": 21506.0,
+        "ni": 5734.0,
+        "np": 26.6623,
+        "st": "actual",
+        "src_url": "https://mops.twse.com.tw/mops/web/t05st01?step=1&queryName=co_id&inpuType=co_id&co_id=6415",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "rl": 23511.0,
+        "ni": 6039.0,
+        "np": 25.6858,
+        "st": "actual",
+        "src_url": "https://mops.twse.com.tw/mops/web/t05st01?step=1&queryName=co_id&inpuType=co_id&co_id=6415",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "rl": 15427.0,
+        "ni": 746.0,
+        "np": 4.8357,
+        "st": "actual",
+        "src_url": "https://mops.twse.com.tw/mops/web/t05st01?step=1&queryName=co_id&inpuType=co_id&co_id=6415",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "rl": 18455.0,
+        "ni": 2287.0,
+        "np": 12.3923,
+        "st": "actual",
+        "src_url": "https://mops.twse.com.tw/mops/web/t05st01?step=1&queryName=co_id&inpuType=co_id&co_id=6415",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2026,
+        "period": "2026M03",
+        "rl": 1750,
+        "ni": null,
+        "np": null,
+        "st": "reported",
+        "src_url": "https://mops.twse.com.tw",
+        "src_name": "Monthly Disclosure"
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://mops.twse.com.tw/mops/web/t05st01?step=1&queryName=co_id&inpuType=co_id&co_id=6415",
+        "rl": 18812.0,
+        "ni": 2349.0,
+        "np": 12.4867
+      }
+    ]
+  },
+  "Southchip": {
+    "name": "Southchip",
+    "code": "688484",
+    "category": "Analog",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 107.0,
+      "2020": 178.0,
+      "2021": 982.0,
+      "2022": 1300.8,
+      "2023": 1774.0,
+      "2024": 2561.0,
+      "2025": 3261.0
+    },
+    "net_income": {
+      "2019": -9.85,
+      "2020": -7.98,
+      "2021": 244.0,
+      "2022": 246.2,
+      "2023": 261.0,
+      "2024": 307.0,
+      "2025": 238.0
+    },
+    "margin": {
+      "2019": -0.09205607476635513,
+      "2020": -0.0448314606741573,
+      "2021": 0.2484725050916497,
+      "2022": 0.1892681426814268,
+      "2023": 0.1471251409244645,
+      "2024": 0.11987504880905896,
+      "2025": 0.072983747316774
+    },
+    "profile": {
+      "source_title": "2025 Half Year Financial Report",
+      "rd_staff": "756",
+      "total_emp": "1,106",
+      "rd_weight": "68.35%",
+      "foundry": "SMIC / HHGrace / TSMC",
+      "update_time": "2025-08-10"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688484",
+        "rl": 107.0,
+        "ni": -9.85,
+        "np": -9.2056
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688484",
+        "rl": 178.0,
+        "ni": -7.98,
+        "np": -4.4831
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688484",
+        "rl": 982.0,
+        "ni": 244.0,
+        "np": 24.8473
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688484",
+        "rl": 1300.8,
+        "ni": 246.2,
+        "np": 18.9268
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688484",
+        "rl": 1774.0,
+        "ni": 261.0,
+        "np": 14.7125
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688484",
+        "rl": 2561.0,
+        "ni": 307.0,
+        "np": 11.9875
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688484",
+        "rl": 3261.0,
+        "ni": 238.0,
+        "np": 7.2984
+      }
+    ]
+  },
+  "Joulwatt": {
+    "name": "Joulwatt",
+    "code": "688141",
+    "category": "Analog",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 256.8,
+      "2020": 406.0,
+      "2021": 1040.0,
+      "2022": 1446.0,
+      "2023": 1294.5131000000001,
+      "2024": 1677.0,
+      "2025": 2659.0
+    },
+    "net_income": {
+      "2019": -79.95,
+      "2020": -270.1,
+      "2021": 141.4,
+      "2022": 137.0,
+      "2023": -531.4091,
+      "2024": -603.0,
+      "2025": -717.0
+    },
+    "margin": {
+      "2019": -0.31133177570093457,
+      "2020": -0.6652709359605912,
+      "2021": 0.13596153846153847,
+      "2022": 0.09474412171507607,
+      "2023": -0.410508862366862,
+      "2024": -0.3595706618962433,
+      "2025": -0.2696502444528018
+    },
+    "profile": {
+      "rd_staff": "776",
+      "total_emp": "1,250",
+      "rd_weight": "62.08%",
+      "foundry": "SMIC / HHGrace / TSMC / VIS",
+      "source_title": "2024 Full Year Financial Report",
+      "update_time": "2025-03-30"
+    },
+    "audit": [
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "rl": 1040.0,
+        "ni": 141.4,
+        "np": 13.5962,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688141",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "rl": 1446.0,
+        "ni": 137.0,
+        "np": 9.4744,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688141",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "rl": 1294.5131000000001,
+        "ni": -531.4091,
+        "np": -41.0509,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688141",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "rl": 1677.0,
+        "ni": -603.0,
+        "np": -35.9571,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688141",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688141",
+        "rl": 256.8,
+        "ni": -79.95,
+        "np": -31.1332
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688141",
+        "rl": 406.0,
+        "ni": -270.1,
+        "np": -66.5271
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688141",
+        "rl": 2659.0,
+        "ni": -717.0,
+        "np": -26.965
+      }
+    ]
+  },
+  "Injoinic": {
+    "name": "Injoinic",
+    "code": "688209",
+    "category": "Analog",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 346.147,
+      "2020": 386.83,
+      "2021": 780.718,
+      "2022": 862.315,
+      "2023": 1211.0,
+      "2024": 1425.0,
+      "2025": 1612.0
+    },
+    "net_income": {
+      "2019": 16.019,
+      "2020": 62.08,
+      "2021": 158.273,
+      "2022": 154.913,
+      "2023": 29.0,
+      "2024": 124.12910000000001,
+      "2025": 176.9931
+    },
+    "margin": {
+      "2019": 0.046278026387632995,
+      "2020": 0.16048393351084456,
+      "2021": 0.2027274893111213,
+      "2022": 0.1796478085154497,
+      "2023": 0.023947151114781174,
+      "2024": 0.0871081403508772,
+      "2025": 0.10979720843672457
+    },
+    "profile": {
+      "source_title": "2024 Full Year Financial Report",
+      "rd_staff": "185",
+      "total_emp": "310",
+      "rd_weight": "59.68%",
+      "foundry": "TSMC / SMIC / HHGrace",
+      "update_time": "2025-04-20"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688209",
+        "rl": 346.147,
+        "ni": 16.019,
+        "np": 4.6278
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688209",
+        "rl": 386.83,
+        "ni": 62.08,
+        "np": 16.0484
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688209",
+        "rl": 780.718,
+        "ni": 158.273,
+        "np": 20.2727
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688209",
+        "rl": 862.315,
+        "ni": 154.913,
+        "np": 17.9648
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688209",
+        "rl": 1211.0,
+        "ni": 29.0,
+        "np": 2.3947
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688209",
+        "rl": 1425.0,
+        "ni": 124.12910000000001,
+        "np": 8.7108
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688209",
+        "rl": 1612.0,
+        "ni": 176.9931,
+        "np": 10.9797
+      }
+    ]
+  },
+  "Novosense": {
+    "name": "Novosense",
+    "code": "688052",
+    "category": "Analog",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 92.0,
+      "2020": 241.0,
+      "2021": 858.0,
+      "2022": 1667.0,
+      "2023": 1448.0,
+      "2024": 2125.0,
+      "2025": 3652.0
+    },
+    "net_income": {
+      "2019": -9.0,
+      "2020": 51.0,
+      "2021": 224.0,
+      "2022": 251.0,
+      "2023": -305.0,
+      "2024": -437.0,
+      "2025": -261.0
+    },
+    "margin": {
+      "2019": -0.09782608695652174,
+      "2020": 0.21161825726141079,
+      "2021": 0.26107226107226106,
+      "2022": 0.15056988602279545,
+      "2023": -0.2106353591160221,
+      "2024": -0.2056470588235294,
+      "2025": -0.07146768893756845
+    },
+    "profile": {
+      "rd_staff": "588",
+      "total_emp": "1,228",
+      "rd_weight": "47.90%",
+      "foundry": "TSMC / HHGrace / SMIC / CRM",
+      "source_title": "2025 Half Year Financial Report",
+      "update_time": "2025-08-12"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "rl": 92.0,
+        "ni": -9.0,
+        "np": -9.7826,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688052",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "rl": 241.0,
+        "ni": 51.0,
+        "np": 21.1618,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688052",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "rl": 858.0,
+        "ni": 224.0,
+        "np": 26.1072,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688052",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "rl": 1667.0,
+        "ni": 251.0,
+        "np": 15.057,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688052",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "rl": 1448.0,
+        "ni": -305.0,
+        "np": -21.0635,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688052",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "rl": 2125.0,
+        "ni": -437.0,
+        "np": -20.5647,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688052",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688052",
+        "rl": 3652.0,
+        "ni": -261.0,
+        "np": -7.1468
+      }
+    ]
+  },
+  "Silan": {
+    "name": "Silan",
+    "code": "600460",
+    "category": "P&D",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 3086.0,
+      "2020": 4254.0,
+      "2021": 7156.0,
+      "2022": 8253.0,
+      "2023": 9301.0,
+      "2024": 11200.0,
+      "2025": 13090.0
+    },
+    "net_income": {
+      "2019": -107.3,
+      "2020": -22.64,
+      "2021": 1518.0,
+      "2022": 1047.5,
+      "2023": -36.0,
+      "2024": 220.0,
+      "2025": 433.0
+    },
+    "margin": {
+      "2019": -0.0347699287103046,
+      "2020": -0.005322049835448989,
+      "2021": 0.2121296813862493,
+      "2022": 0.12692354295407732,
+      "2023": -0.0038705515535963873,
+      "2024": 0.019642857142857142,
+      "2025": 0.03307868601986249
+    },
+    "profile": {
+      "rd_staff": "2,850",
+      "total_emp": "8,100",
+      "rd_weight": "35.18%",
+      "foundry": "IDM (6/8/12-inch fabs)",
+      "source_title": "2024 Full Year Financial Report",
+      "update_time": "2025-04-10"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "rl": 3086.0,
+        "ni": -107.3,
+        "np": -3.477,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600460",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "rl": 4254.0,
+        "ni": -22.64,
+        "np": -0.5322,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600460",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "rl": 7156.0,
+        "ni": 1518.0,
+        "np": 21.213,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600460",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "rl": 8253.0,
+        "ni": 1047.5,
+        "np": 12.6924,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600460",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "rl": 9301.0,
+        "ni": -36.0,
+        "np": -0.3871,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600460",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "rl": 11200.0,
+        "ni": 220.0,
+        "np": 1.9643,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600460",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600460",
+        "rl": 13090.0,
+        "ni": 433.0,
+        "np": 3.3079
+      }
+    ]
+  },
+  "CR Micro": {
+    "name": "CR Micro",
+    "code": "688396",
+    "category": "P&D",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 2270.4,
+      "2020": 2800.0,
+      "2021": 4181.0,
+      "2022": 4947.0,
+      "2023": 4669.6,
+      "2024": 5153.0,
+      "2025": 10900.0
+    },
+    "net_income": {
+      "2019": 401.0,
+      "2020": 964.0,
+      "2021": 2268.0,
+      "2022": 2617.0,
+      "2023": 1480.0,
+      "2024": 372.6,
+      "2025": 713.0
+    },
+    "margin": {
+      "2019": 0.17662085976039463,
+      "2020": 0.3442857142857143,
+      "2021": 0.5424539583831619,
+      "2022": 0.529007479280372,
+      "2023": 0.31694363542915877,
+      "2024": 0.0723073937512129,
+      "2025": 0.06541284403669725
+    },
+    "profile": {
+      "rd_staff": "1,200",
+      "total_emp": "5,800",
+      "rd_weight": "20.69%",
+      "foundry": "IDM (8/12-inch fabs)",
+      "source_title": "2024 Full Year Financial Report",
+      "update_time": "2025-04-30"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "rl": 2270.4,
+        "ni": 401.0,
+        "np": 17.6621,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688396",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "rl": 2800.0,
+        "ni": 964.0,
+        "np": 34.4286,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688396",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "rl": 4181.0,
+        "ni": 2268.0,
+        "np": 54.2454,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688396",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "rl": 4947.0,
+        "ni": 2617.0,
+        "np": 52.9007,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688396",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "rl": 4669.6,
+        "ni": 1480.0,
+        "np": 31.6944,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688396",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "rl": 5153.0,
+        "ni": 372.6,
+        "np": 7.2307,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688396",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688396",
+        "rl": 10900.0,
+        "ni": 713.0,
+        "np": 6.5413
+      }
+    ]
+  },
+  "Yangjie": {
+    "name": "Yangjie",
+    "code": "300373",
+    "category": "P&D",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 1993.0,
+      "2020": 2600.0,
+      "2021": 4382.0,
+      "2022": 5388.0,
+      "2023": 5370.0,
+      "2024": 5995.0,
+      "2025": 7230.0
+    },
+    "net_income": {
+      "2019": 220.4,
+      "2020": 382.0,
+      "2021": 825.5,
+      "2022": 1060.0,
+      "2023": 924.0,
+      "2024": 1002.0,
+      "2025": 1345.0
+    },
+    "margin": {
+      "2019": 0.11058705469141997,
+      "2020": 0.14692307692307693,
+      "2021": 0.18838429940666362,
+      "2022": 0.19673348181143283,
+      "2023": 0.17206703910614526,
+      "2024": 0.16713928273561302,
+      "2025": 0.18603042876901799
+    },
+    "profile": {
+      "source_title": "2024 Full Year Financial Report",
+      "rd_staff": "320",
+      "total_emp": "3,500",
+      "rd_weight": "9.14%",
+      "foundry": "IDM (4/6-inch fabs)",
+      "update_time": "2025-04-25"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300373",
+        "rl": 1993.0,
+        "ni": 220.4,
+        "np": 11.0587
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300373",
+        "rl": 2600.0,
+        "ni": 382.0,
+        "np": 14.6923
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300373",
+        "rl": 4382.0,
+        "ni": 825.5,
+        "np": 18.8384
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300373",
+        "rl": 5388.0,
+        "ni": 1060.0,
+        "np": 19.6733
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300373",
+        "rl": 5370.0,
+        "ni": 924.0,
+        "np": 17.2067
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300373",
+        "rl": 5995.0,
+        "ni": 1002.0,
+        "np": 16.7139
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300373",
+        "rl": 7230.0,
+        "ni": 1345.0,
+        "np": 18.603
+      }
+    ]
+  },
+  "Sino-Micro": {
+    "name": "Sino-Micro",
+    "code": "600360",
+    "category": "P&D",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 1636.0,
+      "2020": 1702.0,
+      "2021": 2189.0,
+      "2022": 1936.0,
+      "2023": 1720.0,
+      "2024": 2055.0,
+      "2025": 2236.3693
+    },
+    "net_income": {
+      "2019": 61.18,
+      "2020": 33.55,
+      "2021": 115.9,
+      "2022": 59.75,
+      "2023": 36.8694,
+      "2024": 128.0,
+      "2025": 191.8162
+    },
+    "margin": {
+      "2019": 0.0373960880195599,
+      "2020": 0.01971210340775558,
+      "2021": 0.052946550936500685,
+      "2022": 0.030862603305785125,
+      "2023": 0.021435697674418604,
+      "2024": 0.06228710462287105,
+      "2025": 0.08577125432727055
+    },
+    "profile": {
+      "source_title": "2024 Full Year Financial Report",
+      "rd_staff": "450",
+      "total_emp": "2,800",
+      "rd_weight": "16.07%",
+      "foundry": "IDM (4/6-inch fabs)",
+      "update_time": "2025-04-28"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600360",
+        "rl": 1636.0,
+        "ni": 61.18,
+        "np": 3.7396
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600360",
+        "rl": 1702.0,
+        "ni": 33.55,
+        "np": 1.9712
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600360",
+        "rl": 2189.0,
+        "ni": 115.9,
+        "np": 5.2947
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600360",
+        "rl": 1936.0,
+        "ni": 59.75,
+        "np": 3.0863
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600360",
+        "rl": 1720.0,
+        "ni": 36.8694,
+        "np": 2.1436
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600360",
+        "rl": 2055.0,
+        "ni": 128.0,
+        "np": 6.2287
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600360",
+        "rl": 2236.3693,
+        "ni": 191.8162,
+        "np": 8.5771
+      }
+    ]
+  },
+  "star power": {
+    "name": "star power",
+    "code": "603290",
+    "category": "P&D",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 776.0,
+      "2020": 960.0,
+      "2021": 1699.0,
+      "2022": 2694.0,
+      "2023": 3661.0,
+      "2024": 3385.0,
+      "2025": 4043.0
+    },
+    "net_income": {
+      "2019": 135.8,
+      "2020": 181.0,
+      "2021": 399.4,
+      "2022": 820.7,
+      "2023": 910.0,
+      "2024": 508.0,
+      "2025": 488.0
+    },
+    "margin": {
+      "2019": 0.17500000000000002,
+      "2020": 0.18854166666666666,
+      "2021": 0.23507945850500292,
+      "2022": 0.3046399406087602,
+      "2023": 0.248565965583174,
+      "2024": 0.1500738552437223,
+      "2025": 0.12070244867672521
+    },
+    "profile": {
+      "source_title": "2024 Full Year Financial Report",
+      "rd_staff": "980",
+      "total_emp": "2,600",
+      "rd_weight": "37.69%",
+      "foundry": "IDM + TSMC / SMIC (SiC)",
+      "update_time": "2025-04-20"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=603290",
+        "rl": 776.0,
+        "ni": 135.8,
+        "np": 17.5
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=603290",
+        "rl": 960.0,
+        "ni": 181.0,
+        "np": 18.8542
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=603290",
+        "rl": 1699.0,
+        "ni": 399.4,
+        "np": 23.5079
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=603290",
+        "rl": 2694.0,
+        "ni": 820.7,
+        "np": 30.464
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=603290",
+        "rl": 3661.0,
+        "ni": 910.0,
+        "np": 24.8566
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=603290",
+        "rl": 3385.0,
+        "ni": 508.0,
+        "np": 15.0074
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=603290",
+        "rl": 4043.0,
+        "ni": 488.0,
+        "np": 12.0702
+      }
+    ]
+  },
+  "NCE": {
+    "name": "NCE",
+    "code": "605111",
+    "category": "P&D",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 771.0,
+      "2020": 951.0,
+      "2021": 1502.0,
+      "2022": 1804.0,
+      "2023": 1426.01945,
+      "2024": 1828.0,
+      "2025": 1841.0255
+    },
+    "net_income": {
+      "2019": 98.21,
+      "2020": 139.4,
+      "2021": 416.4,
+      "2022": 434.6,
+      "2023": 323.1164,
+      "2024": 435.0,
+      "2025": 433.91679999999997
+    },
+    "margin": {
+      "2019": 0.1273800259403372,
+      "2020": 0.14658254468980023,
+      "2021": 0.2772303595206391,
+      "2022": 0.24090909090909093,
+      "2023": 0.22658625027870413,
+      "2024": 0.23796498905908095,
+      "2025": 0.2356929874138082
+    },
+    "profile": {
+      "source_title": "2024 Full Year Financial Report",
+      "rd_staff": "260",
+      "total_emp": "680",
+      "rd_weight": "38.24%",
+      "foundry": "SMIC / HHGrace",
+      "update_time": "2025-04-22"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=605111",
+        "rl": 771.0,
+        "ni": 98.21,
+        "np": 12.738
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=605111",
+        "rl": 951.0,
+        "ni": 139.4,
+        "np": 14.6583
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=605111",
+        "rl": 1502.0,
+        "ni": 416.4,
+        "np": 27.723
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=605111",
+        "rl": 1804.0,
+        "ni": 434.6,
+        "np": 24.0909
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=605111",
+        "rl": 1426.01945,
+        "ni": 323.1164,
+        "np": 22.6586
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=605111",
+        "rl": 1828.0,
+        "ni": 435.0,
+        "np": 23.7965
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=605111",
+        "rl": 1841.0255,
+        "ni": 433.91679999999997,
+        "np": 23.5693
+      }
+    ]
+  },
+  "JieJie Micro": {
+    "name": "JieJie Micro",
+    "code": "300623",
+    "category": "P&D",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 669.0,
+      "2020": 1001.0,
+      "2021": 1759.0,
+      "2022": 1811.0,
+      "2023": 2090.0,
+      "2024": 2817.3514,
+      "2025": 3402.6118
+    },
+    "net_income": {
+      "2019": 189.6,
+      "2020": 282.3,
+      "2021": 492.5,
+      "2022": 355.5,
+      "2023": 219.0,
+      "2024": 473.03829999999994,
+      "2025": 446.9957
+    },
+    "margin": {
+      "2020": 0.282017982017982,
+      "2021": 0.27998862990335416,
+      "2022": 0.19630038652678078,
+      "2023": 0.10478468899521531,
+      "2019": 0.28340807174887894,
+      "2024": 0.16790177469519774,
+      "2025": 0.13136840940832567
+    },
+    "profile": {
+      "source_title": "2024 Full Year Financial Report",
+      "rd_staff": "180",
+      "total_emp": "1,100",
+      "rd_weight": "16.36%",
+      "foundry": "IDM (4/6-inch fabs)",
+      "update_time": "2025-04-26"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300623",
+        "rl": 669.0,
+        "ni": 189.6,
+        "np": 28.3408
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300623",
+        "rl": 1001.0,
+        "ni": 282.3,
+        "np": 28.2018
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300623",
+        "rl": 1759.0,
+        "ni": 492.5,
+        "np": 27.9989
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300623",
+        "rl": 1811.0,
+        "ni": 355.5,
+        "np": 19.63
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300623",
+        "rl": 2090.0,
+        "ni": 219.0,
+        "np": 10.4785
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300623",
+        "rl": 2817.3514,
+        "ni": 473.03829999999994,
+        "np": 16.7902
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=300623",
+        "rl": 3402.6118,
+        "ni": 446.9957,
+        "np": 13.1368
+      }
+    ]
+  },
+  "Oriental": {
+    "name": "Oriental",
+    "code": "688261",
+    "category": "P&D",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 196.0,
+      "2020": 308.0,
+      "2021": 779.0,
+      "2022": 1113.0,
+      "2023": 972.0,
+      "2024": 1002.1653,
+      "2025": 1253.0
+    },
+    "net_income": {
+      "2020": 27.68,
+      "2021": 146.9,
+      "2022": 284.4,
+      "2023": 140.0,
+      "2019": 9.11,
+      "2024": 39.9298,
+      "2025": 44.0
+    },
+    "margin": {
+      "2019": 0.04647959183673469,
+      "2020": 0.08987012987012986,
+      "2021": 0.18857509627727856,
+      "2022": 0.2555256064690027,
+      "2023": 0.1440329218106996,
+      "2024": 0.03984352681139529,
+      "2025": 0.035115722266560255
+    },
+    "profile": {
+      "source_title": "2024 Full Year Financial Report",
+      "rd_staff": "210",
+      "total_emp": "420",
+      "rd_weight": "50.00%",
+      "foundry": "TSMC / HHGrace",
+      "update_time": "2025-04-18"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688261",
+        "rl": 196.0,
+        "ni": 9.11,
+        "np": 4.648
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688261",
+        "rl": 308.0,
+        "ni": 27.68,
+        "np": 8.987
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688261",
+        "rl": 779.0,
+        "ni": 146.9,
+        "np": 18.8575
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688261",
+        "rl": 1113.0,
+        "ni": 284.4,
+        "np": 25.5526
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688261",
+        "rl": 972.0,
+        "ni": 140.0,
+        "np": 14.4033
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688261",
+        "rl": 1002.1653,
+        "ni": 39.9298,
+        "np": 3.9844
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688261",
+        "rl": 1253.0,
+        "ni": 44.0,
+        "np": 3.5116
+      }
+    ]
+  },
+  "Macmicst": {
+    "name": "Macmicst",
+    "code": "688711",
+    "category": "P&D",
+    "currency": "M RMB",
+    "revenue": {
+      "2020": 330.905,
+      "2021": 550.115,
+      "2022": 925.615,
+      "2023": 1509.0,
+      "2019": 258.638,
+      "2024": 1329.0,
+      "2025": 1346.0
+    },
+    "net_income": {
+      "2019": 9.12,
+      "2020": 26.5,
+      "2021": 68.25,
+      "2022": 78.54,
+      "2023": 116.1948,
+      "2024": -14.0,
+      "2025": 17.0
+    },
+    "margin": {
+      "2019": 0.035261639820907985,
+      "2020": 0.08008340762454481,
+      "2021": 0.12406496823391472,
+      "2022": 0.08485169319857609,
+      "2023": 0.07700119284294235,
+      "2024": -0.010534236267870579,
+      "2025": 0.01263001485884101
+    },
+    "profile": {
+      "source_title": "2024 Full Year Financial Report",
+      "rd_staff": "1,450",
+      "total_emp": "4,200",
+      "rd_weight": "34.52%",
+      "foundry": "IDM (8/12-inch, IGBT/SiC)",
+      "update_time": "2025-04-29"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688711",
+        "rl": 258.638,
+        "ni": 9.12,
+        "np": 3.5262
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688711",
+        "rl": 330.905,
+        "ni": 26.5,
+        "np": 8.0083
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688711",
+        "rl": 550.115,
+        "ni": 68.25,
+        "np": 12.4065
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688711",
+        "rl": 925.615,
+        "ni": 78.54,
+        "np": 8.4852
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688711",
+        "rl": 1509.0,
+        "ni": 116.1948,
+        "np": 7.7001
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688711",
+        "rl": 1329.0,
+        "ni": -14.0,
+        "np": -1.0534
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688711",
+        "rl": 1346.0,
+        "ni": 17.0,
+        "np": 1.263
+      }
+    ]
+  },
+  "Sanan": {
+    "name": "Sanan",
+    "code": "600703",
+    "category": "P&D",
+    "currency": "M RMB",
+    "revenue": {
+      "2019": 7353.0,
+      "2020": 8349.0,
+      "2021": 12425.0,
+      "2022": 13059.0,
+      "2023": 14133.0,
+      "2024": 16233.0,
+      "2025": 18647.0
+    },
+    "net_income": {
+      "2019": 1298.0,
+      "2020": 1016.0,
+      "2021": 1313.0,
+      "2022": 685.0,
+      "2023": 370.0,
+      "2024": 253.0,
+      "2025": 1.0
+    },
+    "margin": {
+      "2019": 0.1765265877872977,
+      "2020": 0.12169122050544975,
+      "2021": 0.10567404426559356,
+      "2022": 0.05245424611379126,
+      "2023": 0.02617986273261162,
+      "2024": 0.015585535637282079,
+      "2025": 5.362792942564488e-05
+    },
+    "profile": {
+      "source_title": "2024 Full Year Financial Report",
+      "rd_staff": "3,200",
+      "total_emp": "18,000",
+      "rd_weight": "17.78%",
+      "foundry": "IDM (2/4/6-inch, LED/SiC/GaAs)",
+      "update_time": "2025-04-15"
+    },
+    "audit": [
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600703",
+        "rl": 7353.0,
+        "ni": 1298.0,
+        "np": 17.6527
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600703",
+        "rl": 8349.0,
+        "ni": 1016.0,
+        "np": 12.1691
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600703",
+        "rl": 12425.0,
+        "ni": 1313.0,
+        "np": 10.5674
+      },
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600703",
+        "rl": 13059.0,
+        "ni": 685.0,
+        "np": 5.2454
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600703",
+        "rl": 14133.0,
+        "ni": 370.0,
+        "np": 2.618
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600703",
+        "rl": 16233.0,
+        "ni": 253.0,
+        "np": 1.5586
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=600703",
+        "rl": 18647.0,
+        "ni": 1.0,
+        "np": 0.0054
+      }
+    ]
+  },
+  "UNT": {
+    "name": "UNT",
+    "code": "688469",
+    "category": "P&D",
+    "currency": "M RMB",
+    "revenue": {
+      "2026Q1": 2200,
+      "2019": 268.0,
+      "2020": 738.0,
+      "2021": 2012.0,
+      "2022": 4588.0,
+      "2023": 5323.0,
+      "2024": 6508.0,
+      "2025": 8182.0
+    },
+    "net_income": {
+      "2019": -772.0,
+      "2020": -1366.0,
+      "2021": -1407.0,
+      "2022": -1595.0,
+      "2023": -2261.0,
+      "2024": -962.0,
+      "2026Q1": -100,
+      "2025": -574.0
+    },
+    "margin": {
+      "2019": -2.8805970149253732,
+      "2020": -1.8509485094850948,
+      "2021": -0.6993041749502982,
+      "2022": -0.3476460331299041,
+      "2023": -0.42476047341724593,
+      "2024": -0.1478180700676091,
+      "2025": -0.07015399657785383
+    },
+    "profile": {
+      "rd_staff": "1,050",
+      "total_emp": "3,200",
+      "rd_weight": "32.8%",
+      "foundry": "IDM (8-inch fab)",
+      "source_title": "2026 Q1 Report",
+      "update_time": "2026-03-15"
+    },
+    "audit": [
+      {
+        "yr": 2022,
+        "period": "2022 FY",
+        "rl": 4588.0,
+        "ni": -1595.0,
+        "np": -34.7646,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688469",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2023,
+        "period": "2023 FY",
+        "rl": 5323.0,
+        "ni": -2261.0,
+        "np": -42.476,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688469",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2024,
+        "period": "2024 FY",
+        "rl": 6508.0,
+        "ni": -962.0,
+        "np": -14.7818,
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688469",
+        "src_name": "Annual Report"
+      },
+      {
+        "yr": 2026,
+        "period": "2026Q1",
+        "rl": 2200,
+        "ni": -100,
+        "np": -4.5,
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688469",
+        "src_name": "Q1 Report"
+      },
+      {
+        "yr": 2019,
+        "period": "2019 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688469",
+        "rl": 268.0,
+        "ni": -772.0,
+        "np": -288.0597
+      },
+      {
+        "yr": 2020,
+        "period": "2020 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688469",
+        "rl": 738.0,
+        "ni": -1366.0,
+        "np": -185.0949
+      },
+      {
+        "yr": 2021,
+        "period": "2021 FY",
+        "st": "actual",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688469",
+        "rl": 2012.0,
+        "ni": -1407.0,
+        "np": -69.9304
+      },
+      {
+        "yr": 2025,
+        "period": "2025 FY",
+        "st": "reported",
+        "src_url": "https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=688469",
+        "rl": 8182.0,
+        "ni": -574.0,
+        "np": -7.0154
+      }
+    ]
+  }
+}

@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>AnalogPD — Competitors Analysis</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --bg: #f0f4f8; --bg1: #ffffff; --bg2: #f7fafc; --bg3: #edf2f7;
+            --border: rgba(0, 0, 0, .08); --border2: rgba(0, 0, 0, .14);
+            --txt: #1a2636; --txt2: #4a6080; --txt3: #8aa0b8;
+            --accent: #1a6fc4; --gold: #d4960c; --green: #0d9f6e; --red: #d94040;
+            --shadow: 0 1px 4px rgba(0, 0, 0, .08); --card-bg: #ffffff;
+            --topbar-bg: #ffffff; --chart-grid: rgba(0, 0, 0, .06);
+            --axis-color: #8aa0b8; --tbl-head: #f0f4f8; --tbl-even: #f7fafc; --tbl-hover: #eef4fd;
+            --badge-a: #dbeeff; --badge-at: #1a4a80;
+        }
+
+        [data-theme="dark"] {
+            --bg: #070d17; --bg1: #0c1623; --bg2: #101e30; --bg3: #152538;
+            --border: rgba(255, 255, 255, .07); --border2: rgba(255, 255, 255, .13);
+            --txt: #c8dff0; --txt2: #6a8aaa; --txt3: #3a5570;
+            --accent: #1e7fd4; --gold: #f5c518; --green: #2dd4a0; --red: #f05a5a;
+            --card-bg: #0f2035; --topbar-bg: #0c1623; --chart-grid: rgba(255, 255, 255, .04);
+            --axis-color: #4a6a84; --tbl-head: #091828; --tbl-even: #0a1724; --tbl-hover: #112338;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0 }
+        body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+        .topbar { display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 46px; background: var(--topbar-bg); border-bottom: 1px solid var(--border); flex-shrink: 0; box-shadow: var(--shadow) }
+        .logo { font-size: 16px; font-weight: 800; color: var(--txt); letter-spacing: -.4px; }
+        .logo em { color: var(--accent); font-style: normal }
+        .divider { width: 1px; height: 20px; background: var(--border2) }
+        .icon-btn { padding: 5px 10px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg3); color: var(--txt); font-size: 12px; cursor: pointer; transition: all .15s; }
+        
+        .tab-group { display: flex; gap: 4px; margin-left: 10px }
+        .tab { padding: 6px 14px; border-radius: 6px; border: none; background: transparent; color: var(--txt2); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s }
+        .tab.on { background: var(--bg3); color: var(--txt); border: 1px solid var(--border); }
+
+        .layout { flex: 1; display: flex; overflow: hidden; width: 100% }
+        .main-col { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px }
+
+        .panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: var(--shadow) }
+        .panel-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 12px }
+        .panel-badge { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 4px; background: var(--gold); color: #fff; }
+        .panel-tag { font-size: 12px; font-weight: 600; color: var(--txt2) }
+
+        .chart-box { position: relative; height: 350px; width: 100% }
+        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px }
+
+        .sec-ttl { font-size: 11px; font-weight: 800; color: var(--txt3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px }
+
+        .dtbl-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border) }
+        .dtbl, .atbl { width: 100%; border-collapse: collapse; font-size: 11.5px }
+        .dtbl th, .atbl th { background: var(--tbl-head); color: var(--txt3); font-size: 10px; font-weight: 700; padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); position: sticky; top: 0 }
+        .dtbl td, .atbl td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--txt2) }
+        .dtbl tr:hover td, .atbl tr:hover td { background: var(--tbl-hover) }
+
+        .bdg { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700 }
+        .b-a { background: var(--badge-a); color: var(--badge-at) }
+        .b-rep { background: var(--green); color: #fff }
+        .src-a { color: var(--accent); text-decoration: none; font-size: 11px }
+        .src-a:hover { text-decoration: underline }
+
+        .yr-tabs2 { display: flex; gap: 4px }
+        .yt2 { padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border); background: transparent; cursor: pointer; font-size: 11px; font-weight: 600 }
+        .yt2.on { background: var(--accent); color: #fff; border-color: var(--accent) }
+
+        .at-ctrl { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px }
+        .at-search { background: var(--bg1); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; width: 200px; outline: none }
+
+        /* ── Company hover popup ── */
+        #co-popup {
+            position: fixed; display: none; z-index: 9999;
+            background: var(--card-bg); border: 1px solid var(--border2);
+            border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,.18);
+            padding: 12px 14px; min-width: 240px; max-width: 320px;
+            pointer-events: none; font-size: 11.5px;
+        }
+        #co-popup .pop-hdr { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+        #co-popup .pop-name { font-weight: 800; font-size: 13px; color: var(--txt); }
+        #co-popup .pop-code { font-size: 10px; color: var(--txt3); margin-left: 6px; }
+        #co-popup table { border-collapse: collapse; width: 100%; }
+        #co-popup td { padding: 2.5px 0; vertical-align: top; color: var(--txt2); }
+        #co-popup td:first-child { color: var(--txt3); width: 68px; white-space: nowrap; padding-right: 8px; }
+        #co-popup .pop-biz { color: var(--txt); font-size: 10.5px; max-height: 50px; overflow: hidden; }
+        #co-popup .pop-badge { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; background: var(--badge-a); color: var(--badge-at); }
+        .co-name-cell:hover strong { color: var(--accent); text-decoration: underline dotted; }
+
+        /* ── Filter bar ── */
+        .filter-bar {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+            padding: 10px 16px; background: var(--card-bg);
+            border: 1px solid var(--border); border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+        .filter-select {
+            background: var(--bg1); border: 1px solid var(--border);
+            border-radius: 7px; padding: 5px 10px; font-size: 11.5px;
+            color: var(--txt); outline: none; cursor: pointer;
+        }
+        .filter-select:hover { border-color: var(--accent); }
+        .filter-reset {
+            padding: 5px 10px; border-radius: 7px;
+            border: 1px solid var(--border); background: transparent;
+            color: var(--txt2); font-size: 11px; cursor: pointer;
+        }
+        .filter-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* ── Y1 axis range selector ── */
+        .y1-group { display:flex; align-items:center; gap:6px; margin-left:4px; padding-left:10px; border-left:1px solid var(--border2); }
+        .y1-label { font-size:11px; color:var(--txt3); white-space:nowrap; }
+        .y1-btns  { display:flex; border:1px solid var(--border2); border-radius:7px; overflow:hidden; }
+        .y1-btn   { padding:4px 9px; font-size:10.5px; background:var(--bg1); color:var(--txt2);
+                    border:none; border-right:1px solid var(--border2); cursor:pointer; transition:background .15s; }
+        .y1-btn:last-child { border-right:none; }
+        .y1-btn:hover  { background:var(--bg3); color:var(--accent); }
+        .y1-btn.active { background:var(--accent); color:#fff; font-weight:700; }
+        .y1-hint { font-size:10px; color:var(--txt3); margin-left:4px; white-space:nowrap; }
+        /* ── Chart sort buttons ── */
+        .sort-group { display:flex; align-items:center; gap:6px; margin-left:auto; padding-left:12px; border-left:1px solid var(--border2); }
+        .sort-label { font-size:10px; color:var(--txt3); white-space:nowrap; }
+        .sort-btns  { display:flex; border:1px solid var(--border2); border-radius:7px; overflow:hidden; }
+        .sort-btn   { padding:3px 8px; font-size:10px; background:var(--bg1); color:var(--txt2);
+                      border:none; border-right:1px solid var(--border2); cursor:pointer; transition:background .15s; white-space:nowrap; }
+        .sort-btn:last-child { border-right:none; }
+        .sort-btn:hover  { background:var(--bg3); color:var(--accent); }
+        .sort-btn.active { background:var(--accent); color:#fff; font-weight:700; }
+        /* ── Company chip selector ── */
+        .co-chips-wrap { margin:8px 0 10px; }
+        .co-chips-hdr  { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+        .co-chips-hdr span { font-size:10px; color:var(--txt3); }
+        .co-chips-hdr a { font-size:10px; color:var(--accent); cursor:pointer; }
+        .co-chips-hdr a:hover { text-decoration:underline; }
+        .co-chips { display:flex; flex-wrap:wrap; gap:5px; }
+        .co-chip  { padding:2px 9px; border-radius:11px; font-size:10px; cursor:pointer;
+                    border:1px solid var(--border2); background:var(--accent);
+                    color:#fff; transition:all .15s; user-select:none; }
+        .co-chip:hover { opacity:.8; }
+        .co-chip.off { background:var(--bg3); color:var(--txt3); border-color:var(--border);
+                       text-decoration:line-through; }
+        /* ── Dashboard footer ── */
+        .dash-footer { text-align:center; font-size:10.5px; color:var(--txt3);
+                       padding:18px 0 14px; border-top:1px solid var(--border); margin-top:16px; }
+
+        /* ── Sortable table headers ── */
+        .dtbl th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+        .dtbl th.sortable:hover { color: var(--accent); }
+        .dtbl th.sortable::after { content: ' ⇅'; opacity: .35; font-size: 9px; }
+        .dtbl th.sort-asc::after  { content: ' ▲'; opacity: 1; color: var(--accent); }
+        .dtbl th.sort-desc::after { content: ' ▼'; opacity: 1; color: var(--accent); }
+
+        /* ── Quarterly & Projections tab ── */
+        .q-est-row td { background: rgba(212, 150, 12, 0.07) !important; font-style: italic; }
+        [data-theme="dark"] .q-est-row td { background: rgba(212, 150, 12, 0.13) !important; }
+        .q-est-val  { color: var(--gold); }
+        .q-act-val  { color: var(--green); font-weight: 700; }
+        .q-nil      { color: var(--txt3); opacity: .5; font-style: normal; }
+        .q-badge    { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 9px; font-weight: 700; margin-left: 4px; vertical-align: middle; white-space: nowrap; }
+        .q-badge-est { background: rgba(212,150,12,0.2); color: var(--gold); }
+        .q-badge-act { background: rgba(13,159,110,0.15); color: var(--green); }
+        .q-yr-btns  { display: flex; border: 1px solid var(--border2); border-radius: 7px; overflow: hidden; }
+        .q-yr-btn   { padding: 4px 12px; font-size: 11px; font-weight: 600; background: var(--bg1); color: var(--txt2);
+                      border: none; border-right: 1px solid var(--border2); cursor: pointer; transition: background .15s; }
+        .q-yr-btn:last-child { border-right: none; }
+        .q-yr-btn:hover  { background: var(--bg3); color: var(--accent); }
+        .q-yr-btn.active { background: var(--accent); color: #fff; }
+        .qtr-tbl td.num { text-align: right; font-variant-numeric: tabular-nums; padding-right: 14px; }
+        .qtr-tbl th.num { text-align: right; padding-right: 14px; }
+    </style>
+</head>
+
+<body data-theme="light">
+    <div class="topbar">
+        <div class="logo">Analog<em>PD</em> — Competitors Analysis</div>
+        <div class="divider"></div>
+        <button class="icon-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+        <button class="icon-btn" id="langBtn" onclick="toggleLang()">EN</button>
+        <div class="divider"></div>
+        <div class="tab-group">
+            <button class="tab" id="btn-tracker" onclick="switchTab('tracker',this)" data-i18n="tab_tracker" style="display:none">2026 实时追踪</button>
+            <button class="tab on" id="btn-trends" onclick="switchTab('trends',this)" data-i18n="tab_trends">19-26 趋势分析</button>
+            <button class="tab" id="btn-quarterly" onclick="switchTab('quarterly',this)">季度 &amp; 预测</button>
+        </div>
+        <button class="icon-btn" onclick="exportExcel()" data-i18n="export_btn"
+            style="margin-left:auto;background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;padding:5px 14px">
+            ⬇ 导出 Excel
+        </button>
+    </div>
+
+    <!-- Company hover popup -->
+    <div id="co-popup">
+        <div class="pop-hdr">
+            <span class="pop-name" id="pop-name">—</span>
+            <span class="pop-code" id="pop-code"></span>
+        </div>
+        <table id="pop-table"></table>
+    </div>
+
+    <div class="layout">
+        <!-- ═══ 2026 TRACKER PANE (hidden) ═══ -->
+        <div id="pane-tracker" class="main-col" style="display:none">
+            <div class="charts-row">
+                <div class="panel">
+                    <div class="panel-hdr">
+                        <span class="panel-badge" style="background:var(--accent)">ANALOG</span>
+                        <span class="panel-tag" data-i18n="tracker_ttl">2026 Monthly Revenue Ramp</span>
+                    </div>
+                    <div class="chart-box" style="height:320px"><canvas id="c2026Analog"></canvas></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-hdr">
+                        <span class="panel-badge" style="background:var(--gold)">P&D</span>
+                        <span class="panel-tag" data-i18n="tracker_ttl">2026 Monthly Revenue Ramp</span>
+                    </div>
+                    <div class="chart-box" style="height:320px"><canvas id="c2026PD"></canvas></div>
+                </div>
+            </div>
+
+            <div id="tracker-cards-container">
+                <div class="sec-ttl">Analog — Real-time Tracker</div>
+                <div id="cards-analog" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px;margin-bottom:20px"></div>
+                
+                <div class="sec-ttl">P&D / Discrete — Real-time Tracker</div>
+                <div id="cards-pd" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px"></div>
+            </div>
+        </div>
+
+        <!-- ═══ TRENDS PANE ═══ -->
+        <div id="pane-trends" class="main-col">
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <input type="text" id="searchInput" class="at-search" placeholder="🔍 Search company / code…" oninput="applyFilters()" style="width:180px">
+                <select id="sectorFilter" class="filter-select" onchange="applyFilters()">
+                    <option value="all">All Sectors</option>
+                    <option value="Analog">Analog</option>
+                    <option value="P&D">P&D / Discrete</option>
+                </select>
+                <select id="marketFilter" class="filter-select" onchange="applyFilters()">
+                    <option value="all">All Markets</option>
+                    <option value="RMB">A股 (RMB)</option>
+                    <option value="TW">Taiwan (TWD)</option>
+                    <option value="USD">US (USD)</option>
+                </select>
+                <select id="growthFilter" class="filter-select" onchange="applyFilters()">
+                    <option value="all">All YoY</option>
+                    <option value="high">&gt; +20%</option>
+                    <option value="mid">0 ~ +20%</option>
+                    <option value="neg">&lt; 0%</option>
+                </select>
+                <button class="filter-reset" onclick="resetFilters()">↺ Reset</button>
+                <!-- Y1 axis range selector -->
+                <div class="y1-group">
+                    <span class="y1-label" data-i18n="y1_label">NI% 轴:</span>
+                    <div class="y1-btns">
+                        <button class="y1-btn"        data-mode="auto" onclick="setY1Mode('auto')" data-i18n="y1_auto">适配</button>
+                        <button class="y1-btn"        data-mode="std"  onclick="setY1Mode('std')"  data-i18n="y1_std">-50~80%</button>
+                        <button class="y1-btn active" data-mode="full" onclick="setY1Mode('full')" data-i18n="y1_full">完整</button>
+                    </div>
+                    <span class="y1-hint" data-i18n="y1_scroll_hint">🖱 图表内滚轮微调</span>
+                </div>
+            </div>
+            <div id="trends-loader" style="color:var(--txt3);text-align:center;padding:40px;font-size:14px;display:none">⏳ 加载数据中…</div>
+            <div id="trends-error"  style="color:var(--red);text-align:center;padding:40px;display:none">❌ 数据加载失败，请检查 data.json / yjbb_annual.json</div>
+            <div class="panel">
+                <div class="panel-hdr">
+                    <span class="panel-badge" style="background:var(--accent)">ANALOG</span>
+                    <span class="panel-tag" data-i18n="analog_chart_ttl">2019-2025 营收历史 (M USD) & 净利润率 (%)</span>
+                    <div class="sort-group">
+                        <span class="sort-label">排序:</span>
+                        <div class="sort-btns">
+                            <button class="sort-btn active" data-cat="Analog" data-year="2025" data-dir="desc" onclick="setChartSort('Analog',2025,'desc')">2025 ▼</button>
+                            <button class="sort-btn"        data-cat="Analog" data-year="2025" data-dir="asc"  onclick="setChartSort('Analog',2025,'asc')">2025 ▲</button>
+                            <button class="sort-btn"        data-cat="Analog" data-year="2024" data-dir="desc" onclick="setChartSort('Analog',2024,'desc')">2024 ▼</button>
+                            <button class="sort-btn"        data-cat="Analog" data-year="2024" data-dir="asc"  onclick="setChartSort('Analog',2024,'asc')">2024 ▲</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="coChipsA" class="co-chips-wrap"></div>
+                <div class="chart-box" style="height:540px"><canvas id="cA"></canvas></div>
+                <div id="analogStats" style="font-size:11px;color:var(--txt2);margin-top:8px;font-weight:700"></div>
+            </div>
+            <div class="panel">
+                <div class="panel-hdr">
+                    <span class="panel-badge" style="background:var(--gold)">P&D / DISCRETE</span>
+                    <span class="panel-tag" data-i18n="pd_chart_ttl">2019-2025 营收历史 (M USD) & 净利润率 (%)</span>
+                    <div class="sort-group">
+                        <span class="sort-label">排序:</span>
+                        <div class="sort-btns">
+                            <button class="sort-btn active" data-cat="P&amp;D" data-year="2025" data-dir="desc" onclick="setChartSort('P&amp;D',2025,'desc')">2025 ▼</button>
+                            <button class="sort-btn"        data-cat="P&amp;D" data-year="2025" data-dir="asc"  onclick="setChartSort('P&amp;D',2025,'asc')">2025 ▲</button>
+                            <button class="sort-btn"        data-cat="P&amp;D" data-year="2024" data-dir="desc" onclick="setChartSort('P&amp;D',2024,'desc')">2024 ▼</button>
+                            <button class="sort-btn"        data-cat="P&amp;D" data-year="2024" data-dir="asc"  onclick="setChartSort('P&amp;D',2024,'asc')">2024 ▲</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="coChipsP" class="co-chips-wrap"></div>
+                <div class="chart-box" style="height:540px"><canvas id="cP"></canvas></div>
+                <div id="pdStats" style="font-size:11px;color:var(--txt2);margin-top:8px;font-weight:700"></div>
+            </div>
+            
+            <div class="panel">
+                <div class="sec-ttl" data-i18n="analog_profile_ttl">Analog — 公司档案 & 数据来源</div>
+                <div class="dtbl-wrap">
+                    <table class="dtbl">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-col="0" data-i18n="th_company"  onclick="sortTable(this)">公司</th>
+                                <th class="sortable" data-col="1" data-i18n="th_rd_staff"  onclick="sortTable(this)">R&D员工</th>
+                                <th class="sortable" data-col="2" data-i18n="th_total_emp" onclick="sortTable(this)">员工总数</th>
+                                <th class="sortable" data-col="3" data-i18n="th_rd_weight" onclick="sortTable(this)">R&D占比</th>
+                                <th class="sortable" data-col="4" data-i18n="th_foundry"   onclick="sortTable(this)">晶圆厂/制造</th>
+                                <th class="sortable" data-col="5" data-i18n="th_yoy_cagr"  onclick="sortTable(this)">Revenue YoY / CAGR</th>
+                                <th class="sortable" data-col="6" data-i18n="th_source"    onclick="sortTable(this)">主要来源</th>
+                                <th class="sortable" data-col="7" data-i18n="th_update"    onclick="sortTable(this)">更新时间</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analogProfileBody"></tbody>
+                    </table>
+                </div>
+                <p style="font-size:10px;color:var(--txt3);margin-top:10px" data-i18n="silergy_note">* Silergy: 合并报表营收（台湾上市 6415）。来源: WSJ / 公司年报</p>
+            </div>
+
+            <div class="panel" style="margin-top:10px">
+                <div class="sec-ttl" data-i18n="pd_profile_ttl">P&D — 公司档案 & 数据来源</div>
+                <div class="dtbl-wrap">
+                    <table class="dtbl">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-col="0" data-i18n="th_company"  onclick="sortTable(this)">公司</th>
+                                <th class="sortable" data-col="1" data-i18n="th_rd_staff"  onclick="sortTable(this)">R&D员工</th>
+                                <th class="sortable" data-col="2" data-i18n="th_total_emp" onclick="sortTable(this)">员工总数</th>
+                                <th class="sortable" data-col="3" data-i18n="th_rd_weight" onclick="sortTable(this)">R&D占比</th>
+                                <th class="sortable" data-col="4" data-i18n="th_foundry"   onclick="sortTable(this)">晶圆厂/制造</th>
+                                <th class="sortable" data-col="5" data-i18n="th_yoy_cagr"  onclick="sortTable(this)">Revenue YoY / CAGR</th>
+                                <th class="sortable" data-col="6" data-i18n="th_source"    onclick="sortTable(this)">主要来源</th>
+                                <th class="sortable" data-col="7" data-i18n="th_update"    onclick="sortTable(this)">更新时间</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pdProfileBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ QUARTERLY & PROJECTIONS PANE ═══ -->
+        <div id="pane-quarterly" class="main-col" style="display:none">
+            <div class="charts-row">
+                <div class="panel">
+                    <div class="panel-hdr">
+                        <span class="panel-badge" style="background:var(--accent)">ANALOG</span>
+                        <span class="panel-tag">季度营收对比 2024–2026 (M USD)</span>
+                        <span style="font-size:10px;color:var(--txt3);margin-left:8px">实色柱=实际 &nbsp;|&nbsp; 斜纹柱=预测</span>
+                    </div>
+                    <div class="chart-box" style="height:380px"><canvas id="cQAnalog"></canvas></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-hdr">
+                        <span class="panel-badge" style="background:var(--gold)">P&amp;D</span>
+                        <span class="panel-tag">季度营收对比 2024–2026 (M USD)</span>
+                        <span style="font-size:10px;color:var(--txt3);margin-left:8px">实色柱=实际 &nbsp;|&nbsp; 斜纹柱=预测</span>
+                    </div>
+                    <div class="chart-box" style="height:380px"><canvas id="cQPD"></canvas></div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-hdr" style="flex-wrap:wrap;gap:10px">
+                    <span class="panel-badge" style="background:var(--accent)">Q</span>
+                    <span class="panel-tag">季度营收 &amp; 全年预测 (M USD)</span>
+                    <div style="display:flex;align-items:center;gap:6px">
+                        <span style="font-size:10px;color:var(--txt3)">年份:</span>
+                        <div class="q-yr-btns">
+                            <button class="q-yr-btn active" id="qyrBtn2025" onclick="setQtrYear(2025,this)">2025</button>
+                            <button class="q-yr-btn"        id="qyrBtn2026" onclick="setQtrYear(2026,this)">2026</button>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px">
+                        <span style="font-size:10px;color:var(--txt3)">类别:</span>
+                        <select id="qtrCatFilter" class="filter-select" onchange="renderQuarterlyProjections()" style="padding:3px 8px;font-size:11px">
+                            <option value="all">All</option>
+                            <option value="Analog">Analog</option>
+                            <option value="P&amp;D">P&amp;D</option>
+                        </select>
+                    </div>
+                    <div style="margin-left:auto;font-size:10px;color:var(--txt3);display:flex;align-items:center;gap:8px">
+                        <span><span style="display:inline-block;width:10px;height:10px;background:rgba(212,150,12,0.15);border:1px solid var(--gold);border-radius:2px;vertical-align:middle;margin-right:3px"></span>Estimated</span>
+                        <span><span style="display:inline-block;width:10px;height:10px;background:rgba(13,159,110,0.12);border:1px solid var(--green);border-radius:2px;vertical-align:middle;margin-right:3px"></span>Actual</span>
+                    </div>
+                </div>
+                <div class="dtbl-wrap" style="contain:content">
+                    <table class="dtbl qtr-tbl">
+                        <thead>
+                            <tr>
+                                <th style="min-width:130px">公司</th>
+                                <th>类别</th>
+                                <th class="num">Q1 (M USD)</th>
+                                <th class="num">Q2 (M USD)</th>
+                                <th class="num">Q3 (M USD)</th>
+                                <th class="num">Q4 / FY</th>
+                                <th class="num" style="min-width:150px">全年预测 (M USD) ▼</th>
+                                <th>依据</th>
+                            </tr>
+                        </thead>
+                        <tbody id="qtrBody"></tbody>
+                    </table>
+                </div>
+                <p style="font-size:10px;color:var(--txt3);margin-top:8px">
+                    * 预测逻辑: Q1 only → Q1×4 &nbsp;|&nbsp; H1 (Q1+Q2) → H1×2 &nbsp;|&nbsp; 3Q → H1+(Q3×2) &nbsp;|&nbsp; Full Year → Actual. All values in M USD after FX conversion.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const I18N = {
+            zh: {
+                // tabs
+                tab_tracker: '2026 实时追踪', tab_trends: '19-26 趋势分析', tab_audit: '数据溯源',
+                // tracker
+                tracker_ttl: '2026 综合对比图 (月度营收爬升)', cards_ttl: '企业追踪卡卡片',
+                latest_period: '最新披露', latest_val: '营收', source_link: '查看来源',
+                status_rep: '已披露', status_est: '估算', status_actual: '实际',
+                // export button
+                export_btn: '⬇ 导出 Excel',
+                // chart panel titles
+                analog_chart_ttl: '2019-2025 营收历史 (M USD) & 净利润率 (%)',
+                pd_chart_ttl:     '2019-2025 营收历史 (M USD) & 净利润率 (%)',
+                // section titles
+                analog_profile_ttl: 'Analog — 公司档案 & 数据来源',
+                pd_profile_ttl:     'P&D — 公司档案 & 数据来源',
+                // silergy footnote
+                silergy_note: '* Silergy: 合并报表营收（台湾上市 6415）。来源: WSJ / 公司年报',
+                // table headers
+                th_company: '公司', th_rd_staff: 'R&D员工', th_total_emp: '员工总数',
+                th_rd_weight: 'R&D占比', th_foundry: '晶圆厂/制造', th_yoy_cagr: 'Revenue YoY / CAGR',
+                th_source: '主要来源', th_update: '更新时间',
+                // stats bar
+                stats_label: (n) => `${n}家样本公司营收合计`,
+                stats_partial: '部分披露',
+                stats_src: (n, total) => `数据来源: AkShare yjbb · 2025年报 ${n}/${total} 已披露`,
+                // chart axis
+                axis_rev: '营收 (M USD)', axis_margin: '净利润率 (%)',
+                // y1 range selector
+                y1_label: 'NI% 轴:', y1_auto: '适配', y1_std: '-50~80%', y1_full: '完整', y1_scroll_hint: '🖱 图表内滚轮微调',
+                // source titles
+                src_disclosed: (date) => `AkShare yjbb · 年报已披露 ${date}`,
+                src_prev: (date) => `AkShare yjbb · 2024年报 ${date}`,
+                src_view_title: '点击查看来源',
+                // popup fields
+                pop_fields: [
+                    ['注册全称', '注册全称'], ['企业属性', '企业属性'], ['实控人', '实控人'],
+                    ['董事长', '董事长'], ['高管人数', '高管人数'], ['发行价(元)', '发行价(元)'],
+                    ['主营业务', '主营业务'], ['核心简介', '核心简介'],
+                ],
+            },
+            en: {
+                // tabs
+                tab_tracker: '2026 Tracker', tab_trends: 'Trend Analysis',
+                // tracker
+                tracker_ttl: '2026 Combined Revenue (Monthly)', cards_ttl: 'Company Dynamic Cards',
+                latest_period: 'Latest Period', latest_val: 'Revenue', source_link: 'Source',
+                status_rep: 'Reported', status_est: 'Est', status_actual: 'Actual',
+                // export button
+                export_btn: '⬇ Export Excel',
+                // chart panel titles
+                analog_chart_ttl: '2019-2025 Revenue History (M USD) & Margin (%)',
+                pd_chart_ttl:     '2019-2025 Revenue History (M USD) & Margin (%)',
+                // section titles
+                analog_profile_ttl: 'Analog — Company Profile & Data Source',
+                pd_profile_ttl:     'P&D — Company Profile & Data Source',
+                // silergy footnote
+                silergy_note: '* Silergy: Consolidated group revenue (Taiwan listed 6415). Source: WSJ / Company Reports',
+                // table headers
+                th_company: 'Company', th_rd_staff: 'R&D Staff', th_total_emp: 'Total Employees',
+                th_rd_weight: 'R&D Weight', th_foundry: 'Foundry / Fab', th_yoy_cagr: 'Revenue YoY / CAGR',
+                th_source: 'Primary Source', th_update: 'Update Time',
+                // stats bar
+                stats_label: (n) => `${n}-Company Revenue Total`,
+                stats_partial: 'Partial Disclosure',
+                stats_src: (n, total) => `Source: AkShare yjbb · 2025 Annual ${n}/${total} Disclosed`,
+                // chart axis
+                axis_rev: 'Revenue (M USD)', axis_margin: 'Margin (%)',
+                // y1 range selector
+                y1_label: 'Margin Axis:', y1_auto: 'Auto', y1_std: '-50~80%', y1_full: 'Full', y1_scroll_hint: '🖱 Scroll to zoom',
+                // source titles
+                src_disclosed: (date) => `AkShare yjbb · Annual Disclosed ${date}`,
+                src_prev: (date) => `AkShare yjbb · 2024 Annual ${date}`,
+                src_view_title: 'Click to view source',
+                // popup fields
+                pop_fields: [
+                    ['Legal Name', '注册全称'], ['Entity Type', '企业属性'], ['Controller', '实控人'],
+                    ['Chairman', '董事长'], ['Exec Count', '高管人数'], ['IPO Price(¥)', '发行价(元)'],
+                    ['Core Business', '主营业务'], ['Overview', '核心简介'],
+                ],
+            }
+        };
+
+        // ── Persist theme across reloads (O4) ────────────────────────────────
+        const _savedTheme = localStorage.getItem('semi-theme') || 'light';
+        document.body.setAttribute('data-theme', _savedTheme);
+
+        let lang = 'zh', theme = _savedTheme, aYear = 2026, rawData = {};
+        let yjbbQtrData = {};   // {code: {quarters: {"2025Q1": {rev_mrm, ni_mrm, margin, announced}, ...}}}
+        const BC = { 2019: '#94bedc', 2020: '#e91e8c', 2021: '#00bcd4', 2022: '#fdd835', 2023: '#43a047', 2024: '#3949ab', 2025: '#607d8b', 2026: '#1a6fc4' };
+        // sync button icon with persisted theme
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('themeBtn');
+            if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+        });
+
+        // FX conversion: local currency → USD
+        // RMB: ÷7.2 | TWD / TW: ÷29.59 | USD: ÷1
+        // Note: Silergy is stored as "M TW" (not "M TWD"), so we check includes('TW')
+        // which safely matches both "M TW" and "M TWD" but not "M RMB" or "M USD".
+        function fxRate(currency) {
+            if (!currency) return 1.0;
+            if (currency.includes('RMB')) return 7.2;
+            if (currency.includes('TW'))  return 29.59;  // covers "M TW" and "M TWD"
+            return 1.0;  // USD or unknown
+        }
+
+        // O5: lazy render flags — each pane renders only once until data changes
+        const _rendered = { tracker: false, trends: false, quarterly: false };
+
+        async function initDashboard() {
+            document.getElementById('trends-loader').style.display = 'block';
+            try {
+                const v = Date.now();
+                const [rawRes, yjbbRes, profRes, qtrRes] = await Promise.all([
+                    fetch('data.json?v=' + v),
+                    fetch('yjbb_annual.json?v=' + v),
+                    fetch('profiles_xq.json?v=' + v).catch(() => null),
+                    fetch('yjbb_quarterly.json?v=' + v).catch(() => null)
+                ]);
+                rawData  = await rawRes.json();
+                const yjbbRaw = await yjbbRes.json();
+                yjbbData = yjbbRaw.companies || {};
+                if (profRes && profRes.ok) {
+                    const profRaw = await profRes.json();
+                    profilesXQ = profRaw.profiles || {};
+                }
+                if (qtrRes && qtrRes.ok) {
+                    const qtrRaw = await qtrRes.json();
+                    yjbbQtrData = qtrRaw.companies || {};
+                }
+                document.getElementById('trends-loader').style.display = 'none';
+                _rendered.tracker = false;
+                _rendered.trends  = false;
+                renderTrends();
+            } catch (e) {
+                console.error('Load failed:', e);
+                document.getElementById('trends-loader').style.display = 'none';
+                document.getElementById('trends-error').style.display  = 'block';
+            }
+        }
+
+        function switchTab(id, btn) {
+            ['tracker', 'trends', 'quarterly'].forEach(t => document.getElementById('pane-' + t).style.display = t === id ? 'flex' : 'none');
+            document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+            btn.classList.add('on');
+            // O5: only render if not yet rendered (lazy, no double-render)
+            if (id === 'trends'    && !_rendered.trends)    renderTrends();
+            if (id === 'tracker'   && !_rendered.tracker)   render2026Tracker();
+            if (id === 'quarterly' && !_rendered.quarterly) renderQuarterlyProjections();
+        }
+
+        function toggleTheme() {
+            theme = theme === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', theme);
+            document.getElementById('themeBtn').textContent = theme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('semi-theme', theme);  // O4: persist across reloads
+        }
+
+        function toggleLang() {
+            lang = lang === 'zh' ? 'en' : 'zh';
+            document.getElementById('langBtn').textContent = lang === 'zh' ? 'EN' : '中';
+            const T = I18N[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (typeof T[key] === 'string') el.textContent = T[key];
+            });
+            _rendered.trends = false; renderTrends();
+        }
+
+        let chartTrackerAnalog, chartTrackerPD, chartA, chartP;
+        let yjbbData = {};   // {code: {name, years: {yr: {rev_mrm, ni_mrm, margin, disclosed, announced}}}}
+        let profilesXQ = {}; // {code: {注册全称, 企业属性, 实控人, 董事长, 高管人数, 发行价(元), 主营业务, 核心简介, ...}}
+
+        // ── Chart sort state: { year: 2024|2025, dir: 'desc'|'asc' } per category ──
+        const chartSort = {
+            'Analog': { year: 2025, dir: 'desc' },
+            'P&D':    { year: 2025, dir: 'desc' }
+        };
+
+        function setChartSort(cat, year, dir) {
+            chartSort[cat] = { year, dir };
+            // Sync active class on all sort buttons for this category
+            document.querySelectorAll('.sort-btn').forEach(b => {
+                if (b.dataset.cat !== cat) return;
+                b.classList.toggle('active',
+                    parseInt(b.dataset.year) === year && b.dataset.dir === dir);
+            });
+            _rendered.trends = false;
+            renderTrends();
+        }
+
+        // ── Sort companies by revenue for a given category ─────────────────────
+        // 2025 rule (default): disclosed 2025 first (desc), undisclosed fall back
+        //   to 2024; direction flips the signed comparison but nulls always sink.
+        // 2024 rule: plain numeric sort by 2024 revenue, 0 if missing.
+        function sortByRev(companies, cat) {
+            const s   = (cat && chartSort[cat]) ? chartSort[cat] : { year: 2025, dir: 'desc' };
+            const yr  = s.year;
+            const dir = s.dir === 'desc' ? -1 : 1;
+            return companies.sort((a, b) => {
+                const ra = getRevUSD(a, yr);
+                const rb = getRevUSD(b, yr);
+                if (yr === 2025) {
+                    // Preserve original rule: undisclosed (null) always sink to bottom
+                    if (ra !== null && rb !== null) return (rb - ra) * dir;
+                    if (ra !== null) return -1;   // a has value → rises
+                    if (rb !== null) return  1;   // b has value → rises
+                    // Both null: tiebreak on 2024
+                    return ((getRevUSD(b, 2024) || 0) - (getRevUSD(a, 2024) || 0)) * dir;
+                }
+                // 2024 sort: simple comparison; treat missing as 0
+                return ((rb || 0) - (ra || 0)) * dir;
+            });
+        }
+
+        // ── Unified data accessors (yjbb for A-share; data.json for Silergy/MPWR/NVTS) ──
+        function getRevUSD(c, yr) {
+            const yd = yjbbData[c.code];
+            if (yd) {
+                const d = yd.years[String(yr)];
+                return (d && d.rev_mrm !== null) ? d.rev_mrm / 7.2 : null;
+            }
+            const v = c.revenue[String(yr)];
+            return (v && v > 0) ? v / fxRate(c.currency) : null;
+        }
+        function getMarginPct(c, yr) {
+            const yd = yjbbData[c.code];
+            if (yd) {
+                const d = yd.years[String(yr)];
+                return (d && d.margin !== null) ? d.margin * 100 : null;
+            }
+            const m = c.margin[String(yr)];
+            return (m !== undefined && m !== null) ? m * 100 : null;
+        }
+
+        function render2026Tracker() {
+            const t = I18N[lang];
+            const cos = Object.values(rawData);
+            
+            // 1. Dynamic Period Detection for 2026 (Rev and Audit)
+            const periodSet = new Set();
+            cos.forEach(c => {
+                Object.keys(c.revenue).forEach(p => { if (p.startsWith('2026')) periodSet.add(p); });
+                (c.audit || []).forEach(a => { if (String(a.yr) === '2026') periodSet.add(a.period); });
+            });
+            const periods = Array.from(periodSet).sort((a, b) => {
+                const parse = (p) => {
+                    const m = p.match(/(\d+)/);
+                    const val = m ? parseInt(m[1]) : 0;
+                    return p.includes('M') ? val * 10 : (p.includes('Q') ? val * 30 + 5 : val * 100);
+                };
+                return parse(a) - parse(b);
+            });
+            
+            const datasetsFor = (cat) => {
+                const datasets = [];
+                const companies = cos.filter(c => c.category === cat);
+                
+                companies.forEach((c, i) => {
+                    const hue = (i * 60) % 360;
+                    const r = fxRate(c.currency);
+                    
+                    // 1. Revenue Dataset (Solid)
+                    const revData = periods.map(p => {
+                        const v = c.revenue[p] || ((c.audit || []).find(a => a.yr === 2026 && a.period === p) || {}).rl;
+                        return v ? v / r : null;
+                    });
+                    if (revData.some(v => v !== null)) {
+                        datasets.push({
+                            label: `${c.name} (Rev)`,
+                            data: revData,
+                            borderColor: `hsl(${hue}, 75%, 55%)`,
+                            backgroundColor: `hsl(${hue}, 75%, 55%, 0.1)`,
+                            borderWidth: 2, tension: 0.3, spanGaps: true, pointRadius: 4,
+                            originalData: periods.map(p => {
+                                const v = c.revenue[p] || ((c.audit || []).find(a => a.yr === 2026 && a.period === p) || {}).rl;
+                                return { v: v, curr: c.currency.split(' ')[1] };
+                            })
+                        });
+                    }
+
+                    // 2. Net Income Dataset (Dashed)
+                    const niData = periods.map(p => {
+                        const audit = (c.audit || []).find(a => a.yr === 2026 && a.period === p);
+                        const v = audit ? audit.ni : null;
+                        return v ? v / r : null;
+                    });
+                    if (niData.some(v => v !== null)) {
+                        datasets.push({
+                            label: `${c.name} (NI)`,
+                            data: niData,
+                            borderColor: `hsl(${hue}, 75%, 55%)`,
+                            borderDash: [5, 5],
+                            borderWidth: 1.5, tension: 0.3, spanGaps: true, pointRadius: 3,
+                            originalData: periods.map(p => {
+                                const audit = (c.audit || []).find(a => a.yr === 2026 && a.period === p);
+                                return { v: audit ? audit.ni : null, curr: c.currency.split(' ')[1] };
+                            })
+                        });
+                    }
+                });
+                return datasets;
+            };
+
+            const chartOpts = { 
+                responsive: true, maintainAspectRatio: false, 
+                interaction: { mode: 'index', intersect: false },
+                plugins: { 
+                    legend: { position: 'right', labels: { boxWidth: 10, font: { size: 9 } } },
+                    tooltip: {
+                        padding: 10,
+                        backgroundColor: 'rgba(20, 20, 25, 0.9)',
+                        titleFont: { size: 10, weight: 'bold' },
+                        bodyFont: { size: 10 },
+                        borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+                        callbacks: {
+                            label: function(context) {
+                                const ds = context.dataset;
+                                const original = ds.originalData[context.dataIndex];
+                                let label = ds.label + ': ' + context.parsed.y.toFixed(2) + 'M USD';
+                                if (original && original.v !== null) {
+                                    label += ` [${original.v.toFixed(1)}M ${original.curr}]`;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: { 
+                    y: { ticks: { font: { size: 9 } }, title: { display: true, text: "Rev / NI (M USD)", font: { size: 9 } } },
+                    x: { ticks: { font: { size: 9 } } }
+                }
+            };
+
+            if (chartTrackerAnalog) chartTrackerAnalog.destroy();
+            chartTrackerAnalog = new Chart(document.getElementById('c2026Analog').getContext('2d'), {
+                type: 'line', data: { labels: periods.map(p => p.slice(4)), datasets: datasetsFor('Analog') },
+                options: chartOpts
+            });
+
+            if (chartTrackerPD) chartTrackerPD.destroy();
+            chartTrackerPD = new Chart(document.getElementById('c2026PD').getContext('2d'), {
+                type: 'line', data: { labels: periods.map(p => p.slice(4)), datasets: datasetsFor('P&D') },
+                options: chartOpts
+            });
+
+            // Cards Logic
+            const buildCards = (cat, containerId) => {
+                const grid = document.getElementById(containerId);
+                const items = cos.filter(c => c.category === cat);
+                grid.innerHTML = items.map(c => {
+                    const audits = c.audit || [];
+                    const latest = audits.filter(a => a.yr === 2026).pop();
+                    if (!latest) return '';
+                    
+                    // User Rule: Grounded Calculation for NI%
+                    const niPercent = (latest.ni !== null && latest.rl !== 0) ? (latest.ni / latest.rl * 100) : null;
+                    
+                    // Generate specific source link for the card
+                    let searchUrl = `https://www.cninfo.com.cn/new/fulltextSearch?notautosubmit=&keyWord=${c.code}`;
+                    if (c.currency.includes('TWD') || c.currency.includes('TW')) {
+                        searchUrl = `https://mops.twse.com.tw/mops/web/t05st01?step=1&queryName=co_id&inpuType=co_id&co_id=${c.code}`;
+                    } else if (c.currency.includes('USD')) {
+                        searchUrl = `https://www.sec.gov/cgi-bin/browse-edgar?CIK=${c.code}&action=getcompany`;
+                    }
+                    
+                    const finalUrl = (latest.src_url && latest.src_url.length > 25) ? latest.src_url : searchUrl;
+                    
+                    return `
+                    <div class="panel">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:8px"><strong>${c.name}</strong><span style="font-size:9px;color:var(--txt3)">${c.code}</span></div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                            <div><small style="color:var(--txt3)">${t.latest_period}</small><div>${latest.period}</div></div>
+                            <div><small style="color:var(--txt3)">${t.latest_val} (Local)</small><div style="color:var(--green);font-weight:700">${latest.rl.toFixed(1)}M <small style="font-weight:400;color:var(--txt3)">${c.currency.split(' ')[1]}</small></div></div>
+                            <div><small style="color:var(--txt3)">Local NI</small><div style="color:var(--accent);font-weight:700">${latest.ni !== null ? latest.ni.toFixed(1) + 'M' : '—'}</div></div>
+                            <div><small style="color:var(--txt3)">Calculated NI%</small><div style="font-weight:700;color:var(--gold)">${niPercent !== null ? niPercent.toFixed(2) + '%' : '—'}</div></div>
+                        </div>
+                        <div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                            <span style="font-size:10px">${latest.st === 'reported' ? '✅' : '⏳'} ${latest.st}</span>
+                            <a href="${finalUrl}" target="_blank" class="src-a">📄 ${t.source_link}</a>
+                        </div>
+                    </div>`;
+                }).join('');
+                if (grid.innerHTML === "") grid.innerHTML = '<div style="color:var(--txt3);font-style:italic;grid-column:1/-1;text-align:center;padding:20px">No 2026 data reported yet.</div>';
+            };
+
+            buildCards('Analog', 'cards-analog');
+            buildCards('P&D', 'cards-pd');
+            _rendered.tracker = true;  // O5
+        }
+
+        function renderTrends() {
+            const YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
+            const MARGIN_YEARS  = [2021, 2022, 2023, 2024, 2025];
+            const MARGIN_COLORS = {
+                2021: 'rgba(150,150,150,0.4)',
+                2022: 'rgba(100,100,100,0.5)',
+                2023: 'rgba(255,193,7,0.6)',
+                2024: 'rgba(30,126,212,0.7)',
+                2025: 'rgba(217,64,64,1)'
+            };
+
+            // sortByRev is defined globally below
+
+            const getChartConfig = (cat, canvasId, statsId) => {
+                let companies = Object.values(rawData).filter(c => c.category === cat && matchesFilter(c));
+                sortByRev(companies, cat);
+
+                // Market stats — full universe for 2019/2024; same-subset YoY/CAGR for 2025
+                const total2019 = companies.reduce((s, c) => s + (getRevUSD(c, 2019) || 0), 0);
+                const total2024 = companies.reduce((s, c) => s + (getRevUSD(c, 2024) || 0), 0);
+                const total2025 = companies.reduce((s, c) => s + (getRevUSD(c, 2025) || 0), 0);
+                const n2025     = companies.filter(c => getRevUSD(c, 2025) !== null).length;
+
+                // YoY & CAGR only over the disclosed subset to avoid partial-data distortion
+                const discl = companies.filter(c => getRevUSD(c, 2025) !== null);
+                const sub24 = discl.reduce((s, c) => s + (getRevUSD(c, 2024) || 0), 0);
+                const sub19 = discl.reduce((s, c) => s + (getRevUSD(c, 2019) || 0), 0);
+                const yoy   = (n2025 > 0 && sub24 > 0) ? (total2025 / sub24 - 1) * 100 : null;
+                const cagr  = (n2025 > 0 && sub19 > 0) ? (Math.pow(total2025 / sub19, 1/6) - 1) * 100 : null;
+                const yoyStr  = yoy  !== null ? `YoY ${yoy>=0?'+':''}${yoy.toFixed(1)}%` : '';
+                const cagrStr = cagr !== null ? `6Y CAGR ${cagr>=0?'+':''}${cagr.toFixed(1)}%` : '';
+                const trendStr = (yoyStr || cagrStr) ? ` | ${[yoyStr, cagrStr].filter(Boolean).join(' | ')}` : '';
+
+                // Show exact total only when all companies disclosed; otherwise prefix with ~
+                const T = I18N[lang];
+                const allDisclosed = n2025 === companies.length;
+                const val2025Str = allDisclosed
+                    ? `<b>${(total2025/1000).toFixed(2)}B USD</b>`
+                    : `<b>~${(total2025/1000).toFixed(2)}B USD</b> <span style="color:var(--txt3);font-size:10px">(${T.stats_partial})</span>`;
+                // YoY/CAGR suppressed when not fully disclosed to avoid distortion
+                const trendStrFinal = allDisclosed ? trendStr : '';
+
+                document.getElementById(statsId).innerHTML =
+                    `${T.stats_label(companies.length)}: 2019 <b>${(total2019/1000).toFixed(2)}B USD</b> ⮕ ` +
+                    `2024 <b>${(total2024/1000).toFixed(2)}B USD</b> ⮕ ` +
+                    `2025 ${val2025Str}&nbsp;` +
+                    `<span style="color:var(--txt3)">` +
+                    `${trendStrFinal} | ${T.stats_src(n2025, companies.length)}</span>`;
+
+                const barDatasets = YEARS.map(y => ({
+                    type: 'bar',
+                    label: String(y),
+                    data: companies.map(c => getRevUSD(c, y)),   // null = not yet disclosed
+                    backgroundColor: BC[y],
+                    yAxisID: 'y'
+                }));
+
+                const marginDatasets = MARGIN_YEARS.map(y => ({
+                    type: 'line',
+                    label: `NI% (${y})`,
+                    data: companies.map(c => getMarginPct(c, y)),
+                    borderColor: MARGIN_COLORS[y],
+                    borderWidth: y === 2025 ? 3 : 1.5,
+                    borderDash: y === 2025 ? [] : [5, 5],
+                    fill: false,
+                    yAxisID: 'y1',
+                    tension: 0.3,
+                    pointRadius: y === 2025 ? 4 : 2,
+                    spanGaps: true
+                }));
+
+                // Y1 range — delegated to getY1Range() which respects user selection
+                const allMarginVals = MARGIN_YEARS.flatMap(y =>
+                    companies.map(c => getMarginPct(c, y)).filter(v => v !== null)
+                );
+                const { min: y1Min, max: y1Max } = getY1Range(allMarginVals);
+
+                return {
+                    data: {
+                        labels: companies.map(c => c.name),
+                        datasets: [...barDatasets, ...marginDatasets]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            y:  { title: { display: true, text: T.axis_rev }, grid: { display: false }, ticks: { font: { size: 9 } } },
+                            y1: { title: { display: true, text: T.axis_margin }, position: 'right',
+                                  min: y1Min, max: y1Max,
+                                  ticks: { callback: v => v + '%', font: { size: 9 } }, grid: { display: false } }
+                        },
+                        plugins: {
+                            legend: { position: 'top', labels: { boxWidth: 8, font: { size: 9 }, padding: 10 } },
+                            tooltip: { bodyFont: { size: 10 } }
+                        }
+                    }
+                };
+            };
+
+            // ── Custom inline plugin: draw 2025 NI% value labels on canvas ──
+            const ni2025LabelPlugin = {
+                id: 'ni2025Labels',
+                afterDatasetsDraw(chart) {
+                    const ds  = chart.data.datasets;
+                    const idx = ds.findIndex(d => d.label === 'NI% (2025)');
+                    if (idx < 0) return;
+                    const meta  = chart.getDatasetMeta(idx);
+                    const data  = ds[idx].data;
+                    const color = ds[idx].borderColor || '#d94040';
+                    const ctx   = chart.ctx;
+                    ctx.save();
+                    ctx.font         = 'bold 8.5px Arial,sans-serif';
+                    ctx.textAlign    = 'center';
+                    ctx.textBaseline = 'middle';
+                    meta.data.forEach((pt, i) => {
+                        const val = data[i];
+                        if (val === null || val === undefined || isNaN(val)) return;
+                        const text  = val.toFixed(1) + '%';
+                        const tw    = ctx.measureText(text).width;
+                        const yOff  = val >= 0 ? -13 : 13;
+                        // background pill
+                        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+                        const bx = pt.x - tw/2 - 4, by = pt.y + yOff - 6.5;
+                        ctx.beginPath();
+                        if (ctx.roundRect) ctx.roundRect(bx, by, tw+8, 13, 3);
+                        else ctx.rect(bx, by, tw+8, 13);
+                        ctx.fill();
+                        // text
+                        ctx.fillStyle = color;
+                        ctx.fillText(text, pt.x, pt.y + yOff);
+                    });
+                    ctx.restore();
+                }
+            };
+
+            if (chartA) chartA.destroy();
+            chartA = new Chart(document.getElementById('cA').getContext('2d'), {
+                ...getChartConfig('Analog', 'cA', 'analogStats'),
+                plugins: [ni2025LabelPlugin]
+            });
+            attachWheelZoom(document.getElementById('cA'), () => chartA);
+
+            if (chartP) chartP.destroy();
+            chartP = new Chart(document.getElementById('cP').getContext('2d'), {
+                ...getChartConfig('P&D', 'cP', 'pdStats'),
+                plugins: [ni2025LabelPlugin]
+            });
+            attachWheelZoom(document.getElementById('cP'), () => chartP);
+
+            const buildProfileTable = (cat, tbodyId) => {
+                const tbody = document.getElementById(tbodyId);
+                let companies = Object.values(rawData).filter(c => c.category === cat && matchesFilter(c));
+                sortByRev(companies, cat);
+
+                tbody.innerHTML = companies.map(c => {
+                    const p  = c.profile || {};
+                    const yd = yjbbData[c.code];
+
+                    // YoY & CAGR — use null check so undisclosed 2025 shows '—' not -100%
+                    const r25raw = getRevUSD(c, 2025);   // null if not yet disclosed
+                    const r24    = getRevUSD(c, 2024) || 0;
+                    const r19    = getRevUSD(c, 2019) || 0;
+                    const r25    = r25raw || 0;
+                    const yoy  = (r25raw !== null && r24 > 0) ? ((r25/r24 - 1)*100).toFixed(1) : null;
+                    const cagr = (r25raw !== null && r19 > 0) ? ((Math.pow(r25/r19,1/6)-1)*100).toFixed(1) : null;
+                    const yoyColor  = yoy  !== null ? (parseFloat(yoy)  >= 0 ? 'var(--green)' : 'var(--red)') : '';
+                    const cagrColor = cagr !== null ? (parseFloat(cagr) >= 0 ? 'var(--green)' : 'var(--red)') : '';
+
+                    // Source link: always use audit src_url (specific cninfo/SEC report URL).
+                    // Title shows yjbb for A-share, profile for non-A-share.
+                    const audits = c.audit || [];
+                    const best   = audits.find(a => a.yr === 2025) || audits.find(a => a.yr === 2024) || audits[audits.length - 1] || {};
+                    const sourceLink = best.src_url || (yd
+                        ? `https://www.cninfo.com.cn/new/disclosure/stock?stockCode=${c.code}`
+                        : '#');
+                    let sourceTitle, updateTime;
+                    const T2 = I18N[lang];
+                    if (yd) {
+                        const d25 = yd.years['2025'], d24 = yd.years['2024'];
+                        const disc25 = d25 && d25.disclosed;
+                        sourceTitle = disc25
+                            ? T2.src_disclosed(d25.announced)
+                            : T2.src_prev((d24 && d24.announced) || '');
+                        updateTime  = (disc25 && d25.announced) || (d24 && d24.announced) || '—';
+                    } else {
+                        sourceTitle = p.source_title || 'Report';
+                        updateTime  = p.update_time || '—';
+                    }
+
+                    // Sort values: numeric cols strip commas/% symbols; date as string; text as lowercase
+                    const _rdStaffN  = parseFloat((p.rd_staff  || '').replace(/,/g,''))  || -1;
+                    const _totalEmpN = parseFloat((p.total_emp || '').replace(/,/g,''))  || -1;
+                    const _rdWeightN = parseFloat((p.rd_weight || '').replace(/[,%]/g,'')) || -1;
+                    const _yoyN      = yoy  !== null ? parseFloat(yoy)  : -9999;
+
+                    return `
+                    <tr data-v0="${c.name.toLowerCase()}"
+                        data-v1="${_rdStaffN}"
+                        data-v2="${_totalEmpN}"
+                        data-v3="${_rdWeightN}"
+                        data-v4="${(p.foundry || '').toLowerCase()}"
+                        data-v5="${_yoyN}"
+                        data-v6="${sourceTitle.toLowerCase()}"
+                        data-v7="${updateTime}">
+                        <td class="co-name-cell" data-code="${c.code}" style="cursor:default">${profilesXQ[c.code] ? '<span style="font-size:11px;margin-right:4px;opacity:.6" title="">🔍</span>' : ''}<strong>${c.name}</strong> <small style="display:block;color:var(--txt3);font-weight:400;margin-left:${profilesXQ[c.code] ? '17' : '0'}px">${c.code}</small></td>
+                        <td>${p.rd_staff || '—'}</td>
+                        <td>${p.total_emp || '—'}</td>
+                        <td>${p.rd_weight || '—'}</td>
+                        <td style="font-size:10px;color:var(--txt3)">${p.foundry || '—'}</td>
+                        <td style="font-size:11px">
+                            ${yoy  !== null ? `<span style="color:${yoyColor};font-weight:700">YoY ${parseFloat(yoy)>=0?'+':''}${yoy}%</span>` : '—'}<br>
+                            ${cagr !== null ? `<span style="color:${cagrColor};font-size:10px">CAGR ${parseFloat(cagr)>=0?'+':''}${cagr}%</span>` : ''}
+                        </td>
+                        <td><a href="${sourceLink}" target="_blank" class="src-a" title="${T2.src_view_title}">🔗 ${sourceTitle}</a></td>
+                        <td style="font-size:10.5px">${updateTime}</td>
+                    </tr>`;
+                }).join('');
+            };
+
+            renderCompanyChips('Analog', 'coChipsA');
+            renderCompanyChips('P&D',    'coChipsP');
+            buildProfileTable('Analog', 'analogProfileBody');
+            buildProfileTable('P&D', 'pdProfileBody');
+            bindProfileTableHover();
+            _rendered.trends = true;
+        }
+
+        // ── Company chip selector ────────────────────────────────────────────────
+        const hiddenCompanies = new Set();   // codes of companies currently hidden
+
+        function toggleCompany(code) {
+            hiddenCompanies.has(code) ? hiddenCompanies.delete(code) : hiddenCompanies.add(code);
+            _rendered.trends = false; renderTrends();
+        }
+
+        function showAllCompanies(cat) {
+            Object.values(rawData).filter(c => c.category === cat)
+                  .forEach(c => hiddenCompanies.delete(c.code));
+            _rendered.trends = false; renderTrends();
+        }
+
+        function renderCompanyChips(cat, wrapperId) {
+            const wrap = document.getElementById(wrapperId);
+            if (!wrap) return;
+            const companies = Object.values(rawData).filter(c => c.category === cat).sort((a, b) => {
+                const ra = getRevUSD(a, 2025), rb = getRevUSD(b, 2025);
+                if (ra !== null && rb !== null) return rb - ra;
+                if (ra !== null) return -1;
+                if (rb !== null) return 1;
+                return (getRevUSD(b, 2024) || 0) - (getRevUSD(a, 2024) || 0);
+            });
+            const allVisible = companies.every(c => !hiddenCompanies.has(c.code));
+            wrap.innerHTML =
+                `<div class="co-chips-hdr">` +
+                `<span>显示:</span>` +
+                (!allVisible ? `<a onclick="showAllCompanies('${cat}')">全选</a>` : '') +
+                `</div>` +
+                `<div class="co-chips">` +
+                companies.map(c =>
+                    `<span class="co-chip${hiddenCompanies.has(c.code) ? ' off' : ''}" ` +
+                    `onclick="toggleCompany('${c.code}')">${c.name}</span>`
+                ).join('') +
+                `</div>`;
+        }
+
+        // ── Filter state & functions ────────────────────────────────────────────
+        const filterState = { search: '', sector: 'all', market: 'all', growth: 'all' };
+
+        // ── Y1 axis range state ──────────────────────────────────────────
+        let y1RangeMode = 'full';   // 'auto' | 'std' | 'full'
+
+        function setY1Mode(mode) {
+            y1RangeMode = mode;
+            document.querySelectorAll('.y1-btn').forEach(b =>
+                b.classList.toggle('active', b.dataset.mode === mode));
+            _rendered.trends = false; renderTrends();
+        }
+
+        function getY1Range(allMarginVals) {
+            if (y1RangeMode === 'std') return { min: -50, max: 80 };
+            if (y1RangeMode === 'full') {
+                const PAD = 8;
+                const mn = allMarginVals.length ? Math.floor(Math.min(...allMarginVals) - PAD) : -15;
+                const mx = allMarginVals.length ? Math.ceil (Math.max(...allMarginVals) + PAD) : 60;
+                return { min: Math.min(mn, -5), max: Math.max(mx, 10) };
+            }
+            // 'auto': exclude ±150% SPAC outliers for readability
+            const CLIP = 150;
+            const clipped = allMarginVals.filter(v => v >= -CLIP && v <= CLIP);
+            const vals = clipped.length > 0 ? clipped : allMarginVals;
+            const PAD  = 8;
+            const mn   = vals.length ? Math.floor(Math.min(...vals) - PAD) : -15;
+            const mx   = vals.length ? Math.ceil (Math.max(...vals) + PAD) : 60;
+            return { min: Math.min(mn, -5), max: Math.max(mx, 10) };
+        }
+
+        // ── Mouse-wheel Y1 zoom — attach after each chart render ──────────
+        function attachWheelZoom(canvas, getChart) {
+            // ── Scroll wheel: zoom Y1 axis ──────────────────────────────────────
+            canvas._wheelHandler && canvas.removeEventListener('wheel', canvas._wheelHandler);
+            canvas._wheelHandler = (e) => {
+                e.preventDefault();
+                const chart = getChart();
+                if (!chart) return;
+                const y1 = chart.scales['y1'];
+                if (!y1) return;
+                const curMin = y1.min, curMax = y1.max;
+                const range  = curMax - curMin;
+                const step   = range * 0.12;
+                const zoomIn = e.deltaY < 0;
+                let newMin = curMin + (zoomIn ?  step/2 : -step/2);
+                let newMax = curMax - (zoomIn ?  step/2 : -step/2);
+                if (newMax - newMin < 8) return;
+                chart.options.scales.y1.min = newMin;
+                chart.options.scales.y1.max = newMax;
+                chart.update('none');
+                document.querySelectorAll('.y1-btn').forEach(b => b.classList.remove('active'));
+            };
+            canvas.addEventListener('wheel', canvas._wheelHandler, { passive: false });
+
+            // ── Mouse drag: pan Y1 axis up/down ─────────────────────────────────
+            canvas._dragState = null;
+            canvas._mouseDownHandler && canvas.removeEventListener('mousedown', canvas._mouseDownHandler);
+            canvas._mouseMoveHandler && window.removeEventListener('mousemove', canvas._mouseMoveHandler);
+            canvas._mouseUpHandler   && window.removeEventListener('mouseup',   canvas._mouseUpHandler);
+
+            canvas._mouseDownHandler = (e) => {
+                const chart = getChart();
+                if (!chart) return;
+                const y1 = chart.scales['y1'];
+                if (!y1) return;
+                // Only activate drag when cursor is inside the chart plot area
+                const rect = canvas.getBoundingClientRect();
+                const cx = e.clientX - rect.left;
+                const cy = e.clientY - rect.top;
+                if (cx < y1.left || cx > y1.right || cy < y1.top || cy > y1.bottom) return;
+                canvas._dragState = { startY: e.clientY, minAtStart: y1.min, maxAtStart: y1.max };
+                canvas.style.cursor = 'grabbing';
+                e.preventDefault();
+            };
+
+            canvas._mouseMoveHandler = (e) => {
+                if (!canvas._dragState) return;
+                const chart = getChart();
+                if (!chart) return;
+                const y1 = chart.scales['y1'];
+                if (!y1) return;
+                const dy    = e.clientY - canvas._dragState.startY;          // pixels moved
+                const range = canvas._dragState.maxAtStart - canvas._dragState.minAtStart;
+                const pxHeight = y1.bottom - y1.top;
+                const shift = -(dy / pxHeight) * range;                       // up = positive shift
+                chart.options.scales.y1.min = canvas._dragState.minAtStart + shift;
+                chart.options.scales.y1.max = canvas._dragState.maxAtStart + shift;
+                chart.update('none');
+                document.querySelectorAll('.y1-btn').forEach(b => b.classList.remove('active'));
+            };
+
+            canvas._mouseUpHandler = () => {
+                if (!canvas._dragState) return;
+                canvas._dragState = null;
+                canvas.style.cursor = '';
+            };
+
+            canvas.addEventListener('mousedown', canvas._mouseDownHandler);
+            window.addEventListener('mousemove', canvas._mouseMoveHandler);
+            window.addEventListener('mouseup',   canvas._mouseUpHandler);
+
+            // Show grab cursor when hovering over plot area
+            canvas._mousehoverHandler && canvas.removeEventListener('mousemove', canvas._mousehoverHandler);
+            canvas._mousehoverHandler = (e) => {
+                if (canvas._dragState) return;
+                const chart = getChart();
+                if (!chart) return;
+                const y1 = chart.scales['y1'];
+                if (!y1) return;
+                const rect = canvas.getBoundingClientRect();
+                const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+                canvas.style.cursor = (cx >= y1.left && cx <= y1.right && cy >= y1.top && cy <= y1.bottom)
+                    ? 'grab' : '';
+            };
+            canvas.addEventListener('mousemove', canvas._mousehoverHandler);
+        }
+
+        function applyFilters() {
+            filterState.search = (document.getElementById('searchInput').value || '').toLowerCase();
+            filterState.sector = document.getElementById('sectorFilter').value;
+            filterState.market = document.getElementById('marketFilter').value;
+            filterState.growth = document.getElementById('growthFilter').value;
+            _rendered.trends = false;
+            renderTrends();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('sectorFilter').value = 'all';
+            document.getElementById('marketFilter').value = 'all';
+            document.getElementById('growthFilter').value = 'all';
+            filterState.search = ''; filterState.sector = 'all';
+            filterState.market = 'all'; filterState.growth = 'all';
+            _rendered.trends = false;
+            renderTrends();
+        }
+
+        function matchesFilter(c) {
+            if (hiddenCompanies.has(c.code)) return false;
+            const { search, sector, market, growth } = filterState;
+            if (search && !(c.name||'').toLowerCase().includes(search) && !(c.code||'').toLowerCase().includes(search)) return false;
+            if (sector !== 'all' && c.category !== sector) return false;
+            if (market !== 'all') {
+                const cu = c.currency || '';
+                if (market === 'RMB' && !cu.includes('RMB')) return false;
+                if (market === 'TW'  && !cu.includes('TW') && !cu.includes('TWD')) return false;
+                if (market === 'USD' && !cu.includes('USD')) return false;
+            }
+            if (growth !== 'all') {
+                const r25 = getRevUSD(c, 2025);
+                const r24 = getRevUSD(c, 2024);
+                if (!r25 || !r24) return false;
+                const yoy = (r25 / r24 - 1) * 100;
+                if (growth === 'high' && yoy <= 20)          return false;
+                if (growth === 'mid'  && (yoy < 0 || yoy > 20)) return false;
+                if (growth === 'neg'  && yoy >= 0)           return false;
+            }
+            return true;
+        }
+
+        // ── Company popup on profile-table name-cell hover ─────────────────────
+        const popup   = document.getElementById('co-popup');
+        const popName = document.getElementById('pop-name');
+        const popCode = document.getElementById('pop-code');
+        const popTbl  = document.getElementById('pop-table');
+
+        // POPUP_FIELDS is now pulled from I18N[lang].pop_fields at render time
+
+        function showCompanyPopup(code, anchorEl) {
+            const company = Object.values(rawData).find(c => c.code === code);
+            if (!company) return;
+            popName.textContent = company.name;
+            popCode.textContent = code;
+
+            const prof = profilesXQ[code] || {};
+            popTbl.innerHTML = I18N[lang].pop_fields.map(([label, key]) => {
+                let val = prof[key];
+                if (val === null || val === undefined) val = '—';
+                if (typeof val === 'string' && val.length > 72) val = val.slice(0, 70) + '…';
+                const valHtml = key === '企业属性' && val !== '—'
+                    ? `<span class="pop-badge">${val}</span>`
+                    : `<span${key === '主营业务' || key === '核心简介' ? ' class="pop-biz"' : ''}>${val}</span>`;
+                return `<tr><td>${label}</td><td>${valHtml}</td></tr>`;
+            }).join('');
+
+            // Position popup to the right of the cell, clamped to viewport
+            const r  = anchorEl.getBoundingClientRect();
+            const pw = popup.offsetWidth  || 300;
+            const ph = popup.offsetHeight || 230;
+            let left = r.right + 10;
+            let top  = r.top;
+            if (left + pw > window.innerWidth  - 8) left = r.left - pw - 10;
+            if (top  + ph > window.innerHeight - 8) top  = window.innerHeight - ph - 8;
+            if (top < 8) top = 8;
+            popup.style.left    = left + 'px';
+            popup.style.top     = top  + 'px';
+            popup.style.display = 'block';
+        }
+
+        function hideCompanyPopup() { popup.style.display = 'none'; }
+
+        // Called after each renderTrends() to bind events on freshly rendered rows
+        function bindProfileTableHover() {
+            document.querySelectorAll('.co-name-cell').forEach(td => {
+                td.onmouseenter = function() { showCompanyPopup(this.dataset.code, this); };
+                td.onmouseleave = hideCompanyPopup;
+            });
+        }
+
+        // ── Export Excel ────────────────────────────────────────────────────────
+        function exportExcel() {
+            const YEARS = [2019,2020,2021,2022,2023,2024,2025];
+            // Per year: Rev M RMB | Rev M USD | NI M RMB | NI M USD | NI% | Disclosure Date
+            const PER_YEAR_COLS = 6;
+            // Fixed info cols: Company, Code, Currency, Data Source
+            const INFO_COLS = 4;
+
+            function getRevMRMB(c, yr) {
+                const yd = yjbbData[c.code];
+                if (yd) {
+                    const d = yd.years[String(yr)];
+                    return (d && d.rev_mrm !== null) ? +d.rev_mrm.toFixed(4) : null;
+                }
+                // non-A-share: no local M RMB
+                return null;
+            }
+            function getNiMRMB(c, yr) {
+                const yd = yjbbData[c.code];
+                if (yd) {
+                    const d = yd.years[String(yr)];
+                    return (d && d.ni_mrm !== null) ? +d.ni_mrm.toFixed(4) : null;
+                }
+                return null;
+            }
+            function getDisclosureDate(c, yr) {
+                const yd = yjbbData[c.code];
+                if (yd) {
+                    const d = yd.years[String(yr)];
+                    return (d && d.announced) ? d.announced : '';
+                }
+                return '';
+            }
+
+            function buildAOA(cat) {
+                let companies = Object.values(rawData).filter(c => c.category === cat);
+                companies.sort((a, b) => (getRevUSD(b, 2025) || 0) - (getRevUSD(a, 2025) || 0));
+
+                // Row 1: group header (year spans)
+                const row1 = ['Company','Code','Currency','Data Source'];
+                YEARS.forEach(y => { row1.push(String(y)); for(let i=1;i<PER_YEAR_COLS;i++) row1.push(''); });
+                row1.push('R&D Staff','Total Emp','R&D%','Foundry','YoY 25%','CAGR 6Y%','Source','Update','注册全称','企业属性','实控人','董事长','高管人数','发行价(元)','主营业务');
+
+                // Row 2: sub-headers
+                const row2 = ['','','',''];
+                YEARS.forEach(() => {
+                    row2.push('Rev (M RMB)','Rev (M USD)','NI (M RMB)','NI (M USD)','NI Margin %','Disclosure Date');
+                });
+                row2.push('','','','','','','','','','','','','','','');
+
+                // Data rows
+                const dataRows = companies.map(c => {
+                    const p    = c.profile || {};
+                    const yd   = yjbbData[c.code];
+                    const prof = profilesXQ[c.code] || {};
+                    const src  = yd ? 'AkShare yjbb' : c.currency;
+
+                    const r25raw = getRevUSD(c, 2025);
+                    const r24    = getRevUSD(c, 2024) || 0;
+                    const r19    = getRevUSD(c, 2019) || 0;
+                    const r25    = r25raw || 0;
+                    const yoy    = (r25raw !== null && r24 > 0) ? +((r25/r24-1)*100).toFixed(1) : '';
+                    const cagr   = (r25raw !== null && r19 > 0) ? +((Math.pow(r25/r19,1/6)-1)*100).toFixed(1) : '';
+
+                    let sourceTitle, updateTime;
+                    if (yd) {
+                        const d25 = yd.years['2025'], d24 = yd.years['2024'];
+                        const disc25 = d25 && d25.disclosed;
+                        sourceTitle = disc25 ? `AkShare yjbb · Annual ${d25.announced}` : `AkShare yjbb · 2024A ${(d24&&d24.announced)||''}`;
+                        updateTime  = (disc25 && d25.announced) || (d24 && d24.announced) || '';
+                    } else {
+                        sourceTitle = p.source_title || 'Company Report';
+                        updateTime  = p.update_time  || '';
+                    }
+
+                    const row = [c.name, c.code, c.currency, src];
+                    YEARS.forEach(yr => {
+                        const revRMB = getRevMRMB(c, yr);
+                        const revUSD = getRevUSD(c, yr);
+                        const niRMB  = getNiMRMB(c, yr);
+                        const niUSD  = (() => {
+                            const v = yjbbData[c.code]
+                                ? (yjbbData[c.code].years[String(yr)]?.ni_mrm ?? null)
+                                : c.net_income?.[String(yr)];
+                            if (v === null || v === undefined) return null;
+                            return +(v / fxRate(c.currency)).toFixed(2);
+                        })();
+                        const margin = getMarginPct(c, yr);
+                        const disc   = getDisclosureDate(c, yr);
+                        row.push(
+                            revRMB !== null ? revRMB : '',
+                            revUSD !== null ? +revUSD.toFixed(2) : '',
+                            niRMB  !== null ? niRMB  : '',
+                            niUSD  !== null ? niUSD  : '',
+                            margin !== null ? +margin.toFixed(2) : '',
+                            disc
+                        );
+                    });
+                    row.push(
+                        p.rd_staff||'', p.total_emp||'', p.rd_weight||'', p.foundry||'',
+                        yoy, cagr, sourceTitle, updateTime,
+                        prof['注册全称']||'', prof['企业属性']||'', prof['实控人']||'',
+                        prof['董事长']||'', prof['高管人数']||'', prof['发行价(元)']||'', prof['主营业务']||''
+                    );
+                    return row;
+                });
+
+                return { aoa: [row1, row2, ...dataRows], companies, merges: [] };
+            }
+
+            const wb   = XLSX.utils.book_new();
+            const today = new Date().toISOString().slice(0,10);
+
+            ['Analog','P&D'].forEach(cat => {
+                const { aoa, companies } = buildAOA(cat);
+                const sheet = XLSX.utils.aoa_to_sheet(aoa);
+
+                // Merge year group header cells (row 0, span PER_YEAR_COLS per year)
+                sheet['!merges'] = sheet['!merges'] || [];
+                YEARS.forEach((_, i) => {
+                    const startC = INFO_COLS + i * PER_YEAR_COLS;
+                    sheet['!merges'].push({ s:{r:0,c:startC}, e:{r:0,c:startC+PER_YEAR_COLS-1} });
+                });
+
+                // Column widths
+                const cols = [
+                    {wch:18},{wch:8},{wch:10},{wch:13},       // info
+                    ...YEARS.flatMap(()=>[{wch:13},{wch:12},{wch:13},{wch:12},{wch:11},{wch:15}]), // per-year ×7
+                    {wch:10},{wch:10},{wch:7},{wch:22},        // rd/foundry
+                    {wch:9},{wch:9},{wch:36},{wch:12},         // yoy/cagr/source/update
+                    {wch:22},{wch:10},{wch:24},{wch:10},{wch:8},{wch:10},{wch:34} // profile
+                ];
+                sheet['!cols'] = cols;
+
+                // Style header rows (bold)
+                [0,1].forEach(r => {
+                    const range = XLSX.utils.decode_range(sheet['!ref']);
+                    for (let C = range.s.c; C <= range.e.c; C++) {
+                        const addr = XLSX.utils.encode_cell({r, c:C});
+                        if (sheet[addr]) sheet[addr].s = { font:{bold:true}, alignment:{horizontal:'center',wrapText:true} };
+                    }
+                });
+
+                XLSX.utils.book_append_sheet(wb, sheet, cat);
+            });
+
+            XLSX.writeFile(wb, `AnalogPD_Revenue_${today}.xlsx`);
+        }
+
+        // ── Sortable profile tables ─────────────────────────────────────────────
+        // Numeric cols (sort as number, -1/-9999 = missing → sent to bottom)
+        const SORT_NUMERIC_COLS = new Set([1, 2, 3, 5]);
+
+        function sortTable(th) {
+            const col    = parseInt(th.dataset.col);
+            const thead  = th.closest('thead');
+            const tbody  = thead.closest('table').querySelector('tbody');
+            const isDesc = th.classList.contains('sort-asc'); // toggle
+
+            // Reset all headers in this table
+            thead.querySelectorAll('th.sortable').forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+            th.classList.add(isDesc ? 'sort-desc' : 'sort-asc');
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const dir  = isDesc ? -1 : 1;
+            const isNum = SORT_NUMERIC_COLS.has(col);
+
+            rows.sort((a, b) => {
+                const va = a.dataset['v' + col] || '';
+                const vb = b.dataset['v' + col] || '';
+                if (isNum) {
+                    const na = parseFloat(va), nb = parseFloat(vb);
+                    // Push missing values (-1 / -9999) to bottom regardless of direction
+                    if (na < 0 && nb >= 0) return 1;
+                    if (nb < 0 && na >= 0) return -1;
+                    return (na - nb) * dir;
+                }
+                // Date / string: lexicographic; '—' to bottom
+                if (va === '—' && vb !== '—') return 1;
+                if (vb === '—' && va !== '—') return -1;
+                return va < vb ? -dir : va > vb ? dir : 0;
+            });
+
+            rows.forEach(r => tbody.appendChild(r));
+            // Re-bind hover after DOM reorder
+            bindProfileTableHover();
+        }
+
+        // ── Quarterly & Projections — module-level helpers ───────────────────────
+        // Quarterly record: yjbb_quarterly (AkShare) > audit array > revenue/net_income objects
+        function _qGet(c, yr, q) {
+            const period = yr + 'Q' + q;
+            // 1. AkShare quarterly JSON (highest priority for A-share companies)
+            const yq = yjbbQtrData[c.code];
+            if (yq && yq.quarters && yq.quarters[period] != null) {
+                const d = yq.quarters[period];
+                return { rl: d.rev_mrm, ni: d.ni_mrm, st: 'actual', announced: d.announced };
+            }
+            // 2. Audit array (manually curated data)
+            const ae = (c.audit || []).find(a => a.period === period);
+            if (ae) return { rl: ae.rl, ni: ae.ni, st: ae.st };
+            // 3. Revenue / net_income objects
+            const rl = (c.revenue || {})[period];
+            if (rl != null) return { rl, ni: (c.net_income || {})[period] ?? null, st: 'reported' };
+            return null;
+        }
+
+        // Annual/FY: yjbb (A-share) > revenue object > audit FY entry
+        function _qFY(c, yr) {
+            const yd = yjbbData[c.code];
+            if (yd) {
+                const d = yd.years[String(yr)];
+                if (d && d.rev_mrm != null) return { rl: d.rev_mrm, ni: d.ni_mrm };
+            }
+            const rl = (c.revenue || {})[String(yr)];
+            if (rl != null) return { rl, ni: (c.net_income || {})[String(yr)] ?? null };
+            const fyA = (c.audit || []).find(a => a.yr === yr && String(a.period).endsWith('FY'));
+            if (fyA) return { rl: fyA.rl, ni: fyA.ni };
+            return null;
+        }
+
+        // Estimation logic: quarterly data first, FY annual as final fallback
+        // Priority: 4Q actual > 3Q est > 2Q est > 1Q est > FY annual
+        function _qEstimate(c, yr) {
+            const q1 = _qGet(c, yr, 1), q2 = _qGet(c, yr, 2);
+            const q3 = _qGet(c, yr, 3), q4 = _qGet(c, yr, 4);
+            if (q1 && q2 && q3 && q4) return { rl: q1.rl+q2.rl+q3.rl+q4.rl, type: 'actual',    basis: '4Q Sum',    qCount: 4 };
+            if (q1 && q2 && q3)       return { rl: (q1.rl+q2.rl)+q3.rl*2,   type: 'estimated', basis: 'H1+(Q3×2)', qCount: 3 };
+            if (q1 && q2)             return { rl: (q1.rl+q2.rl)*2,          type: 'estimated', basis: 'H1×2',      qCount: 2 };
+            if (q1)                   return { rl: q1.rl*4,                   type: 'estimated', basis: 'Q1×4',      qCount: 1 };
+            // No quarterly data — fall back to disclosed FY annual
+            const fy = _qFY(c, yr);
+            if (fy) return { rl: fy.rl, type: 'actual', basis: 'FY Actual', qCount: 4 };
+            return null;
+        }
+
+        // Quarterly breakdown for chart: returns actual + estimated M USD per quarter
+        function _qBreakdown(c, yr) {
+            const r   = fxRate(c.currency);
+            const usd = v => v != null ? v / r : null;
+            const q1d = _qGet(c, yr, 1), q2d = _qGet(c, yr, 2);
+            const q3d = _qGet(c, yr, 3), q4d = _qGet(c, yr, 4);
+            const fyd = _qFY(c, yr);
+            // No quarterly data → FY block
+            if (fyd && !q1d && !q2d && !q3d && !q4d) {
+                return { fy: usd(fyd.rl), q1a:null, q2a:null, q3a:null, q4a:null, q2e:null, q3e:null, q4e:null };
+            }
+            const q1a = usd(q1d?.rl), q2a = usd(q2d?.rl);
+            const q3a = usd(q3d?.rl), q4a = usd(q4d?.rl);
+            // Estimated portions per projection logic
+            let q2e = null, q3e = null, q4e = null;
+            if (q1a != null && !q2a)                   { q2e = q1a; q3e = q1a; q4e = q1a; }
+            else if (q1a != null && q2a != null && !q3a) { q3e = (q1a+q2a)/2; q4e = q3e; }
+            else if (q1a != null && q2a != null && q3a != null && !q4a) { q4e = q3a; }
+            return { fy: null, q1a, q2a, q3a, q4a, q2e, q3e, q4e };
+        }
+
+        let _qtrYear = 2025;
+        let chartQAnalog, chartQPD;
+
+        function setQtrYear(yr, btn) {
+            _qtrYear = yr;
+            document.querySelectorAll('.q-yr-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            _rendered.quarterly = false;
+            renderQuarterlyProjections();
+        }
+
+        // Diagonal stripe canvas pattern for estimated quarters
+        function _stripePattern(solidColor, lightColor) {
+            const sz = 10;
+            const cv = document.createElement('canvas');
+            cv.width = sz; cv.height = sz;
+            const cx = cv.getContext('2d');
+            cx.fillStyle = lightColor;
+            cx.fillRect(0, 0, sz, sz);
+            cx.strokeStyle = solidColor;
+            cx.lineWidth = 2;
+            cx.lineCap = 'square';
+            for (let i = -sz; i < sz * 2; i += 5) {
+                cx.beginPath(); cx.moveTo(i, -1); cx.lineTo(i + sz + 1, sz + 1); cx.stroke();
+            }
+            return cx.createPattern(cv, 'repeat');
+        }
+
+        // Build one quarterly chart (Analog or P&D)
+        function buildQChart(cat, canvasId) {
+            let companies = Object.values(rawData).filter(c => c.category === cat);
+            companies.sort((a, b) => {
+                const sa = _qEstimate(a, 2025), sb = _qEstimate(b, 2025);
+                const ra = sa ? sa.rl / fxRate(a.currency) : 0;
+                const rb = sb ? sb.rl / fxRate(b.currency) : 0;
+                return rb - ra;
+            });
+
+            const labels = companies.map(c => c.name);
+
+            // 2024 only as historical reference bar
+            const histDs = [{
+                type: 'bar', label: '2024',
+                data: companies.map(c => getRevUSD(c, 2024)),
+                backgroundColor: BC[2024],
+                stack: 'yr2024'
+            }];
+
+            const b25 = companies.map(c => _qBreakdown(c, 2025));
+            const b26 = companies.map(c => _qBreakdown(c, 2026));
+
+            // Solid colours for actual quarters
+            const QC = {
+                Q1: 'rgba(26,111,196,0.88)',
+                Q2: 'rgba(13,159,110,0.88)',
+                Q3: 'rgba(212,150,12,0.88)',
+                Q4: 'rgba(0,150,136,0.88)',
+                FY: 'rgba(96,125,139,0.85)'
+            };
+            // Stripe patterns for estimated quarters (same hue, visually distinct)
+            const EST = {
+                Q1: _stripePattern('rgba(26,111,196,0.9)',  'rgba(26,111,196,0.12)'),
+                Q2: _stripePattern('rgba(13,159,110,0.9)',  'rgba(13,159,110,0.12)'),
+                Q3: _stripePattern('rgba(212,150,12,0.9)',  'rgba(212,150,12,0.12)'),
+                Q4: _stripePattern('rgba(0,150,136,0.9)',   'rgba(0,150,136,0.12)'),
+            };
+
+            const mk = (label, stack, data, bg) =>
+                ({ type:'bar', label, stack, data, backgroundColor: bg });
+
+            const qDs = [
+                mk('2025 FY',    'yr2025', b25.map(b=>b.fy),  QC.FY),
+                mk('Q1',         'yr2025', b25.map(b=>b.q1a), QC.Q1),
+                mk('Q2',         'yr2025', b25.map(b=>b.q2a), QC.Q2),
+                mk('Q3',         'yr2025', b25.map(b=>b.q3a), QC.Q3),
+                mk('Q4',         'yr2025', b25.map(b=>b.q4a), QC.Q4),
+                mk('Q2 预测',    'yr2025', b25.map(b=>b.q2e), EST.Q2),
+                mk('Q3 预测',    'yr2025', b25.map(b=>b.q3e), EST.Q3),
+                mk('Q4 预测',    'yr2025', b25.map(b=>b.q4e), EST.Q4),
+                mk('26 Q1',      'yr2026', b26.map(b=>b.q1a), QC.Q1),
+                mk('26 Q2 预测', 'yr2026', b26.map(b=>b.q2e), EST.Q2),
+                mk('26 Q3 预测', 'yr2026', b26.map(b=>b.q3e), EST.Q3),
+                mk('26 Q4 预测', 'yr2026', b26.map(b=>b.q4e), EST.Q4),
+            ].filter(d => d.data.some(v => v != null));
+
+            return new Chart(document.getElementById(canvasId).getContext('2d'), {
+                type: 'bar',
+                data: { labels, datasets: [...histDs, ...qDs] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: { stacked: true, title:{ display:true, text:'Revenue (M USD)', font:{size:9} }, ticks:{font:{size:9}} },
+                        x: { stacked: true, ticks:{ font:{size:9}, maxRotation:30 } }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 8, font:{size:9}, padding:6,
+                                // Show: 2024 + Q1-Q4 (actual) + one estimated sample
+                                filter: item => ['2024','Q1','Q2','Q3','Q4','2025 FY','Q4 预测'].includes(item.text)
+                            }
+                        },
+                        tooltip: { bodyFont:{size:10} }
+                    }
+                }
+            });
+        }
+
+        function renderQuarterlyProjections() {
+            const cos = Object.values(rawData);
+            const yr  = _qtrYear;
+            const catFilter = (document.getElementById('qtrCatFilter') || {}).value || 'all';
+
+            // Build table rows
+            let rows = cos
+                .filter(c => catFilter === 'all' || c.category === catFilter)
+                .map(c => {
+                    const r   = fxRate(c.currency);
+                    const usd = v => (v != null) ? v / r : null;
+                    const est = _qEstimate(c, yr);
+                    return {
+                        c,
+                        q1usd: usd(_qGet(c, yr, 1)?.rl),
+                        q2usd: usd(_qGet(c, yr, 2)?.rl),
+                        q3usd: usd(_qGet(c, yr, 3)?.rl),
+                        q4usd: usd(_qGet(c, yr, 4)?.rl),
+                        estUSD: est ? usd(est.rl) : null,
+                        est
+                    };
+                });
+
+            rows.sort((a, b) => {
+                if (a.estUSD != null && b.estUSD != null) return b.estUSD - a.estUSD;
+                if (a.estUSD != null) return -1;
+                if (b.estUSD != null) return  1;
+                return 0;
+            });
+
+            const fmt = v => v != null ? v.toFixed(1) : '<span class="q-nil">—</span>';
+
+            document.getElementById('qtrBody').innerHTML = rows.map(({ c, q1usd, q2usd, q3usd, q4usd, estUSD, est }) => {
+                const isEst = est?.type === 'estimated';
+                const estCell = est
+                    ? (isEst
+                        ? `<span class="q-est-val" title="${est.basis} — based on ${est.qCount}Q">${estUSD.toFixed(1)}</span>`
+                        : `<span class="q-act-val">${estUSD.toFixed(1)}</span>`)
+                    : '<span class="q-nil">—</span>';
+                const basisBadge = est
+                    ? `<span class="q-badge ${isEst ? 'q-badge-est' : 'q-badge-act'}" title="Based on ${est.qCount} quarter${est.qCount!==1?'s':''}">${est.basis}</span>`
+                    : '';
+                const catStyle = c.category === 'Analog'
+                    ? 'background:var(--badge-a);color:var(--badge-at)'
+                    : 'background:rgba(212,150,12,0.2);color:var(--gold)';
+                return `<tr class="${isEst ? 'q-est-row' : ''}">
+                    <td><strong>${c.name}</strong><small style="display:block;color:var(--txt3);font-weight:400">${c.code}</small></td>
+                    <td><span class="bdg" style="${catStyle}">${c.category}</span></td>
+                    <td class="num">${fmt(q1usd)}</td>
+                    <td class="num">${fmt(q2usd)}</td>
+                    <td class="num">${fmt(q3usd)}</td>
+                    <td class="num">${fmt(q4usd)}</td>
+                    <td class="num">${estCell}</td>
+                    <td>${basisBadge}</td>
+                </tr>`;
+            }).join('');
+
+            // Render quarterly charts (destroy previous instances first)
+            if (chartQAnalog) { chartQAnalog.destroy(); chartQAnalog = null; }
+            if (chartQPD)     { chartQPD.destroy();     chartQPD     = null; }
+            chartQAnalog = buildQChart('Analog', 'cQAnalog');
+            chartQPD     = buildQChart('P&D',    'cQPD');
+
+            _rendered.quarterly = true;
+        }
+
+        initDashboard();
+    </script>
+
+    <div class="dash-footer">
+        AnalogPD — Competitors Analysis &nbsp;|&nbsp;
+        Data: AkShare yjbb · SEC EDGAR · WSJ &nbsp;|&nbsp;
+        Created by <a href="mailto:yude.jiang@st.com" style="color:var(--txt3);text-decoration:none">yude.jiang@st.com</a>
+        &nbsp;|&nbsp; <span id="footerDate"></span>
+        <script>document.getElementById('footerDate').textContent = new Date().toISOString().slice(0,10);</script>
+    </div>
+</body>
+
+</html>

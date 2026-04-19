@@ -1,0 +1,1121 @@
+{
+  "meta": {
+    "source": "AkShare stock_yjbb_em",
+    "fetched_at": "2026-04-09 21:13:19",
+    "years": [
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "unit": "M RMB",
+    "fx_note": "Divide rev_mrm / ni_mrm by 7.2 to get M USD"
+  },
+  "companies": {
+    "300661": {
+      "name": "SG micro",
+      "cn_name": "圣邦股份",
+      "code": "300661",
+      "category": "Analog",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 792.4949,
+          "ni_mrm": 176.0325,
+          "margin": 0.222124,
+          "announced": "2021-04-23",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 1196.5468,
+          "ni_mrm": 288.7523,
+          "margin": 0.241321,
+          "announced": "2022-04-23",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 2238.402,
+          "ni_mrm": 699.3896,
+          "margin": 0.31245,
+          "announced": "2023-04-22",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 3187.5499,
+          "ni_mrm": 873.6735,
+          "margin": 0.274089,
+          "announced": "2024-04-27",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 2615.7164,
+          "ni_mrm": 280.7683,
+          "margin": 0.107339,
+          "announced": "2025-04-29",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 3346.9831,
+          "ni_mrm": 500.2479,
+          "margin": 0.149462,
+          "announced": "2026-03-28",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": 3898.0546,
+          "ni_mrm": 547.0594,
+          "margin": 0.140342,
+          "announced": "2026-03-28",
+          "disclosed": true
+        }
+      }
+    },
+    "688536": {
+      "name": "3-Peak",
+      "cn_name": "思瑞浦",
+      "code": "688536",
+      "category": "Analog",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 303.5759,
+          "ni_mrm": 70.9802,
+          "margin": 0.233814,
+          "announced": "2021-04-28",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 566.4885,
+          "ni_mrm": 183.7921,
+          "margin": 0.324441,
+          "announced": "2022-03-14",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 1325.9489,
+          "ni_mrm": 443.5356,
+          "margin": 0.334504,
+          "announced": "2023-04-15",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 1783.3539,
+          "ni_mrm": 266.8074,
+          "margin": 0.14961,
+          "announced": "2024-03-30",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 1093.5191,
+          "ni_mrm": -34.7131,
+          "margin": -0.031744,
+          "announced": "2025-04-29",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 1219.5382,
+          "ni_mrm": -197.2169,
+          "margin": -0.161714,
+          "announced": "2026-03-31",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": 2142.0913,
+          "ni_mrm": 172.9918,
+          "margin": 0.080758,
+          "announced": "2026-03-31",
+          "disclosed": true
+        }
+      }
+    },
+    "688508": {
+      "name": "Chipown",
+      "cn_name": "芯朋微",
+      "code": "688508",
+      "category": "Analog",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 335.1035,
+          "ni_mrm": 66.1708,
+          "margin": 0.197464,
+          "announced": "2021-04-08",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 429.2987,
+          "ni_mrm": 99.7362,
+          "margin": 0.232324,
+          "announced": "2022-03-18",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 753.171,
+          "ni_mrm": 201.2809,
+          "margin": 0.267245,
+          "announced": "2023-03-17",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 719.5914,
+          "ni_mrm": 89.8444,
+          "margin": 0.124855,
+          "announced": "2024-04-13",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 780.3778,
+          "ni_mrm": 59.478,
+          "margin": 0.076217,
+          "announced": "2025-03-29",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 964.5957,
+          "ni_mrm": 111.3301,
+          "margin": 0.115416,
+          "announced": "2026-03-14",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": 1142.7205,
+          "ni_mrm": 186.3004,
+          "margin": 0.163032,
+          "announced": "2026-03-14",
+          "disclosed": true
+        }
+      }
+    },
+    "688279": {
+      "name": "Fortior",
+      "cn_name": "峰岹科技",
+      "code": "688279",
+      "category": "Analog",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 142.8929,
+          "ni_mrm": 35.0512,
+          "margin": 0.245297,
+          "announced": "2022-04-15",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 233.9509,
+          "ni_mrm": 78.3511,
+          "margin": 0.334904,
+          "announced": "2022-04-19",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 330.3966,
+          "ni_mrm": 135.2684,
+          "margin": 0.409412,
+          "announced": "2023-04-26",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 322.9729,
+          "ni_mrm": 142.0012,
+          "margin": 0.439669,
+          "announced": "2024-04-25",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 411.3592,
+          "ni_mrm": 174.8468,
+          "margin": 0.425046,
+          "announced": "2025-03-31",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 600.3247,
+          "ni_mrm": 222.3623,
+          "margin": 0.370403,
+          "announced": "2026-03-28",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": 773.9044,
+          "ni_mrm": 218.9355,
+          "margin": 0.282897,
+          "announced": "2026-03-28",
+          "disclosed": true
+        }
+      }
+    },
+    "688484": {
+      "name": "Southchip",
+      "cn_name": "南芯科技",
+      "code": "688484",
+      "category": "Analog",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 107.4851,
+          "ni_mrm": -9.8534,
+          "margin": -0.091673,
+          "announced": "2023-03-30",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 178.3041,
+          "ni_mrm": -7.975,
+          "margin": -0.044727,
+          "announced": "2023-03-30",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 984.1727,
+          "ni_mrm": 244.0301,
+          "margin": 0.247955,
+          "announced": "2023-04-06",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 1300.7808,
+          "ni_mrm": 246.2103,
+          "margin": 0.189279,
+          "announced": "2024-03-20",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 1780.4023,
+          "ni_mrm": 261.3575,
+          "margin": 0.146797,
+          "announced": "2025-04-29",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 2567.2099,
+          "ni_mrm": 306.9012,
+          "margin": 0.119547,
+          "announced": "2025-04-29",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": null,
+          "ni_mrm": null,
+          "margin": null,
+          "announced": null,
+          "disclosed": false
+        }
+      }
+    },
+    "688141": {
+      "name": "Joulwatt",
+      "cn_name": "杰华特",
+      "code": "688141",
+      "category": "Analog",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 256.844,
+          "ni_mrm": -79.9506,
+          "margin": -0.311281,
+          "announced": "2022-12-20",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 406.5826,
+          "ni_mrm": -270.0252,
+          "margin": -0.664134,
+          "announced": "2022-12-20",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 1041.5595,
+          "ni_mrm": 141.975,
+          "margin": 0.13631,
+          "announced": "2023-04-29",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 1447.6782,
+          "ni_mrm": 137.16,
+          "margin": 0.094745,
+          "announced": "2024-07-10",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 1296.7487,
+          "ni_mrm": -531.4091,
+          "margin": -0.409801,
+          "announced": "2025-04-22",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 1678.7507,
+          "ni_mrm": -603.3729,
+          "margin": -0.359418,
+          "announced": "2026-03-31",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": 2655.0248,
+          "ni_mrm": -717.1242,
+          "margin": -0.270101,
+          "announced": "2026-03-31",
+          "disclosed": true
+        }
+      }
+    },
+    "688209": {
+      "name": "Injoinic",
+      "cn_name": "英集芯",
+      "code": "688209",
+      "category": "Analog",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 348.047,
+          "ni_mrm": 16.0193,
+          "margin": 0.046026,
+          "announced": "2022-04-14",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 389.269,
+          "ni_mrm": 62.0802,
+          "margin": 0.159479,
+          "announced": "2022-04-18",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 780.7183,
+          "ni_mrm": 158.2738,
+          "margin": 0.202728,
+          "announced": "2023-04-25",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 867.2614,
+          "ni_mrm": 154.9131,
+          "margin": 0.178623,
+          "announced": "2024-04-30",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 1215.775,
+          "ni_mrm": 29.3733,
+          "margin": 0.02416,
+          "announced": "2025-04-29",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 1430.5163,
+          "ni_mrm": 124.2506,
+          "margin": 0.086857,
+          "announced": "2025-04-29",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": null,
+          "ni_mrm": null,
+          "margin": null,
+          "announced": null,
+          "disclosed": false
+        }
+      }
+    },
+    "688052": {
+      "name": "Novosense",
+      "cn_name": "纳芯微",
+      "code": "688052",
+      "category": "Analog",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 92.1032,
+          "ni_mrm": -9.1085,
+          "margin": -0.098894,
+          "announced": "2022-04-18",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 241.9871,
+          "ni_mrm": 50.816,
+          "margin": 0.209995,
+          "announced": "2022-04-21",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 862.0932,
+          "ni_mrm": 223.7386,
+          "margin": 0.25953,
+          "announced": "2023-04-24",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 1670.3927,
+          "ni_mrm": 250.5744,
+          "margin": 0.150009,
+          "announced": "2024-04-26",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 1310.9272,
+          "ni_mrm": -305.3348,
+          "margin": -0.232915,
+          "announced": "2025-04-10",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 1960.2742,
+          "ni_mrm": -402.8782,
+          "margin": -0.205521,
+          "announced": "2026-03-31",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": 3367.8231,
+          "ni_mrm": -228.8746,
+          "margin": -0.067959,
+          "announced": "2026-03-31",
+          "disclosed": true
+        }
+      }
+    },
+    "600460": {
+      "name": "Silan",
+      "cn_name": "士兰微",
+      "code": "600460",
+      "category": "P&D",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 3110.5738,
+          "ni_mrm": 14.532,
+          "margin": 0.004672,
+          "announced": "2021-03-13",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 4280.5618,
+          "ni_mrm": 67.5972,
+          "margin": 0.015792,
+          "announced": "2022-03-29",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 7194.1482,
+          "ni_mrm": 1517.7256,
+          "margin": 0.210967,
+          "announced": "2023-03-31",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 8282.2016,
+          "ni_mrm": 1052.4168,
+          "margin": 0.12707,
+          "announced": "2024-04-09",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 9339.538,
+          "ni_mrm": -35.7858,
+          "margin": -0.003832,
+          "announced": "2025-04-19",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 11220.869,
+          "ni_mrm": 219.8678,
+          "margin": 0.019595,
+          "announced": "2025-04-19",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": null,
+          "ni_mrm": null,
+          "margin": null,
+          "announced": null,
+          "disclosed": false
+        }
+      }
+    },
+    "688396": {
+      "name": "CR Micro",
+      "cn_name": "华润微",
+      "code": "688396",
+      "category": "P&D",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 5742.7841,
+          "ni_mrm": 400.7555,
+          "margin": 0.069784,
+          "announced": "2021-04-30",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 6977.2592,
+          "ni_mrm": 963.6616,
+          "margin": 0.138115,
+          "announced": "2022-04-23",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 9249.2028,
+          "ni_mrm": 2267.9204,
+          "margin": 0.245202,
+          "announced": "2023-04-28",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 10060.1295,
+          "ni_mrm": 2617.2673,
+          "margin": 0.260162,
+          "announced": "2024-04-26",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 9900.6039,
+          "ni_mrm": 1479.2657,
+          "margin": 0.149412,
+          "announced": "2025-04-30",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 10118.5258,
+          "ni_mrm": 762.4599,
+          "margin": 0.075353,
+          "announced": "2025-04-30",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": null,
+          "ni_mrm": null,
+          "margin": null,
+          "announced": null,
+          "disclosed": false
+        }
+      }
+    },
+    "300373": {
+      "name": "Yangjie",
+      "cn_name": "扬杰科技",
+      "code": "300373",
+      "category": "P&D",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 2007.075,
+          "ni_mrm": 225.1529,
+          "margin": 0.11218,
+          "announced": "2021-04-16",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 2616.9727,
+          "ni_mrm": 378.2655,
+          "margin": 0.144543,
+          "announced": "2022-04-22",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 4396.5935,
+          "ni_mrm": 768.1033,
+          "margin": 0.174704,
+          "announced": "2023-04-28",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 5403.532,
+          "ni_mrm": 1060.1455,
+          "margin": 0.196195,
+          "announced": "2024-04-22",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 5409.835,
+          "ni_mrm": 923.9263,
+          "margin": 0.170786,
+          "announced": "2025-03-31",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 6033.3781,
+          "ni_mrm": 1002.4519,
+          "margin": 0.166151,
+          "announced": "2026-03-31",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": 7130.1992,
+          "ni_mrm": 1258.5833,
+          "margin": 0.176514,
+          "announced": "2026-03-31",
+          "disclosed": true
+        }
+      }
+    },
+    "600360": {
+      "name": "Sino-Micro",
+      "cn_name": "华微电子",
+      "code": "600360",
+      "category": "P&D",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 1656.4856,
+          "ni_mrm": 64.9964,
+          "margin": 0.039238,
+          "announced": "2021-04-29",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 1718.5836,
+          "ni_mrm": 34.182,
+          "margin": 0.01989,
+          "announced": "2022-04-29",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 2210.0552,
+          "ni_mrm": 115.7073,
+          "margin": 0.052355,
+          "announced": "2023-06-30",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 1953.1444,
+          "ni_mrm": 57.7488,
+          "margin": 0.029567,
+          "announced": "2024-04-30",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 1741.756,
+          "ni_mrm": 36.8694,
+          "margin": 0.021168,
+          "announced": "2025-04-30",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 2057.6082,
+          "ni_mrm": 127.7339,
+          "margin": 0.062079,
+          "announced": "2025-04-30",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": null,
+          "ni_mrm": null,
+          "margin": null,
+          "announced": null,
+          "disclosed": false
+        }
+      }
+    },
+    "603290": {
+      "name": "star power",
+      "cn_name": "斯达半导",
+      "code": "603290",
+      "category": "P&D",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 779.4397,
+          "ni_mrm": 135.2785,
+          "margin": 0.173559,
+          "announced": "2021-04-09",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 963.003,
+          "ni_mrm": 180.6826,
+          "margin": 0.187624,
+          "announced": "2022-04-09",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 1706.6432,
+          "ni_mrm": 398.383,
+          "margin": 0.233431,
+          "announced": "2023-04-11",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 2705.4984,
+          "ni_mrm": 817.6429,
+          "margin": 0.302215,
+          "announced": "2024-04-08",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 3662.9654,
+          "ni_mrm": 910.526,
+          "margin": 0.248576,
+          "announced": "2025-04-26",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 3390.6207,
+          "ni_mrm": 507.6663,
+          "margin": 0.149727,
+          "announced": "2025-04-26",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": null,
+          "ni_mrm": null,
+          "margin": null,
+          "announced": null,
+          "disclosed": false
+        }
+      }
+    },
+    "605111": {
+      "name": "NCE",
+      "cn_name": "新洁能",
+      "code": "605111",
+      "category": "P&D",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 772.5369,
+          "ni_mrm": 98.2095,
+          "margin": 0.127126,
+          "announced": "2021-03-31",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 954.989,
+          "ni_mrm": 139.3542,
+          "margin": 0.145922,
+          "announced": "2022-03-22",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 1510.7388,
+          "ni_mrm": 416.4055,
+          "margin": 0.27563,
+          "announced": "2023-03-21",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 1810.9468,
+          "ni_mrm": 435.181,
+          "margin": 0.240306,
+          "announced": "2024-03-28",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 1476.5614,
+          "ni_mrm": 323.1163,
+          "margin": 0.21883,
+          "announced": "2025-04-25",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 1828.424,
+          "ni_mrm": 434.576,
+          "margin": 0.237678,
+          "announced": "2026-03-27",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": 1877.0695,
+          "ni_mrm": 393.6319,
+          "margin": 0.209706,
+          "announced": "2026-03-27",
+          "disclosed": true
+        }
+      }
+    },
+    "300623": {
+      "name": "JieJie Micro",
+      "cn_name": "捷捷微电",
+      "code": "300623",
+      "category": "P&D",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 673.9971,
+          "ni_mrm": 189.686,
+          "margin": 0.281434,
+          "announced": "2021-03-20",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 1010.9009,
+          "ni_mrm": 283.4862,
+          "margin": 0.280429,
+          "announced": "2022-04-20",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 1772.8009,
+          "ni_mrm": 497.0569,
+          "margin": 0.280379,
+          "announced": "2023-04-20",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 1823.5106,
+          "ni_mrm": 359.4543,
+          "margin": 0.197122,
+          "announced": "2024-03-13",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 2106.3602,
+          "ni_mrm": 219.1292,
+          "margin": 0.104032,
+          "announced": "2025-04-16",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 2844.685,
+          "ni_mrm": 473.0382,
+          "margin": 0.166288,
+          "announced": "2025-04-16",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": null,
+          "ni_mrm": null,
+          "margin": null,
+          "announced": null,
+          "disclosed": false
+        }
+      }
+    },
+    "688261": {
+      "name": "Oriental",
+      "cn_name": "东微半导",
+      "code": "688261",
+      "category": "P&D",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 196.0466,
+          "ni_mrm": 9.1101,
+          "margin": 0.046469,
+          "announced": "2022-01-14",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 308.7874,
+          "ni_mrm": 27.6832,
+          "margin": 0.089651,
+          "announced": "2022-04-22",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 782.0918,
+          "ni_mrm": 146.9037,
+          "margin": 0.187834,
+          "announced": "2023-04-20",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 1116.3635,
+          "ni_mrm": 284.3555,
+          "margin": 0.254716,
+          "announced": "2024-04-27",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 972.8503,
+          "ni_mrm": 140.025,
+          "margin": 0.143933,
+          "announced": "2025-04-26",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 1003.22,
+          "ni_mrm": 40.2351,
+          "margin": 0.040106,
+          "announced": "2025-04-26",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": null,
+          "ni_mrm": null,
+          "margin": null,
+          "announced": null,
+          "disclosed": false
+        }
+      }
+    },
+    "688711": {
+      "name": "Macmicst",
+      "cn_name": "宏微科技",
+      "code": "688711",
+      "category": "P&D",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 259.7209,
+          "ni_mrm": 11.2105,
+          "margin": 0.043164,
+          "announced": "2021-08-27",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 331.6293,
+          "ni_mrm": 26.6379,
+          "margin": 0.080324,
+          "announced": "2022-06-16",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 550.6361,
+          "ni_mrm": 68.8294,
+          "margin": 0.125,
+          "announced": "2023-04-26",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 926.0838,
+          "ni_mrm": 78.7081,
+          "margin": 0.08499,
+          "announced": "2024-04-26",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 1504.7394,
+          "ni_mrm": 116.1949,
+          "margin": 0.077219,
+          "announced": "2025-04-15",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 1331.3603,
+          "ni_mrm": -14.4673,
+          "margin": -0.010867,
+          "announced": "2025-04-15",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": null,
+          "ni_mrm": null,
+          "margin": null,
+          "announced": null,
+          "disclosed": false
+        }
+      }
+    },
+    "600703": {
+      "name": "Sanan",
+      "cn_name": "三安光电",
+      "code": "600703",
+      "category": "P&D",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 7460.0139,
+          "ni_mrm": 1298.4667,
+          "margin": 0.174057,
+          "announced": "2021-04-28",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 8453.8828,
+          "ni_mrm": 1016.28,
+          "margin": 0.120215,
+          "announced": "2022-04-26",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 12572.1009,
+          "ni_mrm": 1313.0214,
+          "margin": 0.104439,
+          "announced": "2023-04-28",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 13222.3161,
+          "ni_mrm": 685.1114,
+          "margin": 0.051815,
+          "announced": "2024-04-27",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 14052.752,
+          "ni_mrm": 366.56,
+          "margin": 0.026085,
+          "announced": "2025-04-26",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 16105.8275,
+          "ni_mrm": 252.8463,
+          "margin": 0.015699,
+          "announced": "2025-04-26",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": null,
+          "ni_mrm": null,
+          "margin": null,
+          "announced": null,
+          "disclosed": false
+        }
+      }
+    },
+    "688469": {
+      "name": "UNT",
+      "cn_name": "芯联集成",
+      "code": "688469",
+      "category": "P&D",
+      "currency": "M RMB",
+      "years": {
+        "2019": {
+          "rev_mrm": 269.7693,
+          "ni_mrm": -772.0086,
+          "margin": -2.861736,
+          "announced": "2022-12-02",
+          "disclosed": true
+        },
+        "2020": {
+          "rev_mrm": 739.1555,
+          "ni_mrm": -1365.9956,
+          "margin": -1.848049,
+          "announced": "2023-05-05",
+          "disclosed": true
+        },
+        "2021": {
+          "rev_mrm": 2023.9365,
+          "ni_mrm": -1235.7082,
+          "margin": -0.610547,
+          "announced": "2023-05-05",
+          "disclosed": true
+        },
+        "2022": {
+          "rev_mrm": 4606.3377,
+          "ni_mrm": -1088.4326,
+          "margin": -0.23629,
+          "announced": "2024-03-26",
+          "disclosed": true
+        },
+        "2023": {
+          "rev_mrm": 5324.4828,
+          "ni_mrm": -1958.3318,
+          "margin": -0.367798,
+          "announced": "2025-04-29",
+          "disclosed": true
+        },
+        "2024": {
+          "rev_mrm": 6509.0908,
+          "ni_mrm": -962.1596,
+          "margin": -0.147818,
+          "announced": "2025-04-29",
+          "disclosed": true
+        },
+        "2025": {
+          "rev_mrm": null,
+          "ni_mrm": null,
+          "margin": null,
+          "announced": null,
+          "disclosed": false
+        }
+      }
+    }
+  }
+}

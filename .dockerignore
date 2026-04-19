@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.claude/
+*.xlsx
+*.zip
+src_inspect.zip
+Analog_Revenue_*.xlsx
+deploy.sh
+deploy.ps1
+update.ps1
+*.docx
