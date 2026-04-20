@@ -16,6 +16,8 @@ COPY fetch_yjbb_annual.py .
 COPY fetch_yjbb_quarterly.py .
 COPY yjbb_quarterly.json .
 COPY fetch_profiles.py .
+COPY fetch_edgar_to_json.py .
+COPY fetch_semi_data.py .
 COPY sync_data.py .
 COPY validate_data.py .
 

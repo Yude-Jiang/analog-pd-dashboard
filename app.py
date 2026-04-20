@@ -132,7 +132,15 @@ def refresh():
         results["fetch_yjbb"] = (r1.stdout + r1.stderr)[-2000:]
         print("[fetch_yjbb]\n", results["fetch_yjbb"])
 
-        # 2. Refresh company profiles (XQ)
+        # 2. Refresh EDGAR quarterly data for MPWR / NVTS
+        r_edgar = subprocess.run(
+            [sys.executable, "fetch_edgar_to_json.py"],
+            cwd=tmpdir, capture_output=True, text=True, timeout=120, env=env
+        )
+        results["fetch_edgar"] = (r_edgar.stdout + r_edgar.stderr)[-2000:]
+        print("[fetch_edgar]\n", results["fetch_edgar"])
+
+        # 3. Refresh company profiles (XQ)
         r2 = subprocess.run(
             [sys.executable, "fetch_profiles.py"],
             cwd=tmpdir, capture_output=True, text=True, timeout=300, env=env
