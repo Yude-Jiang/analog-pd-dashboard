@@ -1,0 +1,48 @@
+name: Refresh EDGAR Quarterly (MPWR / NVTS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tickers:
+        description: "Tickers to update (space-separated, e.g. MPWR NVTS)"
+        required: false
+        default: "MPWR NVTS"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements_cloudrun.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements_cloudrun.txt
+
+      - name: Fetch EDGAR quarterly data → data.json
+        run: python fetch_edgar_to_json.py --tickers ${{ github.event.inputs.tickers }}
+
+      - name: Validate data
+        run: python validate_data.py
+        continue-on-error: true
+
+      - name: Commit updated data.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "data: refresh EDGAR quarterly for ${{ github.event.inputs.tickers }}"
+            git push
+          fi
