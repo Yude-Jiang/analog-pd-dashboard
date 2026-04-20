@@ -1,0 +1,50 @@
+name: Smart Sync (Disclosure-Gated)
+
+on:
+  schedule:
+    # 09:00 Beijing time (UTC+8) on weekdays = 01:00 UTC
+    - cron: "0 1 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Force full sync without disclosure calendar check"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements_cloudrun.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements_cloudrun.txt
+
+      - name: Run smart sync
+        run: |
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            python smart_sync.py --force
+          else
+            python smart_sync.py --window 2
+          fi
+
+      - name: Commit updated JSON files
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add yjbb_annual.json yjbb_quarterly.json data.json
+          if git diff --cached --quiet; then
+            echo "No changes — no new disclosures today."
+          else
+            git commit -m "data: smart-sync $(date -u +%Y-%m-%d)"
+            git push
+          fi
