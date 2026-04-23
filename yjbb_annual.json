@@ -1,7 +1,7 @@
 {
   "meta": {
     "source": "AkShare stock_yjbb_em",
-    "fetched_at": "2026-04-09 21:13:19",
+    "fetched_at": "2026-04-23 02:42:52",
     "years": [
       2019,
       2020,
@@ -703,11 +703,11 @@
           "disclosed": true
         },
         "2025": {
-          "rev_mrm": null,
-          "ni_mrm": null,
-          "margin": null,
-          "announced": null,
-          "disclosed": false
+          "rev_mrm": 2255.2446,
+          "ni_mrm": 172.8548,
+          "margin": 0.076646,
+          "announced": "2026-04-21",
+          "disclosed": true
         }
       }
     },
@@ -877,11 +877,11 @@
           "disclosed": true
         },
         "2025": {
-          "rev_mrm": null,
-          "ni_mrm": null,
-          "margin": null,
-          "announced": null,
-          "disclosed": false
+          "rev_mrm": 3494.1345,
+          "ni_mrm": 476.6891,
+          "margin": 0.136426,
+          "announced": "2026-04-16",
+          "disclosed": true
         }
       }
     },
@@ -1109,11 +1109,11 @@
           "disclosed": true
         },
         "2025": {
-          "rev_mrm": null,
-          "ni_mrm": null,
-          "margin": null,
-          "announced": null,
-          "disclosed": false
+          "rev_mrm": 8179.7329,
+          "ni_mrm": -594.893,
+          "margin": -0.072728,
+          "announced": "2026-04-21",
+          "disclosed": true
         }
       }
     }
