@@ -701,6 +701,29 @@
             return { v: (ni / rl) * 100, isEst: true };
         }
 
+        // Returns quarterly USD segments for 2025 stacked bar in trends chart.
+        // Companies with no quarterly data fall back to FY annual placed in q4 slot (isFY=true).
+        function _q25Segments(c) {
+            const r = yjbbData[c.code] ? 7.2 : fxRate(c.currency);
+            const usd = rl => rl != null ? rl / r : null;
+            const q1d = _qGet(c, 2025, 1), q2d = _qGet(c, 2025, 2);
+            const q3d = _qGet(c, 2025, 3), q4d = _qGet(c, 2025, 4);
+            if (!q1d && !q2d && !q3d && !q4d) {
+                const fyVal = _trendRevEst(c, 2025)?.v ?? null;
+                return { q1: null, q2: null, q3: null, q4: fyVal, q2e: false, q3e: false, q4e: false, isFY: true };
+            }
+            const q1 = usd(q1d?.rl), q2 = usd(q2d?.rl);
+            const q3 = usd(q3d?.rl), q4 = usd(q4d?.rl);
+            let q2v = q2, q3v = q3, q4v = q4;
+            let q2e = false, q3e = false, q4e = false;
+            if (!q4d) {
+                if      (q3d) { q4v = q3;              q4e = true; }
+                else if (q2d) { q3v = q4v = (q1+q2)/2; q3e = q4e = true; }
+                else if (q1d) { q2v = q3v = q4v = q1;  q2e = q3e = q4e = true; }
+            }
+            return { q1, q2: q2v, q3: q3v, q4: q4v, q2e, q3e, q4e, isFY: false };
+        }
+
         function render2026Tracker() {
             const t = I18N[lang];
             const cos = Object.values(rawData);
@@ -906,26 +929,40 @@
                     `<span style="color:var(--txt3)">` +
                     `${trendStrFinal} | ${T.stats_src(n2025, companies.length)}</span>`;
 
-                // Stripe pattern for 2025 bars where annual is not yet disclosed but quarterly data exists
-                const stripe25 = _stripePattern('rgba(96,125,139,0.9)', 'rgba(96,125,139,0.12)');
+                // 2025 bar: 4 stacked quarterly segments (Q1=lightest … Q4=darkest)
+                // Estimated quarters rendered with diagonal stripe; companies without
+                // quarterly data have their FY annual placed in the Q4 slot (isFY=true).
+                const Q25C = [
+                    'rgba(96,125,139,0.40)',  // Q1 bottom — lightest
+                    'rgba(96,125,139,0.60)',  // Q2
+                    'rgba(96,125,139,0.78)',  // Q3
+                    'rgba(96,125,139,0.97)',  // Q4 actual — darkest
+                ];
+                const Q25_STRIPE = _stripePattern('rgba(96,125,139,0.9)', 'rgba(96,125,139,0.12)');
+                const q25segs = companies.map(c => _q25Segments(c));
 
-                const barDatasets = YEARS.map(y => {
-                    if (y !== 2025) return {
+                const barDatasets = [
+                    ...YEARS.filter(y => y !== 2025).map(y => ({
                         type: 'bar', label: String(y),
                         data: companies.map(c => getRevUSD(c, y)),
                         backgroundColor: BC[y], yAxisID: 'y'
-                    };
-                    // 2025: use actual where disclosed, quarterly estimate where not
-                    return {
-                        type: 'bar', label: '2025',
-                        data: companies.map(c => _trendRevEst(c, 2025)?.v ?? null),
-                        backgroundColor: companies.map(c => {
-                            const r = _trendRevEst(c, 2025);
-                            return (r && r.isEst) ? stripe25 : BC[2025];
-                        }),
-                        yAxisID: 'y'
-                    };
-                });
+                    })),
+                    { type: 'bar', label: '25 Q1', stack: 'q25',
+                      data: q25segs.map(s => s.q1),
+                      backgroundColor: Q25C[0], yAxisID: 'y' },
+                    { type: 'bar', label: '25 Q2', stack: 'q25',
+                      data: q25segs.map(s => s.q2),
+                      backgroundColor: q25segs.map(s => s.q2e ? Q25_STRIPE : Q25C[1]),
+                      yAxisID: 'y' },
+                    { type: 'bar', label: '25 Q3', stack: 'q25',
+                      data: q25segs.map(s => s.q3),
+                      backgroundColor: q25segs.map(s => s.q3e ? Q25_STRIPE : Q25C[2]),
+                      yAxisID: 'y' },
+                    { type: 'bar', label: '25 Q4', stack: 'q25',
+                      data: q25segs.map(s => s.q4),
+                      backgroundColor: q25segs.map(s => s.q4e ? Q25_STRIPE : Q25C[3]),
+                      yAxisID: 'y' },
+                ];
 
                 const marginDatasets = MARGIN_YEARS.map(y => {
                     if (y !== 2025) return {
@@ -983,12 +1020,18 @@
                                         const val = ctx.parsed.y;
                                         if (val === null || val === undefined || isNaN(val)) return null;
                                         const c = companies[ctx.dataIndex];
+                                        const i = ctx.dataIndex;
+                                        const seg = q25segs[i];
                                         const fmtVal = lbl.startsWith('NI%')
                                             ? val.toFixed(1) + '%'
                                             : val.toFixed(0) + ' M USD';
-                                        const isEst = (lbl === '2025'       && getRevUSD(c, 2025) === null)
+                                        // For FY-only companies, Q4 slot holds the full-year value
+                                        const dispLbl = (lbl === '25 Q4' && seg?.isFY) ? '2025 FY' : lbl;
+                                        const isEst = (lbl === '25 Q2'    && seg?.q2e)
+                                                   || (lbl === '25 Q3'    && seg?.q3e)
+                                                   || (lbl === '25 Q4'    && seg?.q4e)
                                                    || (lbl === 'NI% (2025)' && getMarginPct(c, 2025) === null);
-                                        return `${lbl}: ${fmtVal}${isEst ? ' (est.)' : ''}`;
+                                        return `${dispLbl}: ${fmtVal}${isEst ? ' (est.)' : ''}`;
                                     }
                                 }
                             }
