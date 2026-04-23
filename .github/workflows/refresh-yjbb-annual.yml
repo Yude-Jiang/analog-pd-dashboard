@@ -36,8 +36,7 @@ jobs:
         continue-on-error: true
 
       - name: Validate data
-        run: python validate_data.py
-        continue-on-error: true
+        run: python validate_data.py || true
 
       - name: Commit updated JSON files
         run: |

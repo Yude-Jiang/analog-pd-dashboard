@@ -32,8 +32,7 @@ jobs:
         run: python fetch_edgar_to_json.py --tickers ${{ github.event.inputs.tickers }}
 
       - name: Validate data
-        run: python validate_data.py
-        continue-on-error: true
+        run: python validate_data.py || true
 
       - name: Commit updated data.json
         run: |
