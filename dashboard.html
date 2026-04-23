@@ -676,6 +676,31 @@
             return (m !== undefined && m !== null) ? m * 100 : null;
         }
 
+        // Trends chart helpers: return actual value when disclosed, quarterly estimate when not.
+        // Used only for 2025 bars/lines in renderTrends() to fill gaps for undisclosed companies.
+        function _trendRevEst(c, yr) {
+            const actual = getRevUSD(c, yr);
+            if (actual !== null) return { v: actual, isEst: false };
+            const est = _qEstimate(c, yr);
+            if (!est) return null;
+            const r = yjbbData[c.code] ? 7.2 : fxRate(c.currency);
+            return { v: est.rl / r, isEst: est.type === 'estimated' };
+        }
+        function _trendMarginEst(c, yr) {
+            const actual = getMarginPct(c, yr);
+            if (actual !== null) return { v: actual, isEst: false };
+            const q1 = _qGet(c, yr, 1), q2 = _qGet(c, yr, 2);
+            const q3 = _qGet(c, yr, 3), q4 = _qGet(c, yr, 4);
+            let rl, ni;
+            if      (q1 && q2 && q3 && q4) { rl = q1.rl+q2.rl+q3.rl+q4.rl; ni = (q1.ni||0)+(q2.ni||0)+(q3.ni||0)+(q4.ni||0); }
+            else if (q1 && q2 && q3)       { rl = (q1.rl+q2.rl)+q3.rl*2;   ni = ((q1.ni||0)+(q2.ni||0))+(q3.ni||0)*2; }
+            else if (q1 && q2)             { rl = (q1.rl+q2.rl)*2;          ni = ((q1.ni||0)+(q2.ni||0))*2; }
+            else if (q1)                   { rl = q1.rl*4;                   ni = (q1.ni||0)*4; }
+            else return null;
+            if (!rl) return null;
+            return { v: (ni / rl) * 100, isEst: true };
+        }
+
         function render2026Tracker() {
             const t = I18N[lang];
             const cos = Object.values(rawData);
@@ -881,31 +906,56 @@
                     `<span style="color:var(--txt3)">` +
                     `${trendStrFinal} | ${T.stats_src(n2025, companies.length)}</span>`;
 
-                const barDatasets = YEARS.map(y => ({
-                    type: 'bar',
-                    label: String(y),
-                    data: companies.map(c => getRevUSD(c, y)),   // null = not yet disclosed
-                    backgroundColor: BC[y],
-                    yAxisID: 'y'
-                }));
+                // Stripe pattern for 2025 bars where annual is not yet disclosed but quarterly data exists
+                const stripe25 = _stripePattern('rgba(96,125,139,0.9)', 'rgba(96,125,139,0.12)');
 
-                const marginDatasets = MARGIN_YEARS.map(y => ({
-                    type: 'line',
-                    label: `NI% (${y})`,
-                    data: companies.map(c => getMarginPct(c, y)),
-                    borderColor: MARGIN_COLORS[y],
-                    borderWidth: y === 2025 ? 3 : 1.5,
-                    borderDash: y === 2025 ? [] : [5, 5],
-                    fill: false,
-                    yAxisID: 'y1',
-                    tension: 0.3,
-                    pointRadius: y === 2025 ? 4 : 2,
-                    spanGaps: true
-                }));
+                const barDatasets = YEARS.map(y => {
+                    if (y !== 2025) return {
+                        type: 'bar', label: String(y),
+                        data: companies.map(c => getRevUSD(c, y)),
+                        backgroundColor: BC[y], yAxisID: 'y'
+                    };
+                    // 2025: use actual where disclosed, quarterly estimate where not
+                    return {
+                        type: 'bar', label: '2025',
+                        data: companies.map(c => _trendRevEst(c, 2025)?.v ?? null),
+                        backgroundColor: companies.map(c => {
+                            const r = _trendRevEst(c, 2025);
+                            return (r && r.isEst) ? stripe25 : BC[2025];
+                        }),
+                        yAxisID: 'y'
+                    };
+                });
+
+                const marginDatasets = MARGIN_YEARS.map(y => {
+                    if (y !== 2025) return {
+                        type: 'line', label: `NI% (${y})`,
+                        data: companies.map(c => getMarginPct(c, y)),
+                        borderColor: MARGIN_COLORS[y], borderWidth: 1.5,
+                        borderDash: [5, 5], fill: false, yAxisID: 'y1',
+                        tension: 0.3, pointRadius: 2, spanGaps: true
+                    };
+                    // 2025: actual points filled, estimated points hollow
+                    const data25  = companies.map(c => _trendMarginEst(c, 2025)?.v ?? null);
+                    const isEst25 = companies.map(c => getMarginPct(c, 2025) === null && _trendMarginEst(c, 2025) !== null);
+                    return {
+                        type: 'line', label: 'NI% (2025)',
+                        data: data25,
+                        borderColor: MARGIN_COLORS[2025], borderWidth: 3,
+                        borderDash: [], fill: false, yAxisID: 'y1',
+                        tension: 0.3, spanGaps: true,
+                        pointRadius:          isEst25.map(e => e ? 3 : 4),
+                        pointBackgroundColor: isEst25.map(e => e ? 'transparent' : MARGIN_COLORS[2025]),
+                        pointBorderColor:     isEst25.map(_  => MARGIN_COLORS[2025]),
+                        pointBorderWidth:     isEst25.map(e => e ? 2 : 1)
+                    };
+                });
 
                 // Y1 range — delegated to getY1Range() which respects user selection
+                // Include estimated 2025 margin values so range doesn't clip them
                 const allMarginVals = MARGIN_YEARS.flatMap(y =>
-                    companies.map(c => getMarginPct(c, y)).filter(v => v !== null)
+                    companies.map(c => y === 2025 ? _trendMarginEst(c, 2025)?.v : getMarginPct(c, y))
+                              .filter(v => v !== null && v !== undefined)
                 );
                 const { min: y1Min, max: y1Max } = getY1Range(allMarginVals);
 
@@ -925,7 +975,23 @@
                         },
                         plugins: {
                             legend: { position: 'top', labels: { boxWidth: 8, font: { size: 9 }, padding: 10 } },
-                            tooltip: { bodyFont: { size: 10 } }
+                            tooltip: {
+                                bodyFont: { size: 10 },
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const lbl = ctx.dataset.label || '';
+                                        const val = ctx.parsed.y;
+                                        if (val === null || val === undefined || isNaN(val)) return null;
+                                        const c = companies[ctx.dataIndex];
+                                        const fmtVal = lbl.startsWith('NI%')
+                                            ? val.toFixed(1) + '%'
+                                            : val.toFixed(0) + ' M USD';
+                                        const isEst = (lbl === '2025'       && getRevUSD(c, 2025) === null)
+                                                   || (lbl === 'NI% (2025)' && getMarginPct(c, 2025) === null);
+                                        return `${lbl}: ${fmtVal}${isEst ? ' (est.)' : ''}`;
+                                    }
+                                }
+                            }
                         }
                     }
                 };

@@ -1,0 +1,52 @@
+name: Refresh YJBB Annual Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      years:
+        description: "Years to refresh (space-separated, e.g. 2025 or 2024 2025)"
+        required: false
+        default: "2025"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements_cloudrun.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements_cloudrun.txt
+
+      - name: Fetch annual YJBB data
+        run: python fetch_yjbb_annual.py --years ${{ github.event.inputs.years }}
+
+      - name: Fetch quarterly YJBB data
+        run: python fetch_yjbb_quarterly.py
+        continue-on-error: true
+
+      - name: Validate data
+        run: python validate_data.py
+        continue-on-error: true
+
+      - name: Commit updated JSON files
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add yjbb_annual.json yjbb_quarterly.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "data: refresh YJBB annual/quarterly (years=${{ github.event.inputs.years }})"
+            git push
+          fi
