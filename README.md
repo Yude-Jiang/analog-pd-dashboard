@@ -108,20 +108,17 @@ python -m http.server 8000
 
 ### 推送 Google Cloud Run
 ```bash
-# 构建并推送镜像
-IMAGE="asia-east1-docker.pkg.dev/st-china-ai-force/cloud-run-source-deploy/analog-dashboard:vN"
-gcloud builds submit --tag "$IMAGE" --region asia-east1 --project st-china-ai-force .
-
-# 部署
 gcloud run deploy analog-dashboard \
-  --image "$IMAGE" \
-  --region asia-east1 --project st-china-ai-force \
-  --set-env-vars GCS_BUCKET=st-china-ai-force-dashboard,REFRESH_SECRET=<secret> \
-  --allow-unauthenticated --memory 1Gi --cpu 1 --timeout 300
-
-# 更新 GCS 数据文件
-gcloud storage cp data.json yjbb_annual.json profiles_xq.json gs://st-china-ai-force-dashboard/
+  --source . \
+  --project st-china-ai-force \
+  --region asia-east1 \
+  --allow-unauthenticated \
+  --port 8080 \
+  --set-env-vars GCS_BUCKET=st-china-ai-force-dashboard
 ```
+
+> `--source .` 自动完成镜像构建（Cloud Build）和部署，一步到位。
+> 如需通过 Secret Manager 注入密钥，追加 `--set-secrets "KEY=secret-name:latest"`。
 
 ---
 
