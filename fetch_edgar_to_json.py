@@ -130,9 +130,14 @@ def _to_quarterly(df: pd.DataFrame, scale: float = 1e6) -> dict:
                 return valid.nsmallest(1, "dur")
             return pd.DataFrame()
 
-        best = yr_rows.groupby("end", group_keys=False).apply(_pick_best)
-        if best.empty:
+        best_rows = []
+        for _, grp in yr_rows.groupby("end"):
+            picked = _pick_best(grp)
+            if not picked.empty:
+                best_rows.append(picked)
+        if not best_rows:
             continue
+        best = pd.concat(best_rows, ignore_index=True)
         best = best.sort_values("end").reset_index(drop=True)
 
         # Detect whether this year uses single-quarter or YTD reporting
