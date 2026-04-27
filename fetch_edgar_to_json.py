@@ -73,33 +73,40 @@ def _period_label(dt) -> str:
 def _extract_facts(facts: dict, tags: list, unit: str = "USD") -> pd.DataFrame:
     """
     Extract all 10-Q and 10-K entries for the given XBRL tags.
-    Keeps ALL duration variants (single-quarter AND YTD cumulative) so that
-    YTD subtraction can be applied downstream.
+    Merges across all matching tags so a company switching tags mid-history
+    (e.g. Revenues → RevenueFromContractWithCustomer) loses no data.
     Deduplicates on (end, start) keeping latest filed revision.
     """
     us_gaap = facts.get("facts", {}).get("us-gaap", {})
+    frames = []
     for tag in tags:
         node = us_gaap.get(tag, {}).get("units", {}).get(unit)
         if not node:
             continue
         df = pd.DataFrame(node)
         df = df[df["form"].isin(["10-Q", "10-K"])].copy()
-        df["end"]   = pd.to_datetime(df["end"],   errors="coerce")
-        df["start"] = pd.to_datetime(df["start"], errors="coerce") \
-                      if "start" in df.columns else pd.NaT
-        df = df.dropna(subset=["end"])
-        # Keep latest revision for each (end, start) pair
-        key = ["end", "start"] if "start" in df.columns else ["end"]
-        df = df.sort_values("filed").drop_duplicates(key, keep="last")
-        df["dur"] = (df["end"] - df["start"]).dt.days
-        # When start is missing (instant facts), infer dur from EDGAR's fp field
-        # so YTD-subtraction logic can still classify Q1/Q2/Q3/annual entries.
-        if "fp" in df.columns:
-            _FP_DUR = {"Q1": 91, "Q2": 182, "Q3": 273, "H1": 182, "9M": 273, "FY": 365}
-            nan_mask = df["dur"].isna()
-            df.loc[nan_mask, "dur"] = df.loc[nan_mask, "fp"].map(_FP_DUR)
-        return df[["end", "start", "dur", "val", "form"]].reset_index(drop=True)
-    return pd.DataFrame()
+        if not df.empty:
+            frames.append(df)
+
+    if not frames:
+        return pd.DataFrame()
+
+    df = pd.concat(frames, ignore_index=True)
+    df["end"]   = pd.to_datetime(df["end"],   errors="coerce")
+    df["start"] = pd.to_datetime(df["start"], errors="coerce") \
+                  if "start" in df.columns else pd.NaT
+    df = df.dropna(subset=["end"])
+    # Keep latest revision for each (end, start) pair across all tags
+    key = ["end", "start"] if "start" in df.columns else ["end"]
+    df = df.sort_values("filed").drop_duplicates(key, keep="last")
+    df["dur"] = (df["end"] - df["start"]).dt.days
+    # When start is missing (instant facts), infer dur from EDGAR's fp field
+    # so YTD-subtraction logic can still classify Q1/Q2/Q3/annual entries.
+    if "fp" in df.columns:
+        _FP_DUR = {"Q1": 91, "Q2": 182, "Q3": 273, "H1": 182, "9M": 273, "FY": 365}
+        nan_mask = df["dur"].isna()
+        df.loc[nan_mask, "dur"] = df.loc[nan_mask, "fp"].map(_FP_DUR)
+    return df[["end", "start", "dur", "val", "form"]].reset_index(drop=True)
 
 
 def _to_quarterly(df: pd.DataFrame, scale: float = 1e6) -> dict:
