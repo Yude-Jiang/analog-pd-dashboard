@@ -1,79 +1,17 @@
-name: Refresh Quarterly Data (MPWR / NVTS / Silergy) → GCS
+name: Refresh Quarterly Data (MPWR / NVTS / Silergy)
 
 on:
   workflow_dispatch:
-    inputs:
-      tickers:
-        description: "EDGAR tickers to update (space-separated)"
-        required: false
-        default: "MPWR NVTS"
-
-permissions:
-  contents: write
+  schedule:
+    - cron: "0 1 * * 1-5"   # 09:00 Beijing weekdays
 
 jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-          cache-dependency-path: requirements_cloudrun.txt
-
-      - name: Install dependencies
-        run: pip install -r requirements_cloudrun.txt
-
-      - name: Download latest data.json from GCS
-        env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      - name: Trigger Cloud Run /refresh
         run: |
-          if [ -n "$GCP_SA_KEY" ]; then
-            echo "$GCP_SA_KEY" | base64 -d > /tmp/sa_key.json
-            gcloud auth activate-service-account --key-file=/tmp/sa_key.json
-            gsutil cp gs://st-china-ai-force-dashboard/data.json data.json \
-              && echo "Downloaded data.json from GCS" \
-              || echo "GCS download failed, using repo copy"
-            rm -f /tmp/sa_key.json
-          else
-            echo "No GCP_SA_KEY secret — using repo copy of data.json"
-          fi
-
-      - name: Fetch EDGAR quarterly data (MPWR / NVTS)
-        run: python fetch_edgar_to_json.py --tickers ${{ github.event.inputs.tickers }}
-
-      - name: Fetch Silergy quarterly data (MOPS)
-        run: python fetch_silergy_to_json.py
-
-      - name: Validate data
-        run: python validate_data.py || true
-
-      - name: Upload data.json to GCS
-        env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-        run: |
-          if [ -n "$GCP_SA_KEY" ]; then
-            echo "$GCP_SA_KEY" | base64 -d > /tmp/sa_key.json
-            gcloud auth activate-service-account --key-file=/tmp/sa_key.json
-            gsutil cp data.json gs://st-china-ai-force-dashboard/data.json
-            echo "Uploaded data.json to GCS"
-            rm -f /tmp/sa_key.json
-          else
-            echo "No GCP_SA_KEY secret — skipping GCS upload"
-          fi
-
-      - name: Commit updated data.json to repo
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data.json
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "data: refresh quarterly EDGAR (${{ github.event.inputs.tickers }}) + Silergy"
-            git push
-          fi
+          curl -f -s -X POST \
+            "https://analog-dashboard-460989091461.asia-east1.run.app/refresh" \
+            -H "Authorization: Bearer ${{ secrets.REFRESH_SECRET }}" \
+            | python3 -m json.tool
