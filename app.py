@@ -140,6 +140,14 @@ def refresh():
         results["fetch_edgar"] = (r_edgar.stdout + r_edgar.stderr)[-2000:]
         print("[fetch_edgar]\n", results["fetch_edgar"])
 
+        # 3. Refresh Silergy quarterly data from MOPS
+        r_silergy = subprocess.run(
+            [sys.executable, "fetch_silergy_to_json.py"],
+            cwd=tmpdir, capture_output=True, text=True, timeout=120, env=env
+        )
+        results["fetch_silergy"] = (r_silergy.stdout + r_silergy.stderr)[-2000:]
+        print("[fetch_silergy]\n", results["fetch_silergy"])
+
         # 3. Refresh company profiles (XQ)
         r2 = subprocess.run(
             [sys.executable, "fetch_profiles.py"],
