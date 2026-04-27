@@ -148,7 +148,7 @@ def refresh():
         results["fetch_silergy"] = (r_silergy.stdout + r_silergy.stderr)[-2000:]
         print("[fetch_silergy]\n", results["fetch_silergy"])
 
-        # 3. Refresh company profiles (XQ)
+        # 4. Refresh company profiles (XQ)
         r2 = subprocess.run(
             [sys.executable, "fetch_profiles.py"],
             cwd=tmpdir, capture_output=True, text=True, timeout=300, env=env
@@ -156,7 +156,7 @@ def refresh():
         results["fetch_profiles"] = (r2.stdout + r2.stderr)[-2000:]
         print("[fetch_profiles]\n", results["fetch_profiles"])
 
-        # 3. Validate data quality
+        # 5. Validate data quality
         r3 = subprocess.run(
             [sys.executable, "validate_data.py"],
             cwd=tmpdir, capture_output=True, text=True, timeout=60, env=env

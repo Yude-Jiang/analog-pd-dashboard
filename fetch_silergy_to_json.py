@@ -38,7 +38,7 @@ _DATA_JSON = _HERE / "data.json"
 
 CODE  = "6415"
 NAME  = "Silergy"
-YEARS = [2024, 2025]
+YEARS = [2024, 2025, 2026]
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
