@@ -126,6 +126,8 @@ def _to_quarterly(df: pd.DataFrame, scale: float = 1e6) -> dict:
 
     result: dict = {}
     df_q = df[df["form"] == "10-Q"].copy()
+    log.debug("  _to_quarterly: 10-Q end dates: %s",
+              sorted(df_q["end"].dt.strftime("%Y-%m-%d").unique().tolist()))
 
     for yr in sorted(df_q["end"].dt.year.unique()):
         if yr not in range(YEAR_START, YEAR_END + 1):
