@@ -86,6 +86,8 @@ def _extract_facts(facts: dict, tags: list, unit: str = "USD") -> pd.DataFrame:
         df = pd.DataFrame(node)
         df = df[df["form"].isin(["10-Q", "10-K"])].copy()
         if not df.empty:
+            log.debug("  tag=%s rows=%d end_range=[%s, %s]",
+                      tag, len(df), df["end"].min(), df["end"].max())
             frames.append(df)
 
     if not frames:
@@ -217,7 +219,11 @@ def main():
     parser = argparse.ArgumentParser(description="Merge EDGAR quarterly data into data.json")
     parser.add_argument("--tickers", nargs="+", default=None,
                         help="Only update these tickers, e.g. --tickers MPWR")
+    parser.add_argument("--debug", action="store_true",
+                        help="Enable DEBUG logging to diagnose missing data")
     args = parser.parse_args()
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
     target = set(args.tickers) if args.tickers else None
 
     with open(_DATA_JSON, encoding="utf-8") as f:

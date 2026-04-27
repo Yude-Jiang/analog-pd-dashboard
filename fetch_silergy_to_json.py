@@ -72,7 +72,7 @@ def _fetch_monthly_revenue() -> dict:
         try:
             r = requests.post(url, data=payload, headers=HEADERS, timeout=20, verify=False)
             r.raise_for_status()
-            tables = pd.read_html(io.StringIO(r.text))
+            tables = pd.read_html(io.StringIO(r.text), flavor="lxml")
         except Exception as e:
             log.warning("  MOPS monthly %d failed: %s", year, e)
             time.sleep(2)
@@ -168,7 +168,7 @@ def _fetch_cumulative_ni() -> dict:
             try:
                 r = requests.post(url, data=payload, headers=HEADERS, timeout=25, verify=False)
                 r.raise_for_status()
-                tables = pd.read_html(io.StringIO(r.text))
+                tables = pd.read_html(io.StringIO(r.text), flavor="lxml")
             except Exception as e:
                 log.warning("  MOPS Q%d %d NI failed: %s", season, year, e)
                 time.sleep(2)
