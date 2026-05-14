@@ -9,7 +9,10 @@ jobs:
     steps:
       - name: Trigger Cloud Run /refresh
         run: |
-          curl -f -s -X POST \
+          HTTP_CODE=$(curl -s -o /tmp/body.json -w "%{http_code}" -X POST \
             "https://analog-dashboard-460989091461.asia-east1.run.app/refresh" \
-            -H "Authorization: Bearer ${{ secrets.REFRESH_SECRET }}" \
-            | python3 -m json.tool
+            -H "Authorization: Bearer ${{ secrets.REFRESH_SECRET }}")
+          echo "HTTP 状态码: $HTTP_CODE"
+          echo "--- 响应内容 ---"
+          python3 -m json.tool /tmp/body.json 2>/dev/null || cat /tmp/body.json
+          [ "$HTTP_CODE" = "200" ] || exit 1
