@@ -881,6 +881,8 @@
         }
 
         function renderTrends() {
+            const tickColor  = getComputedStyle(document.body).getPropertyValue('--txt').trim();
+            const titleColor = getComputedStyle(document.body).getPropertyValue('--txt2').trim();
             const YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
             const MARGIN_YEARS  = [2021, 2022, 2023, 2024, 2025];
             const MARGIN_COLORS = {
@@ -1005,14 +1007,15 @@
                         responsive: true, maintainAspectRatio: false,
                         interaction: { mode: 'index', intersect: false },
                         scales: {
-                            x:  { ticks: { font: { size: 13 } } },
-                            y:  { title: { display: true, text: T.axis_rev, font: { size: 12 } }, grid: { display: false }, ticks: { font: { size: 13 } } },
-                            y1: { title: { display: true, text: T.axis_margin, font: { size: 12 } }, position: 'right',
-                                  min: y1Min, max: y1Max,
-                                  ticks: { callback: v => v + '%', font: { size: 13 } }, grid: { display: false } }
+                            x:  { ticks: { font: { size: 13 }, color: tickColor } },
+                            y:  { title: { display: true, text: T.axis_rev, font: { size: 12 }, color: titleColor },
+                                  grid: { display: false }, ticks: { font: { size: 13 }, color: tickColor } },
+                            y1: { title: { display: true, text: T.axis_margin, font: { size: 12 }, color: titleColor },
+                                  position: 'right', min: y1Min, max: y1Max,
+                                  ticks: { callback: v => v + '%', font: { size: 13 }, color: tickColor }, grid: { display: false } }
                         },
                         plugins: {
-                            legend: { position: 'top', labels: { boxWidth: 8, font: { size: 11 }, padding: 10 } },
+                            legend: { position: 'top', labels: { boxWidth: 8, font: { size: 11 }, color: tickColor, padding: 10 } },
                             tooltip: {
                                 bodyFont: { size: 10 },
                                 callbacks: {
