@@ -50,6 +50,15 @@
         .panel-tag { font-size: 12px; font-weight: 600; color: var(--txt2) }
 
         .chart-box { position: relative; height: 350px; width: 100% }
+        .chart-resize-wrap { position: relative; width: 100%; }
+        .chart-resize-handle {
+            position: absolute; right: -14px; top: 50%; transform: translateY(-50%);
+            width: 14px; height: 56px; background: var(--accent); color: #fff;
+            border-radius: 0 6px 6px 0; cursor: ew-resize; display: flex;
+            align-items: center; justify-content: center; font-size: 11px;
+            user-select: none; z-index: 20; opacity: 0.55; transition: opacity .15s;
+        }
+        .chart-resize-handle:hover { opacity: 1; }
         .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px }
 
         .sec-ttl { font-size: 11px; font-weight: 800; color: var(--txt3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px }
@@ -281,7 +290,10 @@
                     </div>
                 </div>
                 <div id="coChipsA" class="co-chips-wrap"></div>
-                <div class="chart-box" style="height:540px"><canvas id="cA"></canvas></div>
+                <div class="chart-resize-wrap" id="wrapA">
+                    <div class="chart-box" style="height:540px"><canvas id="cA"></canvas></div>
+                    <div class="chart-resize-handle" id="handleA" title="拖拽调整宽度">◀▶</div>
+                </div>
                 <div id="analogStats" style="font-size:11px;color:var(--txt2);margin-top:8px;font-weight:700"></div>
             </div>
             <div class="panel">
@@ -299,7 +311,10 @@
                     </div>
                 </div>
                 <div id="coChipsP" class="co-chips-wrap"></div>
-                <div class="chart-box" style="height:540px"><canvas id="cP"></canvas></div>
+                <div class="chart-resize-wrap" id="wrapP">
+                    <div class="chart-box" style="height:540px"><canvas id="cP"></canvas></div>
+                    <div class="chart-resize-handle" id="handleP" title="拖拽调整宽度">◀▶</div>
+                </div>
                 <div id="pdStats" style="font-size:11px;color:var(--txt2);margin-top:8px;font-weight:700"></div>
             </div>
             
@@ -1012,7 +1027,7 @@
                                   grid: { display: false }, ticks: { font: { size: 13 }, color: tickColor } },
                             y1: { title: { display: true, text: T.axis_margin, font: { size: 12 }, color: titleColor },
                                   position: 'right', min: y1Min, max: y1Max,
-                                  ticks: { callback: v => v + '%', font: { size: 13 }, color: tickColor }, grid: { display: false } }
+                                  ticks: { callback: v => Math.round(v) + '%', font: { size: 13 }, color: tickColor }, grid: { display: false } }
                         },
                         plugins: {
                             legend: { position: 'top', labels: { boxWidth: 8, font: { size: 11 }, color: tickColor, padding: 10 } },
@@ -1086,6 +1101,7 @@
                 plugins: [ni2025LabelPlugin]
             });
             attachWheelZoom(document.getElementById('cA'), () => chartA);
+            attachResizeHandle('handleA', document.getElementById('wrapA'), () => chartA);
 
             if (chartP) chartP.destroy();
             chartP = new Chart(document.getElementById('cP').getContext('2d'), {
@@ -1093,6 +1109,7 @@
                 plugins: [ni2025LabelPlugin]
             });
             attachWheelZoom(document.getElementById('cP'), () => chartP);
+            attachResizeHandle('handleP', document.getElementById('wrapP'), () => chartP);
 
             const buildProfileTable = (cat, tbodyId) => {
                 const tbody = document.getElementById(tbodyId);
@@ -1242,6 +1259,29 @@
         }
 
         // ── Mouse-wheel Y1 zoom — attach after each chart render ──────────
+        function attachResizeHandle(handleId, wrapEl, getChart) {
+            const handle = document.getElementById(handleId);
+            if (!handle || !wrapEl) return;
+            handle.onmousedown = null;
+            handle.onmousedown = (e) => {
+                e.preventDefault();
+                const startX     = e.clientX;
+                const startWidth = wrapEl.offsetWidth;
+                const onMove = (e) => {
+                    const newW = Math.max(320, startWidth + e.clientX - startX);
+                    wrapEl.style.width = newW + 'px';
+                    const chart = getChart();
+                    if (chart) chart.resize();
+                };
+                const onUp = () => {
+                    window.removeEventListener('mousemove', onMove);
+                    window.removeEventListener('mouseup', onUp);
+                };
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onUp);
+            };
+        }
+
         function attachWheelZoom(canvas, getChart) {
             // ── Scroll wheel: zoom Y1 axis ──────────────────────────────────────
             canvas._wheelHandler && canvas.removeEventListener('wheel', canvas._wheelHandler);
