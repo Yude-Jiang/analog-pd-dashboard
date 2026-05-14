@@ -50,6 +50,15 @@
         .panel-tag { font-size: 12px; font-weight: 600; color: var(--txt2) }
 
         .chart-box { position: relative; height: 350px; width: 100% }
+        .chart-resize-wrap { position: relative; width: 100%; }
+        .chart-resize-handle {
+            position: absolute; right: -14px; top: 50%; transform: translateY(-50%);
+            width: 14px; height: 56px; background: var(--accent); color: #fff;
+            border-radius: 0 6px 6px 0; cursor: ew-resize; display: flex;
+            align-items: center; justify-content: center; font-size: 11px;
+            user-select: none; z-index: 20; opacity: 0.55; transition: opacity .15s;
+        }
+        .chart-resize-handle:hover { opacity: 1; }
         .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px }
 
         .sec-ttl { font-size: 11px; font-weight: 800; color: var(--txt3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px }
@@ -281,7 +290,10 @@
                     </div>
                 </div>
                 <div id="coChipsA" class="co-chips-wrap"></div>
-                <div class="chart-box" style="height:540px"><canvas id="cA"></canvas></div>
+                <div class="chart-resize-wrap" id="wrapA">
+                    <div class="chart-box" style="height:540px"><canvas id="cA"></canvas></div>
+                    <div class="chart-resize-handle" id="handleA" title="拖拽调整宽度">◀▶</div>
+                </div>
                 <div id="analogStats" style="font-size:11px;color:var(--txt2);margin-top:8px;font-weight:700"></div>
             </div>
             <div class="panel">
@@ -299,7 +311,10 @@
                     </div>
                 </div>
                 <div id="coChipsP" class="co-chips-wrap"></div>
-                <div class="chart-box" style="height:540px"><canvas id="cP"></canvas></div>
+                <div class="chart-resize-wrap" id="wrapP">
+                    <div class="chart-box" style="height:540px"><canvas id="cP"></canvas></div>
+                    <div class="chart-resize-handle" id="handleP" title="拖拽调整宽度">◀▶</div>
+                </div>
                 <div id="pdStats" style="font-size:11px;color:var(--txt2);margin-top:8px;font-weight:700"></div>
             </div>
             
@@ -881,6 +896,8 @@
         }
 
         function renderTrends() {
+            const tickColor  = getComputedStyle(document.body).getPropertyValue('--txt').trim();
+            const titleColor = getComputedStyle(document.body).getPropertyValue('--txt2').trim();
             const YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
             const MARGIN_YEARS  = [2021, 2022, 2023, 2024, 2025];
             const MARGIN_COLORS = {
@@ -1005,13 +1022,15 @@
                         responsive: true, maintainAspectRatio: false,
                         interaction: { mode: 'index', intersect: false },
                         scales: {
-                            y:  { title: { display: true, text: T.axis_rev }, grid: { display: false }, ticks: { font: { size: 9 } } },
-                            y1: { title: { display: true, text: T.axis_margin }, position: 'right',
-                                  min: y1Min, max: y1Max,
-                                  ticks: { callback: v => v + '%', font: { size: 9 } }, grid: { display: false } }
+                            x:  { ticks: { font: { size: 13 }, color: tickColor } },
+                            y:  { title: { display: true, text: T.axis_rev, font: { size: 12 }, color: titleColor },
+                                  grid: { display: false }, ticks: { font: { size: 13 }, color: tickColor } },
+                            y1: { title: { display: true, text: T.axis_margin, font: { size: 12 }, color: titleColor },
+                                  position: 'right', min: y1Min, max: y1Max,
+                                  ticks: { callback: v => Math.round(v) + '%', font: { size: 13 }, color: tickColor }, grid: { display: false } }
                         },
                         plugins: {
-                            legend: { position: 'top', labels: { boxWidth: 8, font: { size: 9 }, padding: 10 } },
+                            legend: { position: 'top', labels: { boxWidth: 8, font: { size: 11 }, color: tickColor, padding: 10 } },
                             tooltip: {
                                 bodyFont: { size: 10 },
                                 callbacks: {
@@ -1052,7 +1071,7 @@
                     const color = ds[idx].borderColor || '#d94040';
                     const ctx   = chart.ctx;
                     ctx.save();
-                    ctx.font         = 'bold 8.5px Arial,sans-serif';
+                    ctx.font         = 'bold 11px Arial,sans-serif';
                     ctx.textAlign    = 'center';
                     ctx.textBaseline = 'middle';
                     meta.data.forEach((pt, i) => {
@@ -1060,13 +1079,13 @@
                         if (val === null || val === undefined || isNaN(val)) return;
                         const text  = val.toFixed(1) + '%';
                         const tw    = ctx.measureText(text).width;
-                        const yOff  = val >= 0 ? -13 : 13;
+                        const yOff  = val >= 0 ? -16 : 16;
                         // background pill
                         ctx.fillStyle = 'rgba(255,255,255,0.85)';
-                        const bx = pt.x - tw/2 - 4, by = pt.y + yOff - 6.5;
+                        const bx = pt.x - tw/2 - 4, by = pt.y + yOff - 8;
                         ctx.beginPath();
-                        if (ctx.roundRect) ctx.roundRect(bx, by, tw+8, 13, 3);
-                        else ctx.rect(bx, by, tw+8, 13);
+                        if (ctx.roundRect) ctx.roundRect(bx, by, tw+8, 16, 3);
+                        else ctx.rect(bx, by, tw+8, 16);
                         ctx.fill();
                         // text
                         ctx.fillStyle = color;
@@ -1082,6 +1101,7 @@
                 plugins: [ni2025LabelPlugin]
             });
             attachWheelZoom(document.getElementById('cA'), () => chartA);
+            attachResizeHandle('handleA', document.getElementById('wrapA'), () => chartA);
 
             if (chartP) chartP.destroy();
             chartP = new Chart(document.getElementById('cP').getContext('2d'), {
@@ -1089,6 +1109,7 @@
                 plugins: [ni2025LabelPlugin]
             });
             attachWheelZoom(document.getElementById('cP'), () => chartP);
+            attachResizeHandle('handleP', document.getElementById('wrapP'), () => chartP);
 
             const buildProfileTable = (cat, tbodyId) => {
                 const tbody = document.getElementById(tbodyId);
@@ -1238,6 +1259,29 @@
         }
 
         // ── Mouse-wheel Y1 zoom — attach after each chart render ──────────
+        function attachResizeHandle(handleId, wrapEl, getChart) {
+            const handle = document.getElementById(handleId);
+            if (!handle || !wrapEl) return;
+            handle.onmousedown = null;
+            handle.onmousedown = (e) => {
+                e.preventDefault();
+                const startX     = e.clientX;
+                const startWidth = wrapEl.offsetWidth;
+                const onMove = (e) => {
+                    const newW = Math.max(320, startWidth + e.clientX - startX);
+                    wrapEl.style.width = newW + 'px';
+                    const chart = getChart();
+                    if (chart) chart.resize();
+                };
+                const onUp = () => {
+                    window.removeEventListener('mousemove', onMove);
+                    window.removeEventListener('mouseup', onUp);
+                };
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onUp);
+            };
+        }
+
         function attachWheelZoom(canvas, getChart) {
             // ── Scroll wheel: zoom Y1 axis ──────────────────────────────────────
             canvas._wheelHandler && canvas.removeEventListener('wheel', canvas._wheelHandler);
