@@ -1005,13 +1005,14 @@
                         responsive: true, maintainAspectRatio: false,
                         interaction: { mode: 'index', intersect: false },
                         scales: {
-                            y:  { title: { display: true, text: T.axis_rev }, grid: { display: false }, ticks: { font: { size: 9 } } },
-                            y1: { title: { display: true, text: T.axis_margin }, position: 'right',
+                            x:  { ticks: { font: { size: 13 } } },
+                            y:  { title: { display: true, text: T.axis_rev, font: { size: 12 } }, grid: { display: false }, ticks: { font: { size: 13 } } },
+                            y1: { title: { display: true, text: T.axis_margin, font: { size: 12 } }, position: 'right',
                                   min: y1Min, max: y1Max,
-                                  ticks: { callback: v => v + '%', font: { size: 9 } }, grid: { display: false } }
+                                  ticks: { callback: v => v + '%', font: { size: 13 } }, grid: { display: false } }
                         },
                         plugins: {
-                            legend: { position: 'top', labels: { boxWidth: 8, font: { size: 9 }, padding: 10 } },
+                            legend: { position: 'top', labels: { boxWidth: 8, font: { size: 11 }, padding: 10 } },
                             tooltip: {
                                 bodyFont: { size: 10 },
                                 callbacks: {
@@ -1052,7 +1053,7 @@
                     const color = ds[idx].borderColor || '#d94040';
                     const ctx   = chart.ctx;
                     ctx.save();
-                    ctx.font         = 'bold 8.5px Arial,sans-serif';
+                    ctx.font         = 'bold 11px Arial,sans-serif';
                     ctx.textAlign    = 'center';
                     ctx.textBaseline = 'middle';
                     meta.data.forEach((pt, i) => {
@@ -1060,13 +1061,13 @@
                         if (val === null || val === undefined || isNaN(val)) return;
                         const text  = val.toFixed(1) + '%';
                         const tw    = ctx.measureText(text).width;
-                        const yOff  = val >= 0 ? -13 : 13;
+                        const yOff  = val >= 0 ? -16 : 16;
                         // background pill
                         ctx.fillStyle = 'rgba(255,255,255,0.85)';
-                        const bx = pt.x - tw/2 - 4, by = pt.y + yOff - 6.5;
+                        const bx = pt.x - tw/2 - 4, by = pt.y + yOff - 8;
                         ctx.beginPath();
-                        if (ctx.roundRect) ctx.roundRect(bx, by, tw+8, 13, 3);
-                        else ctx.rect(bx, by, tw+8, 13);
+                        if (ctx.roundRect) ctx.roundRect(bx, by, tw+8, 16, 3);
+                        else ctx.rect(bx, by, tw+8, 16);
                         ctx.fill();
                         // text
                         ctx.fillStyle = color;
