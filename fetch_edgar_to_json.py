@@ -98,8 +98,9 @@ def _extract_facts(facts: dict, tags: list, unit: str = "USD") -> pd.DataFrame:
     df["start"] = pd.to_datetime(df["start"], errors="coerce") \
                   if "start" in df.columns else pd.NaT
     df = df.dropna(subset=["end"])
-    # Keep latest revision for each (end, start) pair across all tags
-    key = ["end", "start"] if "start" in df.columns else ["end"]
+    # Keep latest revision per (form, end, start) — include "form" so that
+    # 10-K re-filings of quarterly periods don't overwrite 10-Q entries.
+    key = ["form", "end", "start"] if "start" in df.columns else ["form", "end"]
     df = df.sort_values("filed").drop_duplicates(key, keep="last")
     df["dur"] = (df["end"] - df["start"]).dt.days
     # When start is missing (instant facts), infer dur from EDGAR's fp field
