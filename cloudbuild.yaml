@@ -1,0 +1,19 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/analog-dashboard', '.']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/analog-dashboard']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - analog-dashboard
+      - --image=gcr.io/$PROJECT_ID/analog-dashboard
+      - --region=asia-east1
+      - --platform=managed
+
+images:
+  - 'gcr.io/$PROJECT_ID/analog-dashboard'
