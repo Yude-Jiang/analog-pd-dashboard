@@ -286,6 +286,24 @@ def main():
                 if period not in updated:
                     updated.append(period)
 
+        # Derive Q4 = Annual − (Q1+Q2+Q3) for each year where all parts exist
+        for year in range(YEAR_START, YEAR_END + 1):
+            q4_key = f"{year}Q4"
+            for d_dict in (rev_dict, ni_dict):
+                if q4_key in d_dict:
+                    continue
+                ann = d_dict.get(str(year))
+                q1  = d_dict.get(f"{year}Q1")
+                q2  = d_dict.get(f"{year}Q2")
+                q3  = d_dict.get(f"{year}Q3")
+                if all(v is not None for v in [ann, q1, q2, q3]):
+                    q4 = _clean(ann - q1 - q2 - q3)
+                    if q4 is not None:
+                        d_dict[q4_key] = q4
+                        changed = True
+                        if q4_key not in updated:
+                            updated.append(q4_key)
+
         log.info("  %s: merged periods: %s",
                  name, ", ".join(sorted(updated)[-8:]))
 
