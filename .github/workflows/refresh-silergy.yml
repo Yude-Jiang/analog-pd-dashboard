@@ -2,6 +2,12 @@ name: Refresh Silergy Quarterly (MOPS)
 
 on:
   workflow_dispatch:
+  schedule:
+    # Silergy 季报披露后自动刷新（台北时间 09:00 = UTC 01:00）
+    - cron: '0 1 15 5 *'   # Q1 季报：5 月 15 日
+    - cron: '0 1 15 8 *'   # Q2 季报：8 月 15 日
+    - cron: '0 1 15 11 *'  # Q3 季报：11 月 15 日
+    - cron: '0 1 31 3 *'   # Q4/年报：3 月 31 日
 
 jobs:
   refresh:
