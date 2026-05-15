@@ -9,6 +9,7 @@ import sys
 import tempfile
 import shutil
 import datetime
+import threading
 
 from flask import Flask, send_from_directory, jsonify, request, abort, Response
 from google.cloud import storage
@@ -97,24 +98,11 @@ def serve_refresh_meta():
 def static_files(filename):
     return send_from_directory(".", filename)
 
-@app.route("/refresh", methods=["POST"])
-def refresh():
-    """
-    Triggered manually or by Cloud Scheduler.
-    Downloads JSON data from GCS, runs yjbb + profile refresh scripts,
-    uploads updated files back to GCS.
-    """
-    # Auth
-    if REFRESH_SECRET:
-        auth = request.headers.get("Authorization", "")
-        if auth != f"Bearer {REFRESH_SECRET}":
-            abort(403)
-
-    results = {}
+def _do_refresh(job_id: str):
+    """Run all fetch scripts in a background thread and upload results to GCS."""
+    src_dir = os.path.dirname(os.path.abspath(__file__))
     tmpdir  = tempfile.mkdtemp()
     try:
-        src_dir = os.path.dirname(os.path.abspath(__file__))
-
         # Copy all Python scripts into tmpdir
         for fname in os.listdir(src_dir):
             if fname.endswith(".py"):
@@ -133,15 +121,15 @@ def refresh():
                     print(f"[refresh] {blob_name} not in GCS ({e}), using bundled copy")
 
         env   = {**os.environ, "PYTHONPATH": src_dir}
-        years = FETCH_YEARS   # e.g. "2025 2026"
+        years = FETCH_YEARS
         ts    = datetime.datetime.utcnow()
-        meta  = {"refresh_started": ts.isoformat() + "Z", "fetch_years": years, "sources": {}}
+        meta  = {"job_id": job_id, "refresh_started": ts.isoformat() + "Z",
+                 "fetch_years": years, "sources": {}}
 
         def _run(label, cmd, timeout=300):
             r = subprocess.run(cmd, cwd=tmpdir, capture_output=True, text=True,
                                timeout=timeout, env=env)
             out = (r.stdout + r.stderr)[-2000:]
-            results[label] = out
             print(f"[{label}]\n", out)
             meta["sources"][label] = {
                 "fetched_at": datetime.datetime.utcnow().isoformat() + "Z",
@@ -154,7 +142,7 @@ def refresh():
         _run("fetch_yjbb_annual",
              [sys.executable, "fetch_yjbb_annual.py", "--years"] + years.split())
 
-        # 2. A-share quarterly (yjbb) — fills yjbb_quarterly.json
+        # 2. A-share quarterly (yjbb)
         _run("fetch_yjbb_quarterly",
              [sys.executable, "fetch_yjbb_quarterly.py", "--years"] + years.split())
 
@@ -187,16 +175,39 @@ def refresh():
             if os.path.exists(local_path):
                 upload_blob(local_path, blob_name)
 
-        results["status"] = "ok"
+        print(f"[refresh] job {job_id} completed ok")
 
     except Exception as e:
-        results["status"] = "error"
-        results["error"]  = str(e)
-        print(f"[refresh] ERROR: {e}")
+        print(f"[refresh] job {job_id} ERROR: {e}")
+        try:
+            meta["status"] = "error"
+            meta["error"]  = str(e)
+            meta["refresh_completed"] = datetime.datetime.utcnow().isoformat() + "Z"
+            meta_path = os.path.join(tmpdir, "refresh_meta.json")
+            with open(meta_path, "w", encoding="utf-8") as f:
+                json.dump(meta, f, ensure_ascii=False, indent=2)
+            upload_blob(meta_path, "refresh_meta.json")
+        except Exception:
+            pass
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
-    return jsonify(results)
+
+@app.route("/refresh", methods=["POST"])
+def refresh():
+    """
+    Triggered manually or by Cloud Scheduler / GitHub Actions.
+    Spawns a background thread and returns 202 immediately to avoid proxy timeouts.
+    """
+    if REFRESH_SECRET:
+        auth = request.headers.get("Authorization", "")
+        if auth != f"Bearer {REFRESH_SECRET}":
+            abort(403)
+
+    job_id = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    t = threading.Thread(target=_do_refresh, args=(job_id,), daemon=True)
+    t.start()
+    return jsonify({"status": "accepted", "job_id": job_id}), 202
 
 @app.route("/health")
 def health():
