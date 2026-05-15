@@ -17,4 +17,4 @@ jobs:
           echo "HTTP 状态码: $HTTP_CODE"
           echo "--- 响应内容 ---"
           python3 -m json.tool /tmp/body.json 2>/dev/null || cat /tmp/body.json
-          [ "$HTTP_CODE" = "200" ] || exit 1
+          [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "202" ] || exit 1
