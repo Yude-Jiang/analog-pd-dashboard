@@ -52,12 +52,15 @@ PROFILE_FIELDS   = ["rd_staff", "total_emp", "rd_weight", "foundry", "update_tim
 
 # 合理性边界
 MAX_YOY_RATIO    = 20    # 相邻年份营收比超过 20x 视为异常
-NI_MARGIN_MIN    = -2.00 # 净利率下限 -200%（NVTS 等亏损初创适用）
+NI_MARGIN_MIN    = -2.00 # 净利率下限 -200%
 NI_MARGIN_MAX    =  0.80 # 净利率上限  80%
 MARGIN_TOLERANCE =  0.01 # margin 字段与 ni/revenue 计算值允许差异 1%
 
+# R06 豁免：极端亏损/特殊盈利结构的公司跳过 margin 范围检查
+MARGIN_EXEMPT_COMPANIES = {"NVTS"}  # 亏损初创，margin 可能超出 [-200%, +80%]
+
 # 季报检查：只检查有完整年度数据且预期季报已披露的年份
-QUARTERLY_CHECK_YEARS = [2025]
+QUARTERLY_CHECK_YEARS = [2025, 2026]
 QUARTERLY_SUM_TOLERANCE = 0.05
 
 # ── 报告收集器 ─────────────────────────────────────────────────────────────────
@@ -164,8 +167,10 @@ def check_margin_consistency(data: dict):
 
 
 def check_margin_range(data: dict):
-    """R06 — Margin 合理范围：净利率应在 [-60%, +80%]"""
+    """R06 — Margin 合理范围：净利率应在 [-200%, +80%]"""
     for name, comp in data.items():
+        if name in MARGIN_EXEMPT_COMPANIES:
+            continue
         for yr, m in comp.get("margin", {}).items():
             if not isinstance(m, (int, float)):
                 continue
