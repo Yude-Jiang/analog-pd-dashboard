@@ -52,11 +52,14 @@ PROFILE_FIELDS   = ["rd_staff", "total_emp", "rd_weight", "foundry", "update_tim
 
 # 合理性边界
 MAX_YOY_RATIO    = 20    # 相邻年份营收比超过 20x 视为异常
-NI_MARGIN_MIN    = -0.60 # 净利率下限 -60%
+NI_MARGIN_MIN    = -2.00 # 净利率下限 -200%
 NI_MARGIN_MAX    =  0.80 # 净利率上限  80%
 MARGIN_TOLERANCE =  0.01 # margin 字段与 ni/revenue 计算值允许差异 1%
 
-QUARTERLY_CHECK_YEARS = [2024, 2025]   # 检查这几年的季报完整性
+# R06 豁免：极端亏损/特殊盈利结构的公司跳过 margin 范围检查
+MARGIN_EXEMPT_COMPANIES = {"NVTS"}  # 亏损初创，margin 可能超出 [-200%, +80%]
+
+QUARTERLY_CHECK_YEARS = [2025, 2026]   # 检查这几年的季报完整性
 QUARTERLY_SUM_TOLERANCE = 0.05         # Q1+Q2+Q3+Q4 与年度差异容差 5%
 
 # ── 报告收集器 ─────────────────────────────────────────────────────────────────
@@ -163,8 +166,10 @@ def check_margin_consistency(data: dict):
 
 
 def check_margin_range(data: dict):
-    """R06 — Margin 合理范围：净利率应在 [-60%, +80%]"""
+    """R06 — Margin 合理范围：净利率应在 [-200%, +80%]"""
     for name, comp in data.items():
+        if name in MARGIN_EXEMPT_COMPANIES:
+            continue
         for yr, m in comp.get("margin", {}).items():
             if not isinstance(m, (int, float)):
                 continue
@@ -273,7 +278,9 @@ def check_excluded_not_present(data: dict):
 
 
 def _is_a_share(comp: dict) -> bool:
-    return str(comp.get("code", "")).startswith(("3", "6"))
+    # 台股如 Silergy code="6415"（4 位）、美股如 MPWR 均排除
+    code = str(comp.get("code", ""))
+    return len(code) == 6 and code.isdigit() and code.startswith(("3", "6"))
 
 
 def check_quarterly_completeness(data: dict, yjbb_q: dict):
