@@ -30,6 +30,7 @@ if sys.stderr.encoding and sys.stderr.encoding.lower() not in ("utf-8", "utf8"):
 
 _HERE      = Path(__file__).parent
 _JSON_PATH = _HERE / "data.json"
+_YJBB_Q_PATH = _HERE / "yjbb_quarterly.json"
 
 # 完整追踪宇宙（应出现在 data.json 中）
 EXPECTED_COMPANIES = {
@@ -54,6 +55,9 @@ MAX_YOY_RATIO    = 20    # 相邻年份营收比超过 20x 视为异常
 NI_MARGIN_MIN    = -0.60 # 净利率下限 -60%
 NI_MARGIN_MAX    =  0.80 # 净利率上限  80%
 MARGIN_TOLERANCE =  0.01 # margin 字段与 ni/revenue 计算值允许差异 1%
+
+QUARTERLY_CHECK_YEARS = [2024, 2025]   # 检查这几年的季报完整性
+QUARTERLY_SUM_TOLERANCE = 0.05         # Q1+Q2+Q3+Q4 与年度差异容差 5%
 
 # ── 报告收集器 ─────────────────────────────────────────────────────────────────
 
@@ -268,6 +272,58 @@ def check_excluded_not_present(data: dict):
                    f"'{exc}' 在排除名单中，但仍存在于 data.json")
 
 
+def _is_a_share(comp: dict) -> bool:
+    return str(comp.get("code", "")).startswith(("3", "6"))
+
+
+def check_quarterly_completeness(data: dict, yjbb_q: dict):
+    """R14 — 季报完整性：有年度数据的公司应有完整的 Q1-Q4 季报"""
+    for name, comp in data.items():
+        if name not in EXPECTED_COMPANIES:
+            continue
+        for year in QUARTERLY_CHECK_YEARS:
+            ann = comp.get("revenue", {}).get(str(year))
+            if not isinstance(ann, (int, float)) or ann <= 0:
+                continue  # 无年度数据，跳过
+
+            if _is_a_share(comp):
+                code    = str(comp.get("code", ""))
+                q_store = yjbb_q.get(code, {}).get("quarters", {})
+                missing = [f"{year}Q{q}" for q in range(1, 5) if f"{year}Q{q}" not in q_store]
+            else:
+                rev = comp.get("revenue", {})
+                missing = [f"{year}Q{q}" for q in range(1, 5)
+                           if not isinstance(rev.get(f"{year}Q{q}"), (int, float))]
+
+            if missing:
+                report("WARN", "R14_QUARTERLY_INCOMPLETE", name,
+                       f"{year} 年报已存在但季报缺失: {missing}")
+
+
+def check_quarterly_consistency(data: dict, yjbb_q: dict):
+    """R15 — 季报合理性：Q1+Q2+Q3+Q4 之和应与年度数据接近（容差 5%）
+    仅检查非 A 股（MPWR/NVTS/Silergy）以避免跨货币换算误差。"""
+    for name, comp in data.items():
+        if name not in EXPECTED_COMPANIES or _is_a_share(comp):
+            continue
+        rev = comp.get("revenue", {})
+        ni  = comp.get("net_income", {})
+        for year in QUARTERLY_CHECK_YEARS:
+            for label, d_dict in (("revenue", rev), ("net_income", ni)):
+                ann = d_dict.get(str(year))
+                if not isinstance(ann, (int, float)):
+                    continue
+                q_vals = [d_dict.get(f"{year}Q{q}") for q in range(1, 5)]
+                if not all(isinstance(v, (int, float)) for v in q_vals):
+                    continue
+                q_sum    = sum(q_vals)
+                diff_pct = abs(q_sum - ann) / abs(ann) if ann != 0 else 0
+                if diff_pct > QUARTERLY_SUM_TOLERANCE:
+                    report("WARN", "R15_QUARTERLY_SUM_MISMATCH", name,
+                           f"{year} {label}: Q1+Q2+Q3+Q4={q_sum:.1f} vs 年度={ann:.1f} "
+                           f"（差异 {diff_pct*100:.1f}%，超过容差 {QUARTERLY_SUM_TOLERANCE*100:.0f}%）")
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # 自动修复
 # ══════════════════════════════════════════════════════════════════════════════
@@ -305,6 +361,16 @@ def auto_fix(data: dict) -> list[str]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_all_checks(data: dict):
+    # 加载 yjbb_quarterly.json（A 股季报来源），R14/R15 需要
+    yjbb_q: dict = {}
+    if _YJBB_Q_PATH.exists():
+        try:
+            raw = json.loads(_YJBB_Q_PATH.read_text(encoding="utf-8"))
+            yjbb_q = raw.get("companies", {})
+        except Exception:
+            report("WARN", "R14_YJBB_Q_LOAD_FAIL", "yjbb_quarterly.json",
+                   "无法加载 yjbb_quarterly.json，R14/R15 将跳过 A 股检查")
+
     check_universe(data)
     check_metadata(data)
     check_revenue_outliers(data)
@@ -318,6 +384,8 @@ def run_all_checks(data: dict):
     check_data_coverage(data)
     check_currency_magnitude(data)
     check_excluded_not_present(data)
+    check_quarterly_completeness(data, yjbb_q)
+    check_quarterly_consistency(data, yjbb_q)
 
 
 def print_report():
