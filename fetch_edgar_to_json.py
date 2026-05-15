@@ -46,6 +46,8 @@ REVENUE_TAGS = [
     "RevenueFromContractWithCustomerIncludingAssessedTax",
     "SalesRevenueNet",
 ]
+# Fallback: if no direct revenue tag found, derive from GrossProfit + CostOfRevenue
+REVENUE_DERIVED_TAGS = ["GrossProfit", "CostOfRevenue"]
 NI_TAGS = ["NetIncomeLoss", "ProfitLoss"]
 
 YEAR_START = 2023
@@ -98,8 +100,9 @@ def _extract_facts(facts: dict, tags: list, unit: str = "USD") -> pd.DataFrame:
     df["start"] = pd.to_datetime(df["start"], errors="coerce") \
                   if "start" in df.columns else pd.NaT
     df = df.dropna(subset=["end"])
-    # Keep latest revision for each (end, start) pair across all tags
-    key = ["end", "start"] if "start" in df.columns else ["end"]
+    # Keep latest revision per (form, end, start) — include "form" so that
+    # 10-K re-filings of quarterly periods don't overwrite 10-Q entries.
+    key = ["form", "end", "start"] if "start" in df.columns else ["form", "end"]
     df = df.sort_values("filed").drop_duplicates(key, keep="last")
     df["dur"] = (df["end"] - df["start"]).dt.days
     # When start is missing (instant facts), infer dur from EDGAR's fp field
@@ -204,10 +207,22 @@ def fetch_edgar_quarterly_v2(name: str, cik: str) -> tuple[dict, dict]:
     ni_raw  = _extract_facts(facts, NI_TAGS)
 
     if rev_raw.empty:
-        log.warning("  [%s] No revenue tag found in EDGAR", name)
-        return {}, {}
+        # Fallback: derive Revenue = GrossProfit + CostOfRevenue
+        log.info("  [%s] No direct revenue tag — deriving from GrossProfit + CostOfRevenue", name)
+        gp_raw  = _extract_facts(facts, ["GrossProfit"])
+        cor_raw = _extract_facts(facts, ["CostOfRevenue"])
+        if not gp_raw.empty and not cor_raw.empty:
+            gp_q  = _to_quarterly(gp_raw)
+            cor_q = _to_quarterly(cor_raw)
+            rev_q = {p: _clean(gp_q[p] + cor_q[p])
+                     for p in gp_q if p in cor_q
+                     and gp_q[p] is not None and cor_q[p] is not None}
+        else:
+            log.warning("  [%s] Cannot derive revenue — GrossProfit or CostOfRevenue missing", name)
+            return {}, {}
+    else:
+        rev_q = _to_quarterly(rev_raw)
 
-    rev_q = _to_quarterly(rev_raw)
     ni_q  = _to_quarterly(ni_raw)
 
     log.info("  [%s] Revenue quarters: %s", name,
