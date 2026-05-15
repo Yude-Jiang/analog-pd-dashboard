@@ -59,9 +59,8 @@ MARGIN_TOLERANCE =  0.01 # margin 字段与 ni/revenue 计算值允许差异 1%
 # R06 豁免：极端亏损/特殊盈利结构的公司跳过 margin 范围检查
 MARGIN_EXEMPT_COMPANIES = {"NVTS"}  # 亏损初创，margin 可能超出 [-200%, +80%]
 
-# 季报检查：只检查有完整年度数据且预期季报已披露的年份
-QUARTERLY_CHECK_YEARS = [2025, 2026]
-QUARTERLY_SUM_TOLERANCE = 0.05
+QUARTERLY_CHECK_YEARS = [2025, 2026]   # 检查这几年的季报完整性
+QUARTERLY_SUM_TOLERANCE = 0.05         # Q1+Q2+Q3+Q4 与年度差异容差 5%
 
 # ── 报告收集器 ─────────────────────────────────────────────────────────────────
 
@@ -279,7 +278,6 @@ def check_excluded_not_present(data: dict):
 
 
 def _is_a_share(comp: dict) -> bool:
-    # A 股：6 位数字 code，以 3 或 6 开头（如 300661、688484）
     # 台股如 Silergy code="6415"（4 位）、美股如 MPWR 均排除
     code = str(comp.get("code", ""))
     return len(code) == 6 and code.isdigit() and code.startswith(("3", "6"))
