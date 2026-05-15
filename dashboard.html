@@ -41,6 +41,21 @@
         .tab { padding: 6px 14px; border-radius: 6px; border: none; background: transparent; color: var(--txt2); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s }
         .tab.on { background: var(--bg3); color: var(--txt); border: 1px solid var(--border); }
 
+        /* Data freshness bar */
+        #freshness-bar { display: none; align-items: center; gap: 10px; padding: 4px 16px; font-size: 11px; flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--bg3); }
+        #freshness-bar .fr-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        #freshness-bar .fr-dot.ok   { background: #22c55e; }
+        #freshness-bar .fr-dot.warn { background: #f59e0b; }
+        #freshness-bar .fr-dot.stale{ background: #ef4444; }
+        #freshness-bar .fr-sources { display: flex; gap: 12px; margin-left: 4px; }
+        #freshness-bar .fr-src { display: flex; align-items: center; gap: 4px; }
+        #freshness-bar .fr-src .dot { width: 5px; height: 5px; border-radius: 50%; }
+        #freshness-bar .fr-src .dot.ok    { background: #22c55e; }
+        #freshness-bar .fr-src .dot.warn  { background: #f59e0b; }
+        #freshness-bar .fr-src .dot.stale { background: #ef4444; }
+        #freshness-bar .fr-src .dot.miss  { background: #9ca3af; }
+        #freshness-bar .fr-age { color: var(--txt2); }
+
         .layout { flex: 1; display: flex; overflow: hidden; width: 100% }
         .main-col { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px }
 
@@ -199,6 +214,14 @@
             style="margin-left:auto;background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;padding:5px 14px">
             ⬇ 导出 Excel
         </button>
+    </div>
+
+    <!-- Data freshness bar -->
+    <div id="freshness-bar">
+        <span class="fr-dot" id="fr-dot"></span>
+        <span id="fr-label"></span>
+        <span class="fr-sources" id="fr-sources"></span>
+        <span class="fr-age" id="fr-age"></span>
     </div>
 
     <!-- Company hover popup -->
@@ -562,8 +585,65 @@
         // O5: lazy render flags — each pane renders only once until data changes
         const _rendered = { tracker: false, trends: false, quarterly: false };
 
+        // ── Data freshness banner ─────────────────────────────────────────────
+        async function loadRefreshMeta() {
+            try {
+                const res = await fetch('refresh_meta.json?v=' + Date.now());
+                if (!res.ok) return;
+                const meta = await res.json();
+                const bar  = document.getElementById('freshness-bar');
+
+                const completed = meta.refresh_completed ? new Date(meta.refresh_completed) : null;
+                const now       = new Date();
+                const ageMs     = completed ? now - completed : null;
+                const ageMins   = ageMs ? Math.round(ageMs / 60000) : null;
+                const ageHrs    = ageMins ? Math.round(ageMins / 60) : null;
+                const ageDays   = ageHrs  ? Math.round(ageHrs  / 24) : null;
+
+                let ageText = '—';
+                let level   = 'ok';  // ok / warn / stale
+                if (ageMins !== null) {
+                    if (ageMins < 60)       ageText = `${ageMins}m ago`;
+                    else if (ageHrs < 24)   ageText = `${ageHrs}h ago`;
+                    else                    ageText = `${ageDays}d ago`;
+
+                    if (ageDays >= 7)       level = 'stale';
+                    else if (ageDays >= 2)  level = 'warn';
+                }
+
+                const dot = document.getElementById('fr-dot');
+                dot.className = `fr-dot ${level}`;
+
+                const label = document.getElementById('fr-label');
+                const labelMap = { ok: '数据正常', warn: '数据略旧', stale: '数据已过期' };
+                label.textContent = labelMap[level];
+                label.style.color = level === 'stale' ? '#ef4444' : level === 'warn' ? '#f59e0b' : 'var(--txt2)';
+
+                document.getElementById('fr-age').textContent =
+                    completed ? `上次刷新: ${completed.toLocaleString('zh-CN', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}  (${ageText})` : '';
+
+                // Per-source dots
+                const sources = meta.sources || {};
+                const srcMap = {
+                    fetch_yjbb_annual:    'A股年度',
+                    fetch_yjbb_quarterly: 'A股季报',
+                    fetch_edgar:          '美股',
+                    fetch_silergy:        'Silergy',
+                };
+                const srcEl = document.getElementById('fr-sources');
+                srcEl.innerHTML = Object.entries(srcMap).map(([key, lbl]) => {
+                    const s = sources[key];
+                    const cls = !s ? 'miss' : s.ok ? 'ok' : 'stale';
+                    return `<span class="fr-src"><span class="dot ${cls}"></span>${lbl}</span>`;
+                }).join('');
+
+                bar.style.display = 'flex';
+            } catch (_) { /* refresh_meta.json not available — silent */ }
+        }
+
         async function initDashboard() {
             document.getElementById('trends-loader').style.display = 'block';
+            loadRefreshMeta();   // non-blocking — show freshness banner as soon as possible
             try {
                 const v = Date.now();
                 const [rawRes, yjbbRes, profRes, qtrRes] = await Promise.all([
