@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import shutil
+import datetime
 
 from flask import Flask, send_from_directory, jsonify, request, abort, Response
 from google.cloud import storage
@@ -22,7 +23,12 @@ REFRESH_SECRET = os.environ.get("REFRESH_SECRET", "")
 PORT           = int(os.environ.get("PORT", 8080))
 
 # All JSON blobs served from GCS (fallback to bundled file if GCS missing)
-GCS_BLOBS = ["data.json", "yjbb_annual.json", "yjbb_quarterly.json", "profiles_xq.json"]
+GCS_BLOBS = ["data.json", "yjbb_annual.json", "yjbb_quarterly.json", "profiles_xq.json",
+             "refresh_meta.json"]
+
+# Determine current and previous year for data fetch scope
+_NOW          = datetime.datetime.utcnow()
+FETCH_YEARS   = "2025 2026" if _NOW.year >= 2026 else "2024 2025"
 
 # ---------------------------------------------------------------------------
 # GCS helpers
@@ -83,6 +89,10 @@ def serve_yjbb_quarterly():
 def serve_profiles():
     return serve_blob("profiles_xq.json")
 
+@app.route("/refresh_meta.json")
+def serve_refresh_meta():
+    return serve_blob("refresh_meta.json")
+
 @app.route("/<path:filename>")
 def static_files(filename):
     return send_from_directory(".", filename)
@@ -122,49 +132,56 @@ def refresh():
                     shutil.copy(bundled, dest)
                     print(f"[refresh] {blob_name} not in GCS ({e}), using bundled copy")
 
-        env = {**os.environ, "PYTHONPATH": src_dir}
+        env   = {**os.environ, "PYTHONPATH": src_dir}
+        years = FETCH_YEARS   # e.g. "2025 2026"
+        ts    = datetime.datetime.utcnow()
+        meta  = {"refresh_started": ts.isoformat() + "Z", "fetch_years": years, "sources": {}}
 
-        # 1. Refresh yjbb annual data (current year)
-        r1 = subprocess.run(
-            [sys.executable, "fetch_yjbb_annual.py", "--years", "2025"],
-            cwd=tmpdir, capture_output=True, text=True, timeout=300, env=env
-        )
-        results["fetch_yjbb"] = (r1.stdout + r1.stderr)[-2000:]
-        print("[fetch_yjbb]\n", results["fetch_yjbb"])
+        def _run(label, cmd, timeout=300):
+            r = subprocess.run(cmd, cwd=tmpdir, capture_output=True, text=True,
+                               timeout=timeout, env=env)
+            out = (r.stdout + r.stderr)[-2000:]
+            results[label] = out
+            print(f"[{label}]\n", out)
+            meta["sources"][label] = {
+                "fetched_at": datetime.datetime.utcnow().isoformat() + "Z",
+                "exit_code": r.returncode,
+                "ok": r.returncode == 0,
+            }
+            return r
 
-        # 2. Refresh EDGAR quarterly data for MPWR / NVTS
-        r_edgar = subprocess.run(
-            [sys.executable, "fetch_edgar_to_json.py"],
-            cwd=tmpdir, capture_output=True, text=True, timeout=120, env=env
-        )
-        results["fetch_edgar"] = (r_edgar.stdout + r_edgar.stderr)[-2000:]
-        print("[fetch_edgar]\n", results["fetch_edgar"])
+        # 1. A-share annual (yjbb)
+        _run("fetch_yjbb_annual",
+             [sys.executable, "fetch_yjbb_annual.py", "--years"] + years.split())
 
-        # 3. Refresh Silergy quarterly data from MOPS
-        r_silergy = subprocess.run(
-            [sys.executable, "fetch_silergy_to_json.py"],
-            cwd=tmpdir, capture_output=True, text=True, timeout=120, env=env
-        )
-        results["fetch_silergy"] = (r_silergy.stdout + r_silergy.stderr)[-2000:]
-        print("[fetch_silergy]\n", results["fetch_silergy"])
+        # 2. A-share quarterly (yjbb) — fills yjbb_quarterly.json
+        _run("fetch_yjbb_quarterly",
+             [sys.executable, "fetch_yjbb_quarterly.py", "--years"] + years.split())
 
-        # 3. Refresh company profiles (XQ)
-        r2 = subprocess.run(
-            [sys.executable, "fetch_profiles.py"],
-            cwd=tmpdir, capture_output=True, text=True, timeout=300, env=env
-        )
-        results["fetch_profiles"] = (r2.stdout + r2.stderr)[-2000:]
-        print("[fetch_profiles]\n", results["fetch_profiles"])
+        # 3. US quarterly — MPWR / NVTS via SEC EDGAR
+        _run("fetch_edgar",
+             [sys.executable, "fetch_edgar_to_json.py"], timeout=120)
 
-        # 3. Validate data quality
-        r3 = subprocess.run(
-            [sys.executable, "validate_data.py"],
-            cwd=tmpdir, capture_output=True, text=True, timeout=60, env=env
-        )
-        results["validate"] = (r3.stdout + r3.stderr)[-1000:]
-        print("[validate]\n", results["validate"])
+        # 4. Taiwan quarterly — Silergy via MOPS
+        _run("fetch_silergy",
+             [sys.executable, "fetch_silergy_to_json.py"], timeout=120)
 
-        # 4. Upload all updated JSON blobs back to GCS
+        # 5. Company profiles (XQ)
+        _run("fetch_profiles",
+             [sys.executable, "fetch_profiles.py"])
+
+        # 6. Validate data quality
+        _run("validate",
+             [sys.executable, "validate_data.py"], timeout=60)
+
+        # 7. Write refresh metadata
+        meta["refresh_completed"] = datetime.datetime.utcnow().isoformat() + "Z"
+        meta["status"] = "ok"
+        meta_path = os.path.join(tmpdir, "refresh_meta.json")
+        with open(meta_path, "w", encoding="utf-8") as f:
+            json.dump(meta, f, ensure_ascii=False, indent=2)
+
+        # 8. Upload all updated JSON blobs back to GCS
         for blob_name in GCS_BLOBS:
             local_path = os.path.join(tmpdir, blob_name)
             if os.path.exists(local_path):
