@@ -287,7 +287,7 @@
                 <button class="filter-reset" onclick="resetFilters()">↺ Reset</button>
                 <!-- Y1 axis range selector -->
                 <div class="y1-group">
-                    <span class="y1-label" data-i18n="y1_label">NI% 轴:</span>
+                    <span class="y1-label" data-i18n="y1_label">Net Income % 轴:</span>
                     <div class="y1-btns">
                         <button class="y1-btn"        data-mode="auto" onclick="setY1Mode('auto')" data-i18n="y1_auto">适配</button>
                         <button class="y1-btn"        data-mode="std"  onclick="setY1Mode('std')"  data-i18n="y1_std">-50~80%</button>
@@ -484,7 +484,7 @@
                 // chart axis
                 axis_rev: '营收 (M USD)', axis_margin: '净利润率 (%)',
                 // y1 range selector
-                y1_label: 'NI% 轴:', y1_auto: '适配', y1_std: '-50~80%', y1_full: '完整', y1_scroll_hint: '🖱 图表内滚轮微调',
+                y1_label: 'Net Income % 轴:', y1_auto: '适配', y1_std: '-50~80%', y1_full: '完整', y1_scroll_hint: '🖱 图表内滚轮微调',
                 // quarterly tab
                 q_chart_ttl:   '季度营收对比 2024–2026 (M USD)',
                 q_chart_legend:'实色柱=实际 | 斜纹柱=预测',
@@ -939,7 +939,7 @@
                     const latest = audits.filter(a => a.yr === 2026).pop();
                     if (!latest) return '';
                     
-                    // User Rule: Grounded Calculation for NI%
+                    // User Rule: Grounded Calculation for Net Income %
                     const niPercent = (latest.ni !== null && latest.rl !== 0) ? (latest.ni / latest.rl * 100) : null;
                     
                     // Generate specific source link for the card
@@ -959,7 +959,7 @@
                             <div><small style="color:var(--txt3)">${t.latest_period}</small><div>${latest.period}</div></div>
                             <div><small style="color:var(--txt3)">${t.latest_val} (Local)</small><div style="color:var(--green);font-weight:700">${latest.rl.toFixed(1)}M <small style="font-weight:400;color:var(--txt3)">${c.currency.split(' ')[1]}</small></div></div>
                             <div><small style="color:var(--txt3)">Local NI</small><div style="color:var(--accent);font-weight:700">${latest.ni !== null ? latest.ni.toFixed(1) + 'M' : '—'}</div></div>
-                            <div><small style="color:var(--txt3)">Calculated NI%</small><div style="font-weight:700;color:var(--gold)">${niPercent !== null ? niPercent.toFixed(2) + '%' : '—'}</div></div>
+                            <div><small style="color:var(--txt3)">Calculated Net Income %</small><div style="font-weight:700;color:var(--gold)">${niPercent !== null ? niPercent.toFixed(2) + '%' : '—'}</div></div>
                         </div>
                         <div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
                             <span style="font-size:10px">${latest.st === 'reported' ? '✅' : '⏳'} ${latest.st}</span>
@@ -1063,7 +1063,7 @@
 
                 const marginDatasets = MARGIN_YEARS.map(y => {
                     if (y !== 2025) return {
-                        type: 'line', label: `NI% (${y})`,
+                        type: 'line', label: `Net Income % (${y})`,
                         data: companies.map(c => getMarginPct(c, y)),
                         borderColor: MARGIN_COLORS[y], borderWidth: 1.5,
                         borderDash: [5, 5], fill: false, yAxisID: 'y1',
@@ -1073,7 +1073,7 @@
                     const data25  = companies.map(c => _trendMarginEst(c, 2025)?.v ?? null);
                     const isEst25 = companies.map(c => getMarginPct(c, 2025) === null && _trendMarginEst(c, 2025) !== null);
                     return {
-                        type: 'line', label: 'NI% (2025)',
+                        type: 'line', label: 'Net Income % (2025)',
                         data: data25,
                         borderColor: MARGIN_COLORS[2025], borderWidth: 3,
                         borderDash: [], fill: false, yAxisID: 'y1',
@@ -1121,7 +1121,7 @@
                                         const c = companies[ctx.dataIndex];
                                         const i = ctx.dataIndex;
                                         const seg = q25segs[i];
-                                        const fmtVal = lbl.startsWith('NI%')
+                                        const fmtVal = lbl.startsWith('Net Income %')
                                             ? val.toFixed(1) + '%'
                                             : val.toFixed(0) + ' M USD';
                                         // For FY-only companies, Q4 slot holds the full-year value
@@ -1129,7 +1129,7 @@
                                         const isEst = (lbl === '25 Q2'    && seg?.q2e)
                                                    || (lbl === '25 Q3'    && seg?.q3e)
                                                    || (lbl === '25 Q4'    && seg?.q4e)
-                                                   || (lbl === 'NI% (2025)' && getMarginPct(c, 2025) === null);
+                                                   || (lbl === 'Net Income % (2025)' && getMarginPct(c, 2025) === null);
                                         return `${dispLbl}: ${fmtVal}${isEst ? ' (est.)' : ''}`;
                                     }
                                 }
@@ -1139,12 +1139,12 @@
                 };
             };
 
-            // ── Custom inline plugin: draw 2025 NI% value labels on canvas ──
+            // ── Custom inline plugin: draw 2025 Net Income % value labels on canvas ──
             const ni2025LabelPlugin = {
                 id: 'ni2025Labels',
                 afterDatasetsDraw(chart) {
                     const ds  = chart.data.datasets;
-                    const idx = ds.findIndex(d => d.label === 'NI% (2025)');
+                    const idx = ds.findIndex(d => d.label === 'Net Income % (2025)');
                     if (idx < 0) return;
                     const meta  = chart.getDatasetMeta(idx);
                     const data  = ds[idx].data;
@@ -1544,9 +1544,9 @@
         function exportExcel() {
             const YEARS = [2019,2020,2021,2022,2023,2024,2025];
             const QTRS  = [1, 2, 3, 4];   // 2025 quarterly breakdown
-            // Per year: Rev M RMB | Rev M USD | NI M RMB | NI M USD | NI% | Disclosure Date
+            // Per year: Rev M RMB | Rev M USD | NI M RMB | NI M USD | Net Income % | Disclosure Date
             const PER_YEAR_COLS = 6;
-            // Per quarter: Rev M USD | NI M USD | NI%
+            // Per quarter: Rev M USD | NI M USD | Net Income %
             const PER_QTR_COLS  = 3;
             // Fixed info cols: Company, Code, Currency, Data Source
             const INFO_COLS = 4;
@@ -1593,7 +1593,7 @@
                     row2.push('Rev (M RMB)','Rev (M USD)','NI (M RMB)','NI (M USD)','NI Margin %','Disclosure Date');
                 });
                 QTRS.forEach(() => {
-                    row2.push('Rev (M USD)','NI (M USD)','NI%');
+                    row2.push('Rev (M USD)','NI (M USD)','Net Income %');
                 });
                 row2.push('','','','','','','','','','','','','','','');
 
@@ -1645,7 +1645,7 @@
                             disc
                         );
                     });
-                    // 2025 quarterly breakdown (Rev USD / NI USD / NI%)
+                    // 2025 quarterly breakdown (Rev USD / NI USD / Net Income %)
                     const qFX = yjbbData[c.code] ? 7.2 : fxRate(c.currency);
                     QTRS.forEach(q => {
                         const qd     = _qGet(c, 2025, q);
