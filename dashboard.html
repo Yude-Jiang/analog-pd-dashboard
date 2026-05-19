@@ -1042,12 +1042,12 @@
                 // Estimated quarters rendered with diagonal stripe; companies without
                 // quarterly data have their FY annual placed in the Q4 slot (isFY=true).
                 const Q25C = [
-                    'rgba(96,125,139,0.40)',  // Q1 bottom — lightest
-                    'rgba(96,125,139,0.60)',  // Q2
-                    'rgba(96,125,139,0.78)',  // Q3
-                    'rgba(96,125,139,0.97)',  // Q4 actual — darkest
+                    'rgba(60,180,230,0.40)',  // Q1 bottom — lightest
+                    'rgba(60,180,230,0.60)',  // Q2
+                    'rgba(60,180,230,0.78)',  // Q3
+                    'rgba(60,180,230,0.97)',  // Q4 actual — darkest
                 ];
-                const Q25_STRIPE = _stripePattern('rgba(96,125,139,0.9)', 'rgba(96,125,139,0.12)');
+                const Q25_STRIPE = _stripePattern('rgba(60,180,230,0.9)', 'rgba(60,180,230,0.12)');
                 const q25segs = companies.map(c => _q25Segments(c));
 
                 const barDatasets = [
