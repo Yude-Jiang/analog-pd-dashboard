@@ -572,9 +572,9 @@
             2022: 'rgba(115,135,162,0.72)',
             2023: 'rgba( 90,112,145,0.80)',
             // 2024–2026: vivid, distinct
-            2024: '#03234b',
-            2025: '#3cb4e6',
-            2026: '#ffd200',
+            2024: '#3cb4e6',
+            2025: '#ffd200',
+            2026: '#E6007E',
         };
         // sync button icon with persisted theme
         document.addEventListener('DOMContentLoaded', () => {
@@ -995,9 +995,9 @@
                 2021: 'rgba(138,156,178,0.55)',
                 2022: 'rgba(115,135,162,0.65)',
                 2023: 'rgba( 90,112,145,0.75)',
-                2024: '#03234b',
-                2025: '#3cb4e6',
-                2026: '#ffd200',
+                2024: '#3cb4e6',
+                2025: '#ffd200',
+                2026: '#E6007E',
             };
 
             // sortByRev is defined globally below
@@ -1042,12 +1042,12 @@
                 // Estimated quarters rendered with diagonal stripe; companies without
                 // quarterly data have their FY annual placed in the Q4 slot (isFY=true).
                 const Q25C = [
-                    'rgba(60,180,230,0.40)',  // Q1 bottom — lightest
-                    'rgba(60,180,230,0.60)',  // Q2
-                    'rgba(60,180,230,0.78)',  // Q3
-                    'rgba(60,180,230,0.97)',  // Q4 actual — darkest
+                    'rgba(255,210,0,0.40)',  // Q1 bottom — lightest
+                    'rgba(255,210,0,0.60)',  // Q2
+                    'rgba(255,210,0,0.78)',  // Q3
+                    'rgba(255,210,0,0.97)',  // Q4 actual — darkest
                 ];
-                const Q25_STRIPE = _stripePattern('rgba(60,180,230,0.9)', 'rgba(60,180,230,0.12)');
+                const Q25_STRIPE = _stripePattern('rgba(255,210,0,0.9)', 'rgba(255,210,0,0.12)');
                 const q25segs = companies.map(c => _q25Segments(c));
 
                 const barDatasets = [
@@ -1883,20 +1883,28 @@
             const b25 = companies.map(c => _qBreakdown(c, 2025));
             const b26 = companies.map(c => _qBreakdown(c, 2026));
 
-            // Solid colours for actual quarters
-            const QC = {
-                Q1: 'rgba(26,111,196,0.88)',
-                Q2: 'rgba(13,159,110,0.88)',
-                Q3: 'rgba(212,150,12,0.88)',
-                Q4: 'rgba(0,150,136,0.88)',
-                FY: 'rgba(96,125,139,0.85)'
+            // 2025 quarter colours — yellow palette (#ffd200)
+            const QC25 = {
+                Q1: 'rgba(255,210,0,0.45)', Q2: 'rgba(255,210,0,0.62)',
+                Q3: 'rgba(255,210,0,0.78)', Q4: 'rgba(255,210,0,0.95)',
+                FY: 'rgba(255,210,0,0.85)'
             };
-            // Stripe patterns for estimated quarters (same hue, visually distinct)
-            const EST = {
-                Q1: _stripePattern('rgba(26,111,196,0.9)',  'rgba(26,111,196,0.12)'),
-                Q2: _stripePattern('rgba(13,159,110,0.9)',  'rgba(13,159,110,0.12)'),
-                Q3: _stripePattern('rgba(212,150,12,0.9)',  'rgba(212,150,12,0.12)'),
-                Q4: _stripePattern('rgba(0,150,136,0.9)',   'rgba(0,150,136,0.12)'),
+            const EST25 = {
+                Q1: _stripePattern('rgba(255,210,0,0.9)', 'rgba(255,210,0,0.12)'),
+                Q2: _stripePattern('rgba(255,210,0,0.9)', 'rgba(255,210,0,0.12)'),
+                Q3: _stripePattern('rgba(255,210,0,0.9)', 'rgba(255,210,0,0.12)'),
+                Q4: _stripePattern('rgba(255,210,0,0.9)', 'rgba(255,210,0,0.12)'),
+            };
+            // 2026 quarter colours — pink palette (#E6007E)
+            const QC26 = {
+                Q1: 'rgba(230,0,126,0.45)', Q2: 'rgba(230,0,126,0.62)',
+                Q3: 'rgba(230,0,126,0.78)', Q4: 'rgba(230,0,126,0.95)',
+            };
+            const EST26 = {
+                Q1: _stripePattern('rgba(230,0,126,0.9)', 'rgba(230,0,126,0.12)'),
+                Q2: _stripePattern('rgba(230,0,126,0.9)', 'rgba(230,0,126,0.12)'),
+                Q3: _stripePattern('rgba(230,0,126,0.9)', 'rgba(230,0,126,0.12)'),
+                Q4: _stripePattern('rgba(230,0,126,0.9)', 'rgba(230,0,126,0.12)'),
             };
 
             const mk = (label, stack, data, bg) =>
@@ -1904,18 +1912,18 @@
 
             const P = lang === 'zh' ? '预测' : 'Est';
             const qDs = [
-                mk('2025 FY',      'yr2025', b25.map(b=>b.fy),  QC.FY),
-                mk('Q1',           'yr2025', b25.map(b=>b.q1a), QC.Q1),
-                mk('Q2',           'yr2025', b25.map(b=>b.q2a), QC.Q2),
-                mk('Q3',           'yr2025', b25.map(b=>b.q3a), QC.Q3),
-                mk('Q4',           'yr2025', b25.map(b=>b.q4a), QC.Q4),
-                mk(`Q2 ${P}`,      'yr2025', b25.map(b=>b.q2e), EST.Q2),
-                mk(`Q3 ${P}`,      'yr2025', b25.map(b=>b.q3e), EST.Q3),
-                mk(`Q4 ${P}`,      'yr2025', b25.map(b=>b.q4e), EST.Q4),
-                mk('26 Q1',        'yr2026', b26.map(b=>b.q1a), QC.Q1),
-                mk(`26 Q2 ${P}`,   'yr2026', b26.map(b=>b.q2e), EST.Q2),
-                mk(`26 Q3 ${P}`,   'yr2026', b26.map(b=>b.q3e), EST.Q3),
-                mk(`26 Q4 ${P}`,   'yr2026', b26.map(b=>b.q4e), EST.Q4),
+                mk('2025 FY',      'yr2025', b25.map(b=>b.fy),  QC25.FY),
+                mk('Q1',           'yr2025', b25.map(b=>b.q1a), QC25.Q1),
+                mk('Q2',           'yr2025', b25.map(b=>b.q2a), QC25.Q2),
+                mk('Q3',           'yr2025', b25.map(b=>b.q3a), QC25.Q3),
+                mk('Q4',           'yr2025', b25.map(b=>b.q4a), QC25.Q4),
+                mk(`Q2 ${P}`,      'yr2025', b25.map(b=>b.q2e), EST25.Q2),
+                mk(`Q3 ${P}`,      'yr2025', b25.map(b=>b.q3e), EST25.Q3),
+                mk(`Q4 ${P}`,      'yr2025', b25.map(b=>b.q4e), EST25.Q4),
+                mk('26 Q1',        'yr2026', b26.map(b=>b.q1a), QC26.Q1),
+                mk(`26 Q2 ${P}`,   'yr2026', b26.map(b=>b.q2e), EST26.Q2),
+                mk(`26 Q3 ${P}`,   'yr2026', b26.map(b=>b.q3e), EST26.Q3),
+                mk(`26 Q4 ${P}`,   'yr2026', b26.map(b=>b.q4e), EST26.Q4),
             ].filter(d => d.data.some(v => v != null));
 
             return new Chart(document.getElementById(canvasId).getContext('2d'), {
