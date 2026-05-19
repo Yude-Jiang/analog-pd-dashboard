@@ -564,7 +564,18 @@
 
         let lang = 'zh', theme = _savedTheme, aYear = 2026, rawData = {};
         let yjbbQtrData = {};   // {code: {quarters: {"2025Q1": {rev_mrm, ni_mrm, margin, announced}, ...}}}
-        const BC = { 2019: '#94bedc', 2020: '#e91e8c', 2021: '#00bcd4', 2022: '#fdd835', 2023: '#43a047', 2024: '#3949ab', 2025: '#607d8b', 2026: '#1a6fc4' };
+        const BC = {
+            // 2019–2023: muted grays — clearly historical
+            2019: 'rgba(180,193,206,0.50)',
+            2020: 'rgba(160,175,192,0.58)',
+            2021: 'rgba(138,156,178,0.65)',
+            2022: 'rgba(115,135,162,0.72)',
+            2023: 'rgba( 90,112,145,0.80)',
+            // 2024–2026: vivid, distinct
+            2024: '#03234b',
+            2025: '#3cb4e6',
+            2026: '#ffd200',
+        };
         // sync button icon with persisted theme
         document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('themeBtn');
@@ -981,11 +992,12 @@
             const YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
             const MARGIN_YEARS  = [2021, 2022, 2023, 2024, 2025];
             const MARGIN_COLORS = {
-                2021: 'rgba(150,150,150,0.4)',
-                2022: 'rgba(100,100,100,0.5)',
-                2023: 'rgba(255,193,7,0.6)',
-                2024: 'rgba(30,126,212,0.7)',
-                2025: 'rgba(217,64,64,1)'
+                2021: 'rgba(138,156,178,0.55)',
+                2022: 'rgba(115,135,162,0.65)',
+                2023: 'rgba( 90,112,145,0.75)',
+                2024: '#03234b',
+                2025: '#3cb4e6',
+                2026: '#ffd200',
             };
 
             // sortByRev is defined globally below
