@@ -13,7 +13,6 @@ Usage:
 """
 
 import argparse
-import base64
 import json
 import os
 import sys
@@ -131,55 +130,50 @@ Return only the JSON object, no other text.
 
 
 def extract_ic_from_pdf(pdf_path: str, year: int) -> dict | None:
-    """Send PDF to Claude API and extract IC segment figures."""
-    import anthropic
+    """Send PDF to Gemini API and extract IC segment figures."""
+    import google.generativeai as genai
 
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        print("  [Claude] ANTHROPIC_API_KEY not set — skipping extraction")
+        print("  [Gemini] GEMINI_API_KEY not set — skipping extraction")
         return None
 
-    client = anthropic.Anthropic(api_key=api_key)
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel("gemini-1.5-pro")
 
     file_size = os.path.getsize(pdf_path)
-    print(f"  [Claude] sending {Path(pdf_path).name} ({file_size/1e6:.1f} MB) to Claude…")
-
-    with open(pdf_path, "rb") as f:
-        pdf_data = base64.standard_b64encode(f.read()).decode("utf-8")
+    print(f"  [Gemini] uploading {Path(pdf_path).name} ({file_size/1e6:.1f} MB)…")
 
     try:
-        message = client.messages.create(
-            model="claude-opus-4-8",
-            max_tokens=512,
-            messages=[{
-                "role": "user",
-                "content": [
-                    {
-                        "type": "document",
-                        "source": {
-                            "type":       "base64",
-                            "media_type": "application/pdf",
-                            "data":       pdf_data,
-                        },
-                    },
-                    {"type": "text", "text": EXTRACT_PROMPT},
-                ],
-            }],
-        )
-        raw = message.content[0].text.strip()
-        print(f"  [Claude] response: {raw}")
+        # Upload via Files API (handles large PDFs gracefully)
+        uploaded = genai.upload_file(pdf_path, mime_type="application/pdf")
+        print(f"  [Gemini] file uploaded, extracting…")
+
+        response = model.generate_content([uploaded, EXTRACT_PROMPT])
+        raw = response.text.strip()
+        print(f"  [Gemini] response: {raw}")
+
         # Strip markdown code fences if present
         if raw.startswith("```"):
-            raw = raw.split("```")[1]
+            raw = raw.split("```", 2)[1]
             if raw.startswith("json"):
                 raw = raw[4:]
+            raw = raw.strip()
+
         result = json.loads(raw)
         if result.get("not_found"):
-            print(f"  [Claude] IC row not found: {result.get('reason','')}")
+            print(f"  [Gemini] IC row not found: {result.get('reason', '')}")
             return None
+
+        # Clean up uploaded file
+        try:
+            genai.delete_file(uploaded.name)
+        except Exception:
+            pass
+
         return result
     except Exception as e:
-        print(f"  [Claude] error: {e}")
+        print(f"  [Gemini] error: {e}")
         return None
 
 # ---------------------------------------------------------------------------
