@@ -32,6 +32,7 @@ import requests
 # Config
 # ---------------------------------------------------------------------------
 STOCK_CODE   = "600703"
+STOCK_ORG_ID = "gssh0600703"   # CNINFO internal orgId for 三安光电
 STOCK_NAME   = "三安光电"
 COMPANY_KEY  = "Sanan"
 TARGET_YEARS = [2019, 2020, 2021, 2022, 2023, 2024]
@@ -71,17 +72,7 @@ def _build_session() -> requests.Session:
 
 
 def _get_org_id(session: requests.Session) -> str:
-    """Look up Sanan's CNINFO internal orgId dynamically."""
-    try:
-        r = session.get(CNINFO_SEARCH,
-                        params={"keyWord": STOCK_CODE, "maxNum": 5}, timeout=10)
-        r.raise_for_status()
-        for item in r.json():
-            if item.get("code") == STOCK_CODE:
-                return item.get("orgId", "")
-    except Exception as e:
-        print(f"  [CNINFO] orgId lookup failed: {e}")
-    return ""
+    return STOCK_ORG_ID
 
 
 # ---------------------------------------------------------------------------
