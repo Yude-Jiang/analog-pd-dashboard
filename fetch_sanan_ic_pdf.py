@@ -3,19 +3,19 @@ fetch_sanan_ic_pdf.py — Extract Sanan IC segment revenue from annual report PD
 
 Pipeline:
   1. Query CNINFO for Sanan (600703) 年报 PDF download URLs (2019–2024)
-  2. Download each PDF
-  3. Send to Claude API → extract "集成电路产品" row from 主营业务分产品情况 table
-  4. Compute IC NI via proportional allocation: IC_NI = Total_NI × (IC_Rev / Total_Rev)
-  5. Overwrite Sanan revenue / net_income / margin in data.json
+  2. Download PDF (skip if already cached in GCS at sanan_pdfs/sanan_YEAR.pdf)
+  3. Upload PDF to GCS for reuse
+  4. Send to Gemini API → extract "集成电路产品" row from 主营业务分产品情况 table
+  5. Compute IC NI via proportional allocation: IC_NI = Total_NI × (IC_Rev / Total_Rev)
+  6. Overwrite Sanan revenue / net_income / margin in data.json
 
 Usage:
-    python fetch_sanan_ic_pdf.py [--dry-run] [--years 2022 2023 2024]
+    python fetch_sanan_ic_pdf.py [--dry-run] [--years 2022 2023 2024] [--redownload]
 """
 
 import argparse
 import json
 import os
-import sys
 import time
 import tempfile
 from pathlib import Path
@@ -28,12 +28,57 @@ import requests
 STOCK_CODE   = "600703"
 COMPANY_KEY  = "Sanan"
 TARGET_YEARS = [2019, 2020, 2021, 2022, 2023, 2024]
+GCS_BUCKET   = os.environ.get("GCS_BUCKET", "st-china-ai-force-dashboard")
+GCS_PDF_DIR  = "sanan_pdfs"   # prefix inside bucket
 
 # CNINFO announcement query endpoint
 CNINFO_QUERY = "https://www.cninfo.com.cn/new/hisAnnouncement/query"
 CNINFO_BASE  = "https://static.cninfo.com.cn/"
 
 _HERE = Path(__file__).parent
+
+# ---------------------------------------------------------------------------
+# GCS helpers
+# ---------------------------------------------------------------------------
+
+def _gcs_blob_name(year: int) -> str:
+    return f"{GCS_PDF_DIR}/sanan_{year}.pdf"
+
+
+def gcs_pdf_exists(year: int) -> bool:
+    try:
+        from google.cloud import storage
+        client = storage.Client()
+        blob = client.bucket(GCS_BUCKET).blob(_gcs_blob_name(year))
+        return blob.exists()
+    except Exception:
+        return False
+
+
+def upload_pdf_to_gcs(local_path: str, year: int):
+    try:
+        from google.cloud import storage
+        client = storage.Client()
+        blob = client.bucket(GCS_BUCKET).blob(_gcs_blob_name(year))
+        blob.upload_from_filename(local_path, content_type="application/pdf")
+        print(f"  [GCS] uploaded → gs://{GCS_BUCKET}/{_gcs_blob_name(year)}")
+    except Exception as e:
+        print(f"  [GCS] upload failed: {e}")
+
+
+def download_pdf_from_gcs(year: int, dest_dir: str) -> str | None:
+    try:
+        from google.cloud import storage
+        dest = os.path.join(dest_dir, f"sanan_{year}.pdf")
+        client = storage.Client()
+        blob = client.bucket(GCS_BUCKET).blob(_gcs_blob_name(year))
+        blob.download_to_filename(dest)
+        size_mb = os.path.getsize(dest) / 1e6
+        print(f"  [GCS] downloaded sanan_{year}.pdf from GCS ({size_mb:.1f} MB)")
+        return dest
+    except Exception as e:
+        print(f"  [GCS] download failed: {e}")
+        return None
 
 # ---------------------------------------------------------------------------
 # CNINFO helpers
@@ -76,8 +121,18 @@ def _cninfo_search(year: int) -> dict | None:
         return None
 
 
-def download_pdf(year: int, dest_dir: str) -> str | None:
-    """Download the annual report PDF for the given year into dest_dir. Returns local path."""
+def get_pdf(year: int, dest_dir: str, redownload: bool = False) -> str | None:
+    """
+    Return local path to the annual report PDF for the given year.
+    Priority: GCS cache → CNINFO download (then upload to GCS).
+    Set redownload=True to force re-fetch from CNINFO even if GCS has it.
+    """
+    # 1. Try GCS cache first
+    if not redownload and gcs_pdf_exists(year):
+        print(f"  [GCS] cache hit for {year}, downloading…")
+        return download_pdf_from_gcs(year, dest_dir)
+
+    # 2. Download from CNINFO
     record = _cninfo_search(year)
     if not record:
         print(f"  [CNINFO] no record found for {year}")
@@ -97,10 +152,13 @@ def download_pdf(year: int, dest_dir: str) -> str | None:
             for chunk in r.iter_content(chunk_size=65536):
                 f.write(chunk)
         size_mb = os.path.getsize(dest) / 1e6
-        print(f"         → saved {filename} ({size_mb:.1f} MB)")
+        print(f"         → downloaded {filename} ({size_mb:.1f} MB)")
+
+        # 3. Upload to GCS for next time
+        upload_pdf_to_gcs(dest, year)
         return dest
     except Exception as e:
-        print(f"  [download] error: {e}")
+        print(f"  [CNINFO download] error: {e}")
         return None
 
 # ---------------------------------------------------------------------------
@@ -223,8 +281,9 @@ def update_data_json(dry_run: bool, ic_by_year: dict):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dry-run", action="store_true", help="Show proposed changes without writing")
-    parser.add_argument("--years",   nargs="+", type=int, default=TARGET_YEARS)
+    parser.add_argument("--dry-run",    action="store_true", help="Show proposed changes without writing")
+    parser.add_argument("--redownload", action="store_true", help="Force re-fetch from CNINFO even if GCS has PDF")
+    parser.add_argument("--years",      nargs="+", type=int, default=TARGET_YEARS)
     args = parser.parse_args()
 
     data_path = _HERE / "data.json"
@@ -237,15 +296,15 @@ def main():
     for year in args.years:
         print(f"\n── {year} ──────────────────────────────")
 
-        # Download PDF
-        pdf_path = download_pdf(year, tmpdir)
+        # Get PDF (GCS cache or CNINFO download)
+        pdf_path = get_pdf(year, tmpdir, redownload=args.redownload)
         if not pdf_path:
             print(f"  skipping {year} (no PDF)")
             continue
 
         time.sleep(1)   # polite delay
 
-        # Extract IC segment via Claude
+        # Extract IC segment via Gemini
         result = extract_ic_from_pdf(pdf_path, year)
         if not result:
             print(f"  skipping {year} (extraction failed)")
