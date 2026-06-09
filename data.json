@@ -456,7 +456,7 @@
     ]
   },
   "MPWR": {
-    "name": "MPWR",
+    "name": "MPS",
     "code": "MPWR",
     "category": "Analog",
     "currency": "M USD",
@@ -569,7 +569,7 @@
     ]
   },
   "NVTS": {
-    "name": "NVTS",
+    "name": "Navitas",
     "code": "NVTS",
     "category": "P&D",
     "currency": "M USD",
