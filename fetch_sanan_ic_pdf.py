@@ -2,20 +2,26 @@
 fetch_sanan_ic_pdf.py — Extract Sanan IC segment revenue from annual report PDFs.
 
 Pipeline:
-  1. Query CNINFO for Sanan (600703) 年报 PDF download URLs (2019–2024)
-  2. Download PDF (skip if already cached in GCS at sanan_pdfs/sanan_YEAR.pdf)
+  1. Query CNINFO for Sanan (600703) 年报 PDF (cookie auth, orgId lookup)
+  2. Download PDF — skip if already cached in GCS at sanan_pdfs/sanan_YEAR.pdf
   3. Upload PDF to GCS for reuse
   4. Send to Gemini API → extract "集成电路产品" row from 主营业务分产品情况 table
   5. Compute IC NI via proportional allocation: IC_NI = Total_NI × (IC_Rev / Total_Rev)
   6. Overwrite Sanan revenue / net_income / margin in data.json
 
 Usage:
+    export CNINFO_COOKIE="your_cookie_here"
+    export GEMINI_API_KEY="your_key_here"
     python fetch_sanan_ic_pdf.py [--dry-run] [--years 2022 2023 2024] [--redownload]
+
+Cookie: visit https://www.cninfo.com.cn, open DevTools → Network,
+        copy the Cookie header from any XHR request.
 """
 
 import argparse
 import json
 import os
+import re
 import time
 import tempfile
 from pathlib import Path
@@ -26,16 +32,120 @@ import requests
 # Config
 # ---------------------------------------------------------------------------
 STOCK_CODE   = "600703"
+STOCK_NAME   = "三安光电"
 COMPANY_KEY  = "Sanan"
 TARGET_YEARS = [2019, 2020, 2021, 2022, 2023, 2024]
 GCS_BUCKET   = os.environ.get("GCS_BUCKET", "st-china-ai-force-dashboard")
-GCS_PDF_DIR  = "sanan_pdfs"   # prefix inside bucket
+GCS_PDF_DIR  = "sanan_pdfs"
 
-# CNINFO announcement query endpoint
-CNINFO_QUERY = "https://www.cninfo.com.cn/new/hisAnnouncement/query"
-CNINFO_BASE  = "https://static.cninfo.com.cn/"
+CNINFO_QUERY  = "https://www.cninfo.com.cn/new/hisAnnouncement/query"
+CNINFO_SEARCH = "https://www.cninfo.com.cn/new/information/topSearch/query"
+CNINFO_BASE   = "https://static.cninfo.com.cn/"
+CATEGORY_ANNUAL = "category_ndbg_szsh"
+
+EXCLUDE_KEYWORDS = ["摘要", "提示性", "英文版", "English", "补充", "更正", "取消", "撤销"]
 
 _HERE = Path(__file__).parent
+
+# ---------------------------------------------------------------------------
+# CNINFO session + orgId
+# ---------------------------------------------------------------------------
+
+def _build_session() -> requests.Session:
+    cookie = os.environ.get("CNINFO_COOKIE", "")
+    s = requests.Session()
+    s.headers.update({
+        "User-Agent": (
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        ),
+        "Referer": "https://www.cninfo.com.cn/",
+        "Origin":  "https://www.cninfo.com.cn",
+    })
+    if cookie:
+        s.headers["Cookie"] = cookie
+    else:
+        print("⚠  CNINFO_COOKIE not set — downloads may fail for authenticated content.")
+    return s
+
+
+def _get_org_id(session: requests.Session) -> str:
+    """Look up Sanan's CNINFO internal orgId dynamically."""
+    try:
+        r = session.get(CNINFO_SEARCH,
+                        params={"keyWord": STOCK_CODE, "maxNum": 5}, timeout=10)
+        r.raise_for_status()
+        for item in r.json():
+            if item.get("code") == STOCK_CODE:
+                return item.get("orgId", "")
+    except Exception as e:
+        print(f"  [CNINFO] orgId lookup failed: {e}")
+    return ""
+
+
+# ---------------------------------------------------------------------------
+# Announcement query + PDF selection (ported from MCU download_reports.py)
+# ---------------------------------------------------------------------------
+
+def _query_announcements(session: requests.Session, org_id: str,
+                          category: str, page: int = 1) -> dict:
+    payload = {
+        "stock":     f"{STOCK_CODE},{org_id}",
+        "tabName":   "fulltext",
+        "pageSize":  30,
+        "pageNum":   page,
+        "column":    "sse",          # 600xxx = Shanghai
+        "category":  category,
+        "plate":     "",
+        "seDate":    "",
+        "isHLtitle": True,
+    }
+    resp = session.post(CNINFO_QUERY, data=payload, timeout=30)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def _detect_year(title: str, url: str) -> int | None:
+    for text in (title, url):
+        m = re.search(r"(20\d{2})", text)
+        if m:
+            return int(m.group(1))
+    return None
+
+
+def _select_best_pdf(announcements: list, year: int) -> dict | None:
+    """Pick the main annual report: correct year, not a summary, largest file."""
+    candidates = []
+    for ann in announcements:
+        title = ann.get("announcementTitle", "")
+        if any(kw in title for kw in EXCLUDE_KEYWORDS):
+            continue
+        if _detect_year(title, ann.get("adjunctUrl", "")) != year:
+            continue
+        if ann.get("adjunctType") != "PDF":
+            continue
+        candidates.append((int(ann.get("adjunctSize", 0)), ann))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda x: x[0], reverse=True)
+    return candidates[0][1]
+
+
+def _fetch_all_announcements(session: requests.Session, org_id: str) -> list:
+    all_items: list = []
+    page = 1
+    while True:
+        data = _query_announcements(session, org_id, CATEGORY_ANNUAL, page)
+        items = data.get("announcements") or []
+        if not items:
+            break
+        all_items.extend(items)
+        if page >= data.get("totalPages", 1):
+            break
+        page += 1
+        time.sleep(0.4)
+    return all_items
 
 # ---------------------------------------------------------------------------
 # GCS helpers
@@ -45,117 +155,68 @@ def _gcs_blob_name(year: int) -> str:
     return f"{GCS_PDF_DIR}/sanan_{year}.pdf"
 
 
-def gcs_pdf_exists(year: int) -> bool:
+def _gcs_exists(year: int) -> bool:
     try:
         from google.cloud import storage
-        client = storage.Client()
-        blob = client.bucket(GCS_BUCKET).blob(_gcs_blob_name(year))
-        return blob.exists()
+        return storage.Client().bucket(GCS_BUCKET).blob(_gcs_blob_name(year)).exists()
     except Exception:
         return False
 
 
-def upload_pdf_to_gcs(local_path: str, year: int):
+def _upload_to_gcs(local_path: str, year: int):
     try:
         from google.cloud import storage
-        client = storage.Client()
-        blob = client.bucket(GCS_BUCKET).blob(_gcs_blob_name(year))
-        blob.upload_from_filename(local_path, content_type="application/pdf")
+        storage.Client().bucket(GCS_BUCKET).blob(_gcs_blob_name(year))\
+            .upload_from_filename(local_path, content_type="application/pdf")
         print(f"  [GCS] uploaded → gs://{GCS_BUCKET}/{_gcs_blob_name(year)}")
     except Exception as e:
         print(f"  [GCS] upload failed: {e}")
 
 
-def download_pdf_from_gcs(year: int, dest_dir: str) -> str | None:
+def _download_from_gcs(year: int, dest_dir: str) -> str | None:
     try:
         from google.cloud import storage
         dest = os.path.join(dest_dir, f"sanan_{year}.pdf")
-        client = storage.Client()
-        blob = client.bucket(GCS_BUCKET).blob(_gcs_blob_name(year))
-        blob.download_to_filename(dest)
-        size_mb = os.path.getsize(dest) / 1e6
-        print(f"  [GCS] downloaded sanan_{year}.pdf from GCS ({size_mb:.1f} MB)")
+        storage.Client().bucket(GCS_BUCKET).blob(_gcs_blob_name(year))\
+            .download_to_filename(dest)
+        print(f"  [GCS] ✓ sanan_{year}.pdf ({os.path.getsize(dest)/1e6:.1f} MB)")
         return dest
     except Exception as e:
         print(f"  [GCS] download failed: {e}")
         return None
 
 # ---------------------------------------------------------------------------
-# CNINFO helpers
+# get_pdf: GCS cache → CNINFO download
 # ---------------------------------------------------------------------------
 
-def _cninfo_search(year: int) -> dict | None:
-    """Return the first 年报 announcement record for STOCK_CODE in the given year."""
-    # Annual reports filed in Jan–Apr of year+1
-    start = f"{year + 1}-01-01"
-    end   = f"{year + 1}-05-31"
-    payload = {
-        "stock":    f"{STOCK_CODE},三安光电",
-        "category": "category_ndbg_szsh",   # 年度报告
-        "plate":    "sh",
-        "seDate":   f"{start}~{end}",
-        "tabName":  "fulltext",
-        "pageSize": 10,
-        "pageNum":  1,
-        "column":   "sse",
-        "sortName": "pubdate",
-        "sortType": "desc",
-        "isHLtitle": True,
-    }
-    headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Referer":    "https://www.cninfo.com.cn/",
-    }
-    try:
-        r = requests.post(CNINFO_QUERY, data=payload, headers=headers, timeout=20)
-        r.raise_for_status()
-        items = r.json().get("announcements") or []
-        # Pick the record whose title contains the report year
-        for item in items:
-            title = item.get("announcementTitle", "")
-            if str(year) in title and "年度报告" in title and "摘要" not in title:
-                return item
-        return items[0] if items else None
-    except Exception as e:
-        print(f"  [CNINFO] search error for {year}: {e}")
+def get_pdf(year: int, dest_dir: str, session: requests.Session,
+            all_announcements: list, redownload: bool = False) -> str | None:
+    # 1. GCS cache
+    if not redownload and _gcs_exists(year):
+        print(f"  [GCS] cache hit for {year}")
+        return _download_from_gcs(year, dest_dir)
+
+    # 2. Select best PDF from pre-fetched announcement list
+    ann = _select_best_pdf(all_announcements, year)
+    if not ann:
+        print(f"  [CNINFO] no suitable PDF found for {year}")
         return None
 
+    title    = ann.get("announcementTitle", "")
+    pdf_url  = CNINFO_BASE + ann.get("adjunctUrl", "").lstrip("/")
+    dest     = os.path.join(dest_dir, f"sanan_{year}.pdf")
+    size_kb  = int(ann.get("adjunctSize", 0)) // 1024
 
-def get_pdf(year: int, dest_dir: str, redownload: bool = False) -> str | None:
-    """
-    Return local path to the annual report PDF for the given year.
-    Priority: GCS cache → CNINFO download (then upload to GCS).
-    Set redownload=True to force re-fetch from CNINFO even if GCS has it.
-    """
-    # 1. Try GCS cache first
-    if not redownload and gcs_pdf_exists(year):
-        print(f"  [GCS] cache hit for {year}, downloading…")
-        return download_pdf_from_gcs(year, dest_dir)
-
-    # 2. Download from CNINFO
-    record = _cninfo_search(year)
-    if not record:
-        print(f"  [CNINFO] no record found for {year}")
-        return None
-
-    pdf_url  = CNINFO_BASE + record.get("adjunctUrl", "")
-    title    = record.get("announcementTitle", "")
-    filename = f"sanan_{year}.pdf"
-    dest     = os.path.join(dest_dir, filename)
-
-    print(f"  [{year}] {title}")
+    print(f"  [{year}] {title}  ({size_kb:,} KB)")
     print(f"         {pdf_url}")
     try:
-        r = requests.get(pdf_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=60, stream=True)
+        r = session.get(pdf_url, stream=True, timeout=120)
         r.raise_for_status()
         with open(dest, "wb") as f:
             for chunk in r.iter_content(chunk_size=65536):
                 f.write(chunk)
-        size_mb = os.path.getsize(dest) / 1e6
-        print(f"         → downloaded {filename} ({size_mb:.1f} MB)")
-
-        # 3. Upload to GCS for next time
-        upload_pdf_to_gcs(dest, year)
+        print(f"         → saved ({os.path.getsize(dest)/1e6:.1f} MB)")
+        _upload_to_gcs(dest, year)
         return dest
     except Exception as e:
         print(f"  [CNINFO download] error: {e}")
@@ -290,6 +351,16 @@ def main():
     raw_data  = json.loads(data_path.read_text(encoding="utf-8"))
     sanan     = raw_data[COMPANY_KEY]
 
+    # Build CNINFO session and pre-fetch all announcements once
+    session = _build_session()
+    print("Resolving Sanan orgId from CNINFO…")
+    org_id = _get_org_id(session)
+    print(f"  orgId = {org_id or '(not found — will use stock code only)'}")
+
+    print("Fetching announcement list from CNINFO…")
+    all_announcements = _fetch_all_announcements(session, org_id)
+    print(f"  {len(all_announcements)} announcement(s) found")
+
     ic_by_year = {}
     tmpdir = tempfile.mkdtemp()
 
@@ -297,7 +368,8 @@ def main():
         print(f"\n── {year} ──────────────────────────────")
 
         # Get PDF (GCS cache or CNINFO download)
-        pdf_path = get_pdf(year, tmpdir, redownload=args.redownload)
+        pdf_path = get_pdf(year, tmpdir, session, all_announcements,
+                           redownload=args.redownload)
         if not pdf_path:
             print(f"  skipping {year} (no PDF)")
             continue
