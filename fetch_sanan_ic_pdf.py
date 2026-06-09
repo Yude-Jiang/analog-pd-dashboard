@@ -35,7 +35,7 @@ STOCK_CODE   = "600703"
 STOCK_ORG_ID = "gssh0600703"   # CNINFO internal orgId for 三安光电
 STOCK_NAME   = "三安光电"
 COMPANY_KEY  = "Sanan"
-TARGET_YEARS = [2019, 2020, 2021, 2022, 2023, 2024]
+TARGET_YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025]
 GCS_BUCKET   = os.environ.get("GCS_BUCKET", "st-china-ai-force-dashboard")
 GCS_PDF_DIR  = "sanan_pdfs"
 
@@ -217,23 +217,28 @@ def get_pdf(year: int, dest_dir: str, session: requests.Session,
 # Claude API — extract IC segment from PDF
 # ---------------------------------------------------------------------------
 
-EXTRACT_PROMPT = """
+EXTRACT_PROMPT_TMPL = """
 You are a financial data extraction assistant.
 
-In this annual report PDF for 三安光电 (Sanan Optoelectronics, stock 600703), find the table titled
-"主营业务分产品情况" (Main Business Breakdown by Product).
+This is the {year} annual report PDF for 三安光电 (Sanan Optoelectronics, stock 600703).
 
-Extract ONLY the row for "集成电路产品" (Integrated Circuit Products).
+Find the table titled "主营业务分产品情况" (Main Business Breakdown by Product).
+This table typically appears in the section "主营业务分析" or "经营情况讨论与分析".
+
+IMPORTANT: Extract data for the CURRENT REPORTING YEAR ({year}), NOT the comparative prior year column.
+The table usually shows two columns — take the LEFT/FIRST data column which is the current year {year}.
+
+Extract ONLY the row for "集成电路产品" or "集成电路芯片" (Integrated Circuit Products/Chips).
 
 Return a JSON object with these exact keys (all values in 元/Yuan as reported):
-{
-  "ic_revenue": <float>,        // 营业收入 (主营收入)
-  "ic_cost": <float>,           // 营业成本 (主营成本)
+{{
+  "ic_revenue": <float>,         // 营业收入 (主营收入) for {year}
+  "ic_cost": <float>,            // 营业成本 (主营成本) for {year}
   "ic_gross_margin_pct": <float> // 毛利率 as a decimal, e.g. 0.0564 for 5.64%
-}
+}}
 
-If the table is not found or the IC row does not exist in this report, return:
-{"not_found": true, "reason": "<brief explanation>"}
+If the table is not found or the IC row does not exist, return:
+{{"not_found": true, "reason": "<brief explanation>"}}
 
 Return only the JSON object, no other text.
 """
@@ -281,9 +286,10 @@ def extract_ic_from_pdf(pdf_path: str, year: int) -> dict | None:
             )
         print("  [Gemini] file uploaded, extracting…")
 
+        prompt = EXTRACT_PROMPT_TMPL.format(year=year)
         response = client.models.generate_content(
             model=model_id,
-            contents=[uploaded, EXTRACT_PROMPT],
+            contents=[uploaded, prompt],
         )
         raw = response.text.strip()
         print(f"  [Gemini] response: {raw}")
