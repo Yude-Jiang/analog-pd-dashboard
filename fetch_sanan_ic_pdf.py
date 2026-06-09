@@ -255,7 +255,7 @@ def _get_gemini_key() -> str:
         from google.cloud import secretmanager
         project = os.environ.get("GOOGLE_CLOUD_PROJECT", "st-china-ai-force")
         client  = secretmanager.SecretManagerServiceClient()
-        name    = f"projects/{project}/secrets/GEMINI_API_KEY/versions/latest"
+        name    = f"projects/{project}/secrets/VITE_GEMINI_API_KEY/versions/latest"
         resp    = client.access_secret_version(request={"name": name})
         key     = resp.payload.data.decode("UTF-8").strip()
         print("  [Secret Manager] GEMINI_API_KEY loaded ✓")
