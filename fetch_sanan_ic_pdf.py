@@ -35,7 +35,7 @@ STOCK_CODE   = "600703"
 STOCK_ORG_ID = "gssh0600703"   # CNINFO internal orgId for 三安光电
 STOCK_NAME   = "三安光电"
 COMPANY_KEY  = "Sanan"
-TARGET_YEARS = [2019, 2020, 2021, 2022, 2023, 2024]
+TARGET_YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025]
 GCS_BUCKET   = os.environ.get("GCS_BUCKET", "st-china-ai-force-dashboard")
 GCS_PDF_DIR  = "sanan_pdfs"
 
@@ -217,23 +217,30 @@ def get_pdf(year: int, dest_dir: str, session: requests.Session,
 # Claude API — extract IC segment from PDF
 # ---------------------------------------------------------------------------
 
-EXTRACT_PROMPT = """
+EXTRACT_PROMPT_TMPL = """
 You are a financial data extraction assistant.
 
-In this annual report PDF for 三安光电 (Sanan Optoelectronics, stock 600703), find the table titled
-"主营业务分产品情况" (Main Business Breakdown by Product).
+This is the {year} annual report PDF for 三安光电 (Sanan Optoelectronics, stock 600703).
 
-Extract ONLY the row for "集成电路产品" (Integrated Circuit Products).
+Find the table titled "主营业务分产品情况" (Main Business Breakdown by Product).
+This table typically appears in the section "主营业务分析" or "经营情况讨论与分析".
+
+IMPORTANT: Extract data for the CURRENT REPORTING YEAR ({year}), NOT the comparative prior year column.
+The table usually shows two sets of columns — take the LEFT/FIRST set which is the current year {year}.
+
+Extract ONLY the row for "集成电路产品" or "集成电路芯片" (Integrated Circuit Products/Chips).
+
+Read each number digit by digit from the PDF — do NOT estimate or round. Copy the exact integer or decimal as printed.
 
 Return a JSON object with these exact keys (all values in 元/Yuan as reported):
-{
-  "ic_revenue": <float>,        // 营业收入 (主营收入)
-  "ic_cost": <float>,           // 营业成本 (主营成本)
+{{
+  "ic_revenue": <float>,         // 营业收入 (主营收入) for {year} — exact figure
+  "ic_cost": <float>,            // 营业成本 (主营成本) for {year} — exact figure
   "ic_gross_margin_pct": <float> // 毛利率 as a decimal, e.g. 0.0564 for 5.64%
-}
+}}
 
-If the table is not found or the IC row does not exist in this report, return:
-{"not_found": true, "reason": "<brief explanation>"}
+If the table is not found or the IC row does not exist, return:
+{{"not_found": true, "reason": "<brief explanation>"}}
 
 Return only the JSON object, no other text.
 """
@@ -281,9 +288,10 @@ def extract_ic_from_pdf(pdf_path: str, year: int) -> dict | None:
             )
         print("  [Gemini] file uploaded, extracting…")
 
+        prompt = EXTRACT_PROMPT_TMPL.format(year=year)
         response = client.models.generate_content(
             model=model_id,
-            contents=[uploaded, EXTRACT_PROMPT],
+            contents=[uploaded, prompt],
         )
         raw = response.text.strip()
         print(f"  [Gemini] response: {raw}")
@@ -325,7 +333,7 @@ def update_data_json(dry_run: bool, ic_by_year: dict):
     sanan = data[COMPANY_KEY]
 
     print("\n=== Proposed changes to Sanan in data.json ===")
-    print(f"{'Year':<6} {'Old Rev':>10} {'New Rev':>10} {'Old NI':>10} {'New NI':>10} {'New Margin':>12}")
+    print(f"{'Year':<6} {'Old Rev':>10} {'New Rev':>10} {'Old NI':>10} {'New GP':>10} {'毛利率':>12}")
     print("-" * 60)
 
     for yr, vals in sorted(ic_by_year.items()):
@@ -346,7 +354,7 @@ def update_data_json(dry_run: bool, ic_by_year: dict):
         # Mark source as segment-adjusted
         if "audit" not in sanan:
             sanan["audit"] = {}
-        sanan["audit"]["segment_note"] = "集成电路产品分部数据（年报PDF提取）; NI按营收比例分摊"
+        sanan["audit"]["segment_note"] = "集成电路产品分部数据（年报PDF提取）; margin为毛利率; net_income为毛利润"
         data_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"\n✅ data.json updated ({len(ic_by_year)} years)")
     else:
@@ -399,29 +407,18 @@ def main():
             continue
 
         ic_rev_yuan = result["ic_revenue"]           # 元
-        ic_gm_pct   = result["ic_gross_margin_pct"]  # e.g. 0.0564
+        ic_gm_pct   = result["ic_gross_margin_pct"]  # 毛利率, e.g. 0.0564
 
         # Convert revenue Yuan → M RMB
-        ic_rev_mrm = ic_rev_yuan / 1e6
+        ic_rev_mrm  = ic_rev_yuan / 1e6
+        # Use gross profit as the "net income" field; store gross margin as margin
+        ic_gp_mrm   = ic_rev_mrm * ic_gm_pct
+        ic_margin   = ic_gm_pct
 
-        # Total revenue and NI from existing data (M RMB)
-        total_rev_mrm = sanan["revenue"].get(str(year))
-        total_ni_mrm  = sanan["net_income"].get(str(year))
-
-        if total_rev_mrm and total_ni_mrm and total_rev_mrm > 0:
-            # Proportional NI allocation
-            ic_ni_mrm = total_ni_mrm * (ic_rev_mrm / total_rev_mrm)
-        else:
-            # Fallback: use gross profit as proxy for NI
-            ic_cost_yuan = result.get("ic_cost", ic_rev_yuan * (1 - ic_gm_pct))
-            ic_ni_mrm    = (ic_rev_yuan - ic_cost_yuan) / 1e6
-
-        ic_margin = ic_ni_mrm / ic_rev_mrm if ic_rev_mrm else 0
-
-        print(f"  IC Rev: {ic_rev_mrm:.1f} M RMB  |  IC NI: {ic_ni_mrm:.1f} M RMB  |  IC Margin: {ic_margin*100:.2f}%")
+        print(f"  IC Rev: {ic_rev_mrm:.1f} M RMB  |  IC GP: {ic_gp_mrm:.1f} M RMB  |  毛利率: {ic_margin*100:.2f}%")
         ic_by_year[year] = {
             "ic_revenue_mrm": ic_rev_mrm,
-            "ic_ni_mrm":      ic_ni_mrm,
+            "ic_ni_mrm":      ic_gp_mrm,
             "ic_margin":      ic_margin,
         }
 
