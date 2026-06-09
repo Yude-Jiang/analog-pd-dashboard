@@ -248,13 +248,32 @@ Return only the JSON object, no other text.
 """
 
 
+def _get_gemini_key() -> str:
+    """Fetch Gemini API key: Secret Manager → env var fallback."""
+    # Try Secret Manager first (works on Cloud Run / Cloud Shell with ADC)
+    try:
+        from google.cloud import secretmanager
+        project = os.environ.get("GOOGLE_CLOUD_PROJECT", "st-china-ai-force")
+        client  = secretmanager.SecretManagerServiceClient()
+        name    = f"projects/{project}/secrets/GEMINI_API_KEY/versions/latest"
+        resp    = client.access_secret_version(request={"name": name})
+        key     = resp.payload.data.decode("UTF-8").strip()
+        print("  [Secret Manager] GEMINI_API_KEY loaded ✓")
+        return key
+    except Exception as e:
+        print(f"  [Secret Manager] {e} — falling back to env var")
+
+    # Fallback: plain env var
+    return os.environ.get("GEMINI_API_KEY", "")
+
+
 def extract_ic_from_pdf(pdf_path: str, year: int) -> dict | None:
     """Send PDF to Gemini API and extract IC segment figures."""
     import google.generativeai as genai
 
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = _get_gemini_key()
     if not api_key:
-        print("  [Gemini] GEMINI_API_KEY not set — skipping extraction")
+        print("  [Gemini] no API key found — skipping extraction")
         return None
 
     genai.configure(api_key=api_key)
