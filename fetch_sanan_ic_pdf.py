@@ -269,7 +269,7 @@ def extract_ic_from_pdf(pdf_path: str, year: int) -> dict | None:
         return None
 
     client    = genai.Client(api_key=api_key)
-    model_id  = "gemini-2.0-flash-lite"
+    model_id  = "gemini-2.5-flash"
     file_size = os.path.getsize(pdf_path)
     print(f"  [Gemini] uploading {Path(pdf_path).name} ({file_size/1e6:.1f} MB)…")
 
