@@ -260,25 +260,31 @@ def _get_gemini_key() -> str:
 
 def extract_ic_from_pdf(pdf_path: str, year: int) -> dict | None:
     """Send PDF to Gemini API and extract IC segment figures."""
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types
 
     api_key = _get_gemini_key()
     if not api_key:
         print("  [Gemini] no API key found — skipping extraction")
         return None
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-pro")
-
+    client    = genai.Client(api_key=api_key)
+    model_id  = "gemini-2.0-flash-lite"
     file_size = os.path.getsize(pdf_path)
     print(f"  [Gemini] uploading {Path(pdf_path).name} ({file_size/1e6:.1f} MB)…")
 
     try:
-        # Upload via Files API (handles large PDFs gracefully)
-        uploaded = genai.upload_file(pdf_path, mime_type="application/pdf")
-        print(f"  [Gemini] file uploaded, extracting…")
+        with open(pdf_path, "rb") as f:
+            uploaded = client.files.upload(
+                file=f,
+                config=types.UploadFileConfig(mime_type="application/pdf"),
+            )
+        print("  [Gemini] file uploaded, extracting…")
 
-        response = model.generate_content([uploaded, EXTRACT_PROMPT])
+        response = client.models.generate_content(
+            model=model_id,
+            contents=[uploaded, EXTRACT_PROMPT],
+        )
         raw = response.text.strip()
         print(f"  [Gemini] response: {raw}")
 
@@ -296,7 +302,7 @@ def extract_ic_from_pdf(pdf_path: str, year: int) -> dict | None:
 
         # Clean up uploaded file
         try:
-            genai.delete_file(uploaded.name)
+            client.files.delete(name=uploaded.name)
         except Exception:
             pass
 
