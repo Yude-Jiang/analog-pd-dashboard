@@ -38,11 +38,7 @@ import requests
 # Config
 # ---------------------------------------------------------------------------
 COMPANIES = {
-    "Sanan": {
-        "code": "600703", "org_id": "gssh0600703", "cn_name": "三安光电",
-        "segment": "集成电路产品", "segment_alt": ["集成电路芯片"],
-        "gcs_dir": "sanan_pdfs",   # keep existing cache location
-    },
+  
     "Silan": {
         "code": "600460", "org_id": "gssh0600460", "cn_name": "士兰微",
         "segment": "分立器件产品", "segment_alt": ["分立器件"],
@@ -52,6 +48,11 @@ COMPANIES = {
         "code": "688396", "org_id": "gshk0000597", "cn_name": "华润微",
         "segment": "产品与方案", "segment_alt": ["产品与方案业务"],
         "gcs_dir": "crmicro_pdfs",
+    }, 
+  "Sanan": {
+        "code": "600703", "org_id": "gssh0600703", "cn_name": "三安光电",
+        "segment": "集成电路产品", "segment_alt": ["集成电路芯片"],
+        "gcs_dir": "sanan_pdfs",   # keep existing cache location
     },
 }
 
