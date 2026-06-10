@@ -146,6 +146,10 @@ def check_negative_revenue(data: dict):
 def check_margin_consistency(data: dict):
     """R05 — Margin 一致性：margin[yr] 应等于 net_income[yr] / revenue[yr]"""
     for name, comp in data.items():
+        # segment_note 公司: revenue 为分部口径、margin/NI 为公司整体口径，
+        # ni/rev 恒不相等，属设计预期，跳过
+        if comp.get("segment_note"):
+            continue
         rev_d    = comp.get("revenue",    {})
         ni_d     = comp.get("net_income", {})
         margin_d = comp.get("margin",     {})
@@ -347,6 +351,8 @@ def auto_fix(data: dict) -> list[str]:
 
     # Fix R05: 重新计算 margin，确保与 ni/revenue 一致
     for name, comp in data.items():
+        if comp.get("segment_note"):   # 分部营收公司不参与 margin 重算
+            continue
         rev_d = comp.get("revenue", {})
         ni_d  = comp.get("net_income", {})
         for yr in ANALYSIS_YEARS:
