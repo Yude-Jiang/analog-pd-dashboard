@@ -271,8 +271,13 @@ def parse_excel_v4_grounding():
                 audit_record["src_url"] = (yr == 2024 and direct_2024) or base_url
                 
                 # ── Revenue ──────────────────────────────────────────────
+                # Companies with segment_note carry segment-level revenue from
+                # annual report PDFs (fetch_segment_rev_pdf.py) — Excel totals
+                # must not overwrite it. NI still syncs from Excel below.
                 rev_val = row[rev_col]
-                if pd.notna(rev_val) and isinstance(rev_val, (int, float)):
+                if data[name].get("segment_note"):
+                    pass
+                elif pd.notna(rev_val) and isinstance(rev_val, (int, float)):
                     new_rev = float(rev_val)
 
                     # Outlier guard: warn if new value differs >20x from adjacent years

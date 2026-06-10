@@ -21,7 +21,7 @@ COPY fetch_silergy_to_json.py .
 COPY fetch_semi_data.py .
 COPY sync_data.py .
 COPY validate_data.py .
-COPY fetch_sanan_ic_pdf.py .
+COPY fetch_segment_rev_pdf.py .
 
 ENV PORT=8080
 EXPOSE 8080

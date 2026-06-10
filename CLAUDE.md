@@ -46,6 +46,8 @@ Automated: `python smart_sync.py` runs daily at 09:00 weekdays — checks AkShar
 
 **Excluded company**: Nexperia is in the `EXCLUDED` set — `validate_data.py --fix` will remove it via rule R13.
 
+**Segment revenue override**: Sanan (600703), Silan (600460), CR Micro (688396) carry a `segment_note` field in `data.json` — their `revenue` is segment-level (extracted from annual report PDFs via `fetch_segment_rev_pdf.py`), NOT company totals. When `segment_note` is present, `getRevUSD()` in dashboard.html prefers `data.json` revenue over yjbb. Margin/NI remain company-wide (yjbb). Do not let `sync_data.py` or AkShare refreshes overwrite these companies' revenue.
+
 ## Company Universe (22 companies)
 
 **Analog A-share (8)**: SG micro (300661), 3-Peak (688536), Chipown (688508), Fortior (688279), Southchip (688484), Joulwatt (688141), Injoinic (688209), Novosense (688052)
@@ -63,3 +65,4 @@ Automated: `python smart_sync.py` runs daily at 09:00 weekdays — checks AkShar
 | `fetch_yjbb_annual.py` | Fetches AkShare yjbb annual data → `yjbb_annual.json`. | `--years 2025` |
 | `validate_data.py` | 13-rule checker. `--fix` auto-repairs R05 (margin recalc) and R13 (remove excluded). | `--fix`, `--json` |
 | `smart_sync.py` | Disclosure-gated sync; skips fetch if calendar shows no filings. | `--force`, `--dry-run`, `--window N` |
+| `fetch_segment_rev_pdf.py` | CNINFO annual report PDF → Gemini → segment revenue → `data.json`. Sanan=集成电路产品, Silan=分立器件产品, CR Micro=产品与方案. Needs `CNINFO_COOKIE` + Gemini key (Secret Manager `VITE_GEMINI_API_KEY` or `GEMINI_API_KEY` env). PDFs cached in GCS. | `--dry-run`, `--companies`, `--years`, `--redownload` |

@@ -339,6 +339,7 @@
                     <div class="chart-resize-handle" id="handleP" title="拖拽调整宽度">◀▶</div>
                 </div>
                 <div id="pdStats" style="font-size:11px;color:var(--txt2);margin-top:8px;font-weight:700"></div>
+                <p style="font-size:10px;color:var(--txt3);margin-top:6px" data-i18n="segment_rev_note">* 营收口径（年报PDF提取）: 三安光电=集成电路产品 · 士兰微=分立器件产品 · 华润微=产品与方案；净利润率仍为公司整体归母口径</p>
             </div>
             
             <div class="panel">
@@ -473,6 +474,7 @@
                 pd_profile_ttl:     'P&D — 公司档案 & 数据来源',
                 // silergy footnote
                 silergy_note: '* Silergy: 合并报表营收（台湾上市 6415）。来源: WSJ / 公司年报',
+                segment_rev_note: '* 营收口径（年报PDF提取）: 三安光电=集成电路产品 · 士兰微=分立器件产品 · 华润微=产品与方案；净利润率仍为公司整体归母口径',
                 // table headers
                 th_company: '公司', th_rd_staff: 'R&D员工', th_total_emp: '员工总数',
                 th_rd_weight: 'R&D占比', th_foundry: '晶圆厂/制造', th_yoy_cagr: 'Revenue YoY / CAGR',
@@ -523,6 +525,7 @@
                 pd_profile_ttl:     'P&D — Company Profile & Data Source',
                 // silergy footnote
                 silergy_note: '* Silergy: Consolidated group revenue (Taiwan listed 6415). Source: WSJ / Company Reports',
+                segment_rev_note: '* Revenue basis (extracted from annual report PDFs): Sanan = IC Products segment · Silan = Discrete Devices segment · CR Micro = Products & Solutions segment. Net margin remains company-wide attributable basis.',
                 // table headers
                 th_company: 'Company', th_rd_staff: 'R&D Staff', th_total_emp: 'Total Employees',
                 th_rd_weight: 'R&D Weight', th_foundry: 'Foundry / Fab', th_yoy_cagr: 'Revenue YoY / CAGR',
@@ -763,7 +766,14 @@
         }
 
         // ── Unified data accessors (yjbb for A-share; data.json for Silergy/MPWR/NVTS) ──
+        // Companies with segment_note use data.json revenue (segment data from annual
+        // report PDFs: Sanan=集成电路产品, Silan=分立器件产品, CR Micro=产品与方案).
+        // Margin always stays company-wide (yjbb).
         function getRevUSD(c, yr) {
+            if (c.segment_note) {
+                const sv = c.revenue[String(yr)];
+                if (sv && sv > 0) return sv / fxRate(c.currency);
+            }
             const yd = yjbbData[c.code];
             if (yd) {
                 const d = yd.years[String(yr)];
