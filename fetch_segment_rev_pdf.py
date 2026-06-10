@@ -71,7 +71,7 @@ _HERE = Path(__file__).parent
 # ---------------------------------------------------------------------------
 
 def _build_session() -> requests.Session:
-    cookie = os.environ.get("CNINFO_COOKIE", "")
+    cookie = os.environ.get("CNINFO_COOKIE", "").strip()
     s = requests.Session()
     s.headers.update({
         "User-Agent": (
