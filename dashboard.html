@@ -339,7 +339,7 @@
                     <div class="chart-resize-handle" id="handleP" title="拖拽调整宽度">◀▶</div>
                 </div>
                 <div id="pdStats" style="font-size:11px;color:var(--txt2);margin-top:8px;font-weight:700"></div>
-                <p style="font-size:10px;color:var(--txt3);margin-top:6px" data-i18n="segment_rev_note">* 营收口径（年报PDF提取）: 三安光电=集成电路产品 · 士兰微=分立器件产品 · 华润微=产品与方案；净利润率仍为公司整体归母口径</p>
+                <p style="font-size:10px;color:var(--txt3);margin-top:6px" data-i18n="segment_rev_note">* 营收口径（年报PDF提取）: 三安光电=集成电路产品（自2021起） · 士兰微=分立器件产品 · 华润微=产品与方案；净利润率仍为公司整体归母口径；三安光电2019/2020口径不一致，不作展示</p>
             </div>
             
             <div class="panel">
@@ -474,7 +474,7 @@
                 pd_profile_ttl:     'P&D — 公司档案 & 数据来源',
                 // silergy footnote
                 silergy_note: '* Silergy: 合并报表营收（台湾上市 6415）。来源: WSJ / 公司年报',
-                segment_rev_note: '* 营收口径（年报PDF提取）: 三安光电=集成电路产品 · 士兰微=分立器件产品 · 华润微=产品与方案；净利润率仍为公司整体归母口径',
+                segment_rev_note: '* 营收口径（年报PDF提取）: 三安光电=集成电路产品（自2021起） · 士兰微=分立器件产品 · 华润微=产品与方案；净利润率仍为公司整体归母口径；三安光电2019/2020口径不一致，不作展示',
                 // table headers
                 th_company: '公司', th_rd_staff: 'R&D员工', th_total_emp: '员工总数',
                 th_rd_weight: 'R&D占比', th_foundry: '晶圆厂/制造', th_yoy_cagr: 'Revenue YoY / CAGR',
@@ -525,7 +525,7 @@
                 pd_profile_ttl:     'P&D — Company Profile & Data Source',
                 // silergy footnote
                 silergy_note: '* Silergy: Consolidated group revenue (Taiwan listed 6415). Source: WSJ / Company Reports',
-                segment_rev_note: '* Revenue basis (extracted from annual report PDFs): Sanan = IC Products segment · Silan = Discrete Devices segment · CR Micro = Products & Solutions segment. Net margin remains company-wide attributable basis.',
+                segment_rev_note: '* Revenue basis (extracted from annual report PDFs): Sanan = IC Products segment (from 2021) · Silan = Discrete Devices segment · CR Micro = Products & Solutions segment. Net margin remains company-wide attributable basis. Sanan 2019/2020 excluded due to inconsistent segment basis.',
                 // table headers
                 th_company: 'Company', th_rd_staff: 'R&D Staff', th_total_emp: 'Total Employees',
                 th_rd_weight: 'R&D Weight', th_foundry: 'Foundry / Fab', th_yoy_cagr: 'Revenue YoY / CAGR',
@@ -1049,10 +1049,11 @@
                     `${trendStrFinal} | ${T.stats_src(n2025, companies.length)}</span>`;
 
                 // 2025 bar: single annual bar (same as other years).
-                // Sanan/Silan/CR Micro use data.json segment revenue via getRevUSD (segment_note).
+                // segment_note companies (Sanan/Silan/CR Micro): IC/discrete segment data starts
+                // 2021; suppress bars for earlier years to avoid mixed-basis display.
                 const barDatasets = YEARS.map(y => ({
                     type: 'bar', label: String(y),
-                    data: companies.map(c => getRevUSD(c, y)),
+                    data: companies.map(c => (c.segment_note && y < 2021) ? null : getRevUSD(c, y)),
                     backgroundColor: BC[y], yAxisID: 'y'
                 }));
 
