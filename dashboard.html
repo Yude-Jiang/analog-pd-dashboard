@@ -1048,70 +1048,26 @@
                     `<span style="color:var(--txt3)">` +
                     `${trendStrFinal} | ${T.stats_src(n2025, companies.length)}</span>`;
 
-                // 2025 bar: 4 stacked quarterly segments (Q1=lightest … Q4=darkest)
-                // Estimated quarters rendered with diagonal stripe; companies without
-                // quarterly data have their FY annual placed in the Q4 slot (isFY=true).
-                const Q25C = [
-                    'rgba(255,210,0,0.40)',  // Q1 bottom — lightest
-                    'rgba(255,210,0,0.60)',  // Q2
-                    'rgba(255,210,0,0.78)',  // Q3
-                    'rgba(255,210,0,0.97)',  // Q4 actual — darkest
-                ];
-                const Q25_STRIPE = _stripePattern('rgba(255,210,0,0.9)', 'rgba(255,210,0,0.12)');
-                const q25segs = companies.map(c => _q25Segments(c));
+                // 2025 bar: single annual bar (same as other years).
+                // Sanan/Silan/CR Micro use data.json segment revenue via getRevUSD (segment_note).
+                const barDatasets = YEARS.map(y => ({
+                    type: 'bar', label: String(y),
+                    data: companies.map(c => getRevUSD(c, y)),
+                    backgroundColor: BC[y], yAxisID: 'y'
+                }));
 
-                const barDatasets = [
-                    ...YEARS.filter(y => y !== 2025).map(y => ({
-                        type: 'bar', label: String(y),
-                        data: companies.map(c => getRevUSD(c, y)),
-                        backgroundColor: BC[y], yAxisID: 'y'
-                    })),
-                    { type: 'bar', label: '25 Q1', stack: 'q25',
-                      data: q25segs.map(s => s.q1),
-                      backgroundColor: Q25C[0], yAxisID: 'y' },
-                    { type: 'bar', label: '25 Q2', stack: 'q25',
-                      data: q25segs.map(s => s.q2),
-                      backgroundColor: q25segs.map(s => s.q2e ? Q25_STRIPE : Q25C[1]),
-                      yAxisID: 'y' },
-                    { type: 'bar', label: '25 Q3', stack: 'q25',
-                      data: q25segs.map(s => s.q3),
-                      backgroundColor: q25segs.map(s => s.q3e ? Q25_STRIPE : Q25C[2]),
-                      yAxisID: 'y' },
-                    { type: 'bar', label: '25 Q4', stack: 'q25',
-                      data: q25segs.map(s => s.q4),
-                      backgroundColor: q25segs.map(s => s.q4e ? Q25_STRIPE : Q25C[3]),
-                      yAxisID: 'y' },
-                ];
+                const marginDatasets = MARGIN_YEARS.map(y => ({
+                    type: 'line', label: `Net Margin % (${y})`,
+                    data: companies.map(c => getMarginPct(c, y)),
+                    borderColor: MARGIN_COLORS[y],
+                    borderWidth: y === 2025 ? 3 : 1.5,
+                    borderDash: y === 2025 ? [] : [5, 5],
+                    fill: false, yAxisID: 'y1',
+                    tension: 0.3, pointRadius: y === 2025 ? 4 : 2, spanGaps: true
+                }));
 
-                const marginDatasets = MARGIN_YEARS.map(y => {
-                    if (y !== 2025) return {
-                        type: 'line', label: `Net Margin % (${y})`,
-                        data: companies.map(c => getMarginPct(c, y)),
-                        borderColor: MARGIN_COLORS[y], borderWidth: 1.5,
-                        borderDash: [5, 5], fill: false, yAxisID: 'y1',
-                        tension: 0.3, pointRadius: 2, spanGaps: true
-                    };
-                    // 2025: actual points filled, estimated points hollow
-                    const data25  = companies.map(c => _trendMarginEst(c, 2025)?.v ?? null);
-                    const isEst25 = companies.map(c => getMarginPct(c, 2025) === null && _trendMarginEst(c, 2025) !== null);
-                    return {
-                        type: 'line', label: 'Net Margin % (2025)',
-                        data: data25,
-                        borderColor: MARGIN_COLORS[2025], borderWidth: 3,
-                        borderDash: [], fill: false, yAxisID: 'y1',
-                        tension: 0.3, spanGaps: true,
-                        pointRadius:          isEst25.map(e => e ? 3 : 4),
-                        pointBackgroundColor: isEst25.map(e => e ? 'transparent' : MARGIN_COLORS[2025]),
-                        pointBorderColor:     isEst25.map(_  => MARGIN_COLORS[2025]),
-                        pointBorderWidth:     isEst25.map(e => e ? 2 : 1)
-                    };
-                });
-
-                // Y1 range — delegated to getY1Range() which respects user selection
-                // Include estimated 2025 margin values so range doesn't clip them
                 const allMarginVals = MARGIN_YEARS.flatMap(y =>
-                    companies.map(c => y === 2025 ? _trendMarginEst(c, 2025)?.v : getMarginPct(c, y))
-                              .filter(v => v !== null && v !== undefined)
+                    companies.map(c => getMarginPct(c, y)).filter(v => v !== null && v !== undefined)
                 );
                 const { min: y1Min, max: y1Max } = getY1Range(allMarginVals);
 
@@ -1140,19 +1096,10 @@
                                         const lbl = ctx.dataset.label || '';
                                         const val = ctx.parsed.y;
                                         if (val === null || val === undefined || isNaN(val)) return null;
-                                        const c = companies[ctx.dataIndex];
-                                        const i = ctx.dataIndex;
-                                        const seg = q25segs[i];
                                         const fmtVal = lbl.startsWith('Net Margin %')
                                             ? val.toFixed(1) + '%'
                                             : val.toFixed(0) + ' M USD';
-                                        // For FY-only companies, Q4 slot holds the full-year value
-                                        const dispLbl = (lbl === '25 Q4' && seg?.isFY) ? '2025 FY' : lbl;
-                                        const isEst = (lbl === '25 Q2'    && seg?.q2e)
-                                                   || (lbl === '25 Q3'    && seg?.q3e)
-                                                   || (lbl === '25 Q4'    && seg?.q4e)
-                                                   || (lbl === 'Net Margin % (2025)' && getMarginPct(c, 2025) === null);
-                                        return `${dispLbl}: ${fmtVal}${isEst ? ' (est.)' : ''}`;
+                                        return `${lbl}: ${fmtVal}`;
                                     }
                                 }
                             }
@@ -1161,55 +1108,15 @@
                 };
             };
 
-            // ── Custom inline plugin: draw 2025 Net Margin % value labels on canvas ──
-            const ni2025LabelPlugin = {
-                id: 'ni2025Labels',
-                afterDatasetsDraw(chart) {
-                    const ds  = chart.data.datasets;
-                    const idx = ds.findIndex(d => d.label === 'Net Margin % (2025)');
-                    if (idx < 0) return;
-                    const meta  = chart.getDatasetMeta(idx);
-                    const data  = ds[idx].data;
-                    const color = ds[idx].borderColor || '#d94040';
-                    const ctx   = chart.ctx;
-                    ctx.save();
-                    ctx.font         = 'bold 11px Arial,sans-serif';
-                    ctx.textAlign    = 'center';
-                    ctx.textBaseline = 'middle';
-                    meta.data.forEach((pt, i) => {
-                        const val = data[i];
-                        if (val === null || val === undefined || isNaN(val)) return;
-                        const text  = val.toFixed(1) + '%';
-                        const tw    = ctx.measureText(text).width;
-                        const yOff  = val >= 0 ? -16 : 16;
-                        // background pill
-                        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-                        const bx = pt.x - tw/2 - 4, by = pt.y + yOff - 8;
-                        ctx.beginPath();
-                        if (ctx.roundRect) ctx.roundRect(bx, by, tw+8, 16, 3);
-                        else ctx.rect(bx, by, tw+8, 16);
-                        ctx.fill();
-                        // text
-                        ctx.fillStyle = color;
-                        ctx.fillText(text, pt.x, pt.y + yOff);
-                    });
-                    ctx.restore();
-                }
-            };
-
             if (chartA) chartA.destroy();
-            chartA = new Chart(document.getElementById('cA').getContext('2d'), {
-                ...getChartConfig('Analog', 'cA', 'analogStats'),
-                plugins: [ni2025LabelPlugin]
-            });
+            chartA = new Chart(document.getElementById('cA').getContext('2d'),
+                getChartConfig('Analog', 'cA', 'analogStats'));
             attachWheelZoom(document.getElementById('cA'), () => chartA);
             attachResizeHandle('handleA', document.getElementById('wrapA'), () => chartA);
 
             if (chartP) chartP.destroy();
-            chartP = new Chart(document.getElementById('cP').getContext('2d'), {
-                ...getChartConfig('P&D', 'cP', 'pdStats'),
-                plugins: [ni2025LabelPlugin]
-            });
+            chartP = new Chart(document.getElementById('cP').getContext('2d'),
+                getChartConfig('P&D', 'cP', 'pdStats'));
             attachWheelZoom(document.getElementById('cP'), () => chartP);
             attachResizeHandle('handleP', document.getElementById('wrapP'), () => chartP);
 
