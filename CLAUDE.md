@@ -56,6 +56,17 @@ Automated: `python smart_sync.py` runs daily at 09:00 weekdays — checks AkShar
 
 **P&D A-share (11)**: Silan (600460), CR Micro (688396), Yangjie (300373), Sino-Micro (600360), Star Power (603290), NCE (605111), JieJie Micro (300623), Oriental (688261), Macmicst (688711), Sanan (600703), UNT (688469)
 
+## Execution Environment Preferences
+
+**市场情报分析 & AIGC 数据处理任务优先使用 Colab**，而非 Cloud Shell 或本地终端：
+
+- 需要调用外部 API（Gemini、AkShare、CNINFO PDF 下载）的批量任务 → Colab
+- 需要 GCP 认证但不依赖 Cloud Run 部署的脚本 → Colab（`google.colab.auth.authenticate_user()`）
+- 数据清洗、PDF RAG 提取、LLM 辅助分析 → Colab notebook（结果可直接 commit push 回 GitHub）
+- Cloud Shell 仅用于：`git` 操作、`gcloud run deploy` 部署、快速命令行验证
+
+Colab 已与 GitHub 集成，打开 `.ipynb` 文件即可直接运行，结果 push 回对应分支。现有 notebook：`extract_segment_revenue.ipynb`（分部营收PDF提取）。
+
 ## Script Reference
 
 | Script | Purpose | Key flags |
