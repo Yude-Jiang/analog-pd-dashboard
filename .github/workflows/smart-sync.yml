@@ -46,5 +46,6 @@ jobs:
             echo "No changes — no new disclosures today."
           else
             git commit -m "data: smart-sync $(date -u +%Y-%m-%d)"
+            git pull --rebase origin main
             git push
           fi

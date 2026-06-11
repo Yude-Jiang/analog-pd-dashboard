@@ -61,5 +61,6 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "data: refresh YJBB annual/quarterly (${{ steps.years.outputs.years }})"
+            git pull --rebase origin main
             git push
           fi
