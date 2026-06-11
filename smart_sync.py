@@ -312,6 +312,13 @@ def main():
         print()
 
         if not args.dry_run:
+            # Refresh yjbb annual data for current year
+            current_year = str(today.year)
+            log.info("Running fetch_yjbb_annual.py --years %s …", current_year)
+            rc = run_script("fetch_yjbb_annual.py", ["--years", current_year])
+            if rc != 0:
+                log.warning("fetch_yjbb_annual.py exited with code %d (non-fatal)", rc)
+
             # Still run sync_data.py to pick up any already-updated Excel rows
             log.info("Running sync_data.py to integrate any Excel updates …")
             rc = run_script("sync_data.py")
@@ -337,6 +344,9 @@ def main():
             updated = fetch_quarterly_for(q_companies, report_type)
 
             if updated:
+                log.info("Running fetch_yjbb_quarterly.py …")
+                run_script("fetch_yjbb_quarterly.py")   # non-fatal if fails
+
                 log.info("Running sync_data.py …")
                 rc = run_script("sync_data.py")
                 if rc != 0:
