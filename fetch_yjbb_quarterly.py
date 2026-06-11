@@ -85,7 +85,8 @@ REV_COL  = "营业总收入-营业总收入"
 NI_COL   = "净利润-净利润"
 DATE_COL = "最新公告日期"
 
-DEFAULT_YEARS = [2024, 2025]
+_CY = __import__("datetime").date.today().year
+DEFAULT_YEARS = [_CY - 1, _CY]
 
 
 # ── Fetch one period ───────────────────────────────────────────────────────────
