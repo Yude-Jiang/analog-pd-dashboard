@@ -1,7 +1,7 @@
 {
   "meta": {
     "source": "AkShare stock_yjbb_em",
-    "fetched_at": "2026-04-23 02:42:52",
+    "fetched_at": "2026-05-15 05:05:00",
     "years": [
       2019,
       2020,
@@ -297,11 +297,11 @@
           "disclosed": true
         },
         "2025": {
-          "rev_mrm": null,
-          "ni_mrm": null,
-          "margin": null,
-          "announced": null,
-          "disclosed": false
+          "rev_mrm": 3260.5393,
+          "ni_mrm": 238.6002,
+          "margin": 0.073178,
+          "announced": "2026-04-30",
+          "disclosed": true
         }
       }
     },
@@ -413,11 +413,11 @@
           "disclosed": true
         },
         "2025": {
-          "rev_mrm": null,
-          "ni_mrm": null,
-          "margin": null,
-          "announced": null,
-          "disclosed": false
+          "rev_mrm": 1609.2287,
+          "ni_mrm": 177.9744,
+          "margin": 0.110596,
+          "announced": "2026-04-28",
+          "disclosed": true
         }
       }
     },
@@ -529,11 +529,11 @@
           "disclosed": true
         },
         "2025": {
-          "rev_mrm": null,
-          "ni_mrm": null,
-          "margin": null,
-          "announced": null,
-          "disclosed": false
+          "rev_mrm": 13051.5738,
+          "ni_mrm": 398.5508,
+          "margin": 0.030537,
+          "announced": "2026-04-25",
+          "disclosed": true
         }
       }
     },
@@ -587,11 +587,11 @@
           "disclosed": true
         },
         "2025": {
-          "rev_mrm": null,
-          "ni_mrm": null,
-          "margin": null,
-          "announced": null,
-          "disclosed": false
+          "rev_mrm": 11053.792,
+          "ni_mrm": 660.5432,
+          "margin": 0.059757,
+          "announced": "2026-04-25",
+          "disclosed": true
         }
       }
     },
@@ -761,11 +761,11 @@
           "disclosed": true
         },
         "2025": {
-          "rev_mrm": null,
-          "ni_mrm": null,
-          "margin": null,
-          "announced": null,
-          "disclosed": false
+          "rev_mrm": 4012.3953,
+          "ni_mrm": 405.2336,
+          "margin": 0.100995,
+          "announced": "2026-04-30",
+          "disclosed": true
         }
       }
     },
@@ -935,11 +935,11 @@
           "disclosed": true
         },
         "2025": {
-          "rev_mrm": null,
-          "ni_mrm": null,
-          "margin": null,
-          "announced": null,
-          "disclosed": false
+          "rev_mrm": 1252.6876,
+          "ni_mrm": 46.2104,
+          "margin": 0.036889,
+          "announced": "2026-04-28",
+          "disclosed": true
         }
       }
     },
@@ -993,11 +993,11 @@
           "disclosed": true
         },
         "2025": {
-          "rev_mrm": null,
-          "ni_mrm": null,
-          "margin": null,
-          "announced": null,
-          "disclosed": false
+          "rev_mrm": 1347.7066,
+          "ni_mrm": 17.1149,
+          "margin": 0.012699,
+          "announced": "2026-04-30",
+          "disclosed": true
         }
       }
     },
@@ -1051,11 +1051,11 @@
           "disclosed": true
         },
         "2025": {
-          "rev_mrm": null,
-          "ni_mrm": null,
-          "margin": null,
-          "announced": null,
-          "disclosed": false
+          "rev_mrm": 17949.1954,
+          "ni_mrm": -353.2142,
+          "margin": -0.019679,
+          "announced": "2026-04-25",
+          "disclosed": true
         }
       }
     },
