@@ -6,7 +6,11 @@ on:
       years:
         description: "Years to refresh (space-separated, e.g. 2025 or 2024 2025)"
         required: false
-        default: "2025"
+        default: ""   # empty = auto-detect current year
+
+  schedule:
+    # 年报季（3-5月）+ 季报季（8月Q2、10-11月Q3）每个工作日 10:00 北京时间
+    - cron: "0 2 * 3,4,5,8,10,11 1-5"
 
 permissions:
   contents: write
@@ -28,8 +32,18 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements_cloudrun.txt
 
+      - name: Resolve target years
+        id: years
+        run: |
+          if [ -n "${{ github.event.inputs.years }}" ]; then
+            echo "years=${{ github.event.inputs.years }}" >> $GITHUB_OUTPUT
+          else
+            # Scheduled run: use current year (e.g. 2026)
+            echo "years=$(date +%Y)" >> $GITHUB_OUTPUT
+          fi
+
       - name: Fetch annual YJBB data
-        run: python fetch_yjbb_annual.py --years ${{ github.event.inputs.years }}
+        run: python fetch_yjbb_annual.py --years ${{ steps.years.outputs.years }}
 
       - name: Fetch quarterly YJBB data
         run: python fetch_yjbb_quarterly.py
@@ -46,6 +60,10 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "data: refresh YJBB annual/quarterly (years=${{ github.event.inputs.years }})"
-            git push
+            git commit -m "data: refresh YJBB annual/quarterly (${{ steps.years.outputs.years }})"
+            for i in 1 2 3 4; do
+              git pull --rebase origin main && git push && break
+              echo "Push attempt $i failed, retrying in ${i}0s..."
+              sleep $((i * 10))
+            done
           fi
