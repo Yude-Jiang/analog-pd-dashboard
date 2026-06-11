@@ -46,6 +46,9 @@ jobs:
             echo "No changes — no new disclosures today."
           else
             git commit -m "data: smart-sync $(date -u +%Y-%m-%d)"
-            git pull --rebase origin main
-            git push
+            for i in 1 2 3 4; do
+              git pull --rebase origin main && git push && break
+              echo "Push attempt $i failed, retrying in ${i}0s..."
+              sleep $((i * 10))
+            done
           fi

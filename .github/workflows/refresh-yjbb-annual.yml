@@ -61,6 +61,9 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "data: refresh YJBB annual/quarterly (${{ steps.years.outputs.years }})"
-            git pull --rebase origin main
-            git push
+            for i in 1 2 3 4; do
+              git pull --rebase origin main && git push && break
+              echo "Push attempt $i failed, retrying in ${i}0s..."
+              sleep $((i * 10))
+            done
           fi
