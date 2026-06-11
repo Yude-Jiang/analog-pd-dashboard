@@ -6,6 +6,51 @@ A competitive intelligence platform tracking **22 semiconductor companies** (11 
 
 ---
 
+## 🆕 v5.0 更新说明 (2026-06-11)
+
+### 分部营收 PDF 提取（Sanan / Silan / CR Micro）
+
+三家 P&D 公司的**营收改为年报分部口径**，通过 CNINFO 下载年报 PDF → Gemini 提取，净利润率保持公司整体归母口径不变：
+
+| 公司 | 股票代码 | 营收口径 |
+|---|---|---|
+| 三安光电 | 600703 | 集成电路产品（非公司整体） |
+| 士兰微   | 600460 | 分立器件产品（非公司整体） |
+| 华润微   | 688396 | 产品与方案（非公司整体）  |
+
+- `data.json` 中有 `segment_note` 字段的公司，`getRevUSD()` 优先读 `data.json` 分部营收，不用 yjbb 整体营收
+- `sync_data.py` 对这三家公司跳过 Excel 营收同步（NI 照常更新）
+- `validate_data.py` R05 对这三家豁免一致性检查（分部营收 ≠ 公司整体 NI/margin，属设计预期）
+- P&D 图表下方新增备注说明数据口径
+
+**提取流程**（`fetch_segment_rev_pdf.py`）：
+1. CNINFO 查询年报公告（Cookie 认证）
+2. 下载 PDF → 上传 GCS 缓存（`sanan_pdfs/`、`silan_pdfs/`、`crmicro_pdfs/`）
+3. Gemini 2.5 Flash 提取分部营收数字
+4. `--dry-run` 预览，确认后写入 `data.json`
+
+Colab notebook `extract_segment_revenue.ipynb` 提供完整运行环境（Cell 4 仅下载、Cell 5 dry-run、Cell 6 写入 push）。
+
+### 品牌色系更新
+
+| 年份 | 颜色 | 说明 |
+|---|---|---|
+| 2019–2023 | 灰蓝渐深系 | 历史数据，整体偏淡 |
+| 2024 | `#3cb4e6` 天蓝 | 已披露 |
+| 2025 | `#ffd200` 黄 | 当年重点 |
+| 2026 | `#E6007E` 品红 | 预测/2026 Tracker |
+
+趋势图、季度图、2026 Tracker 全面统一为以上色系；2025 季度分段柱由浅到深同黄色系。
+
+### 图表标签 & 公司名更新
+- "NI%" → "Net Margin %" 全面替换（14 处）
+- MPWR 显示名 → **MPS**；NVTS 显示名 → **Navitas**（code 字段不变）
+
+### /refresh 端点异步化
+Cloud Run `/refresh` 改为后台线程执行，立即返回 **HTTP 202**，彻底解决 6 脚本串行导致的 504 超时。GitHub Actions 工作流同步接受 200/202 为成功。
+
+---
+
 ## 🆕 v4.0 更新说明 (2026-04-23)
 
 ### 新增：趋势图 2025 季度分段显示
@@ -91,12 +136,14 @@ A competitive intelligence platform tracking **22 semiconductor companies** (11 
 | `app.py` | Cloud Run Flask 服务：静态文件 + GCS JSON 路由 + /refresh 端点 |
 | `Dockerfile` | 容器构建配置 |
 | `requirements_cloudrun.txt` | Cloud Run Python 依赖 |
-| `sync_data.py` | Excel → `data.json` 同步 |
+| `sync_data.py` | Excel → `data.json` 同步（自动跳过 segment_note 公司的营收列） |
 | `fetch_yjbb_annual.py` | AkShare yjbb 年报 → `yjbb_annual.json` |
 | `fetch_yjbb_quarterly.py` | AkShare yjbb 季报 → `yjbb_quarterly.json` |
 | `fetch_edgar_to_json.py` | SEC EDGAR 季度数据 → `data.json`（MPWR / NVTS） |
 | `fetch_semi_data.py` | 季报数据底层抓取（A 股 AkShare / 台湾 MOPS / 美股 EDGAR） |
 | `fetch_profiles.py` | 雪球 XQ 档案 → `profiles_xq.json` |
+| `fetch_segment_rev_pdf.py` | CNINFO 年报 PDF → Gemini → 分部营收 → `data.json`（Sanan/Silan/CR Micro） |
+| `extract_segment_revenue.ipynb` | Colab notebook：下载 PDF / 提取 / 写入 / push 一体化 |
 | `validate_data.py` | 13 规则数据质量验证 |
 | `smart_sync.py` | 披露日历门控自动同步（每日 09:00 工作日） |
 | `.github/workflows/refresh-yjbb-annual.yml` | GitHub Actions：手动刷新 A 股年报 + 季报 |
@@ -198,3 +245,5 @@ python -m http.server 8000
 | **deploy 前必须 git pull** | Cloud Shell 部署前务必先 `git pull origin main`，否则部署旧代码 |
 | **GCS 三文件** | 每次更新数据后需同步推送 `data.json` + `yjbb_annual.json` + `profiles_xq.json` 至 GCS |
 | **Export 文件名** | `AnalogPD_Revenue_YYYY-MM-DD.xlsx`，每年含 M RMB + M USD 双列，可直接对照年报核实 |
+| **分部营收勿覆写** | Sanan / Silan / CR Micro 的 `revenue` 由 `fetch_segment_rev_pdf.py` 维护，`sync_data.py` 和 AkShare 刷新均不覆写 |
+| **margin 口径混用** | 这三家公司 `margin` = 公司整体归母净利率（yjbb），`revenue` = 分部口径，两者不可比，R05 已豁免 |
