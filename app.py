@@ -23,8 +23,10 @@ GCS_BUCKET     = os.environ.get("GCS_BUCKET", "st-china-ai-force-dashboard")
 REFRESH_SECRET = os.environ.get("REFRESH_SECRET", "")
 PORT           = int(os.environ.get("PORT", 8080))
 
-# All JSON blobs served from GCS (fallback to bundled file if GCS missing)
-GCS_BLOBS = ["data.json", "yjbb_annual.json", "yjbb_quarterly.json", "profiles_xq.json",
+# Auto-fetched blobs served from GCS (fallback to bundled file if GCS missing).
+# data.json is intentionally excluded — it is manually curated and always served
+# from the bundled container file so segment_note overrides are never lost.
+GCS_BLOBS = ["yjbb_annual.json", "yjbb_quarterly.json", "profiles_xq.json",
              "refresh_meta.json"]
 
 # Determine current and previous year for data fetch scope
@@ -76,7 +78,9 @@ def index():
 
 @app.route("/data.json")
 def serve_data():
-    return serve_blob("data.json")
+    # Always serve bundled file — curated data (segment_note companies etc.)
+    # must not be overwritten by stale GCS copies.
+    return send_from_directory(".", "data.json")
 
 @app.route("/yjbb_annual.json")
 def serve_yjbb():

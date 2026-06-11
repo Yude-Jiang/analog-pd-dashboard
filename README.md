@@ -6,6 +6,23 @@ A competitive intelligence platform tracking **22 semiconductor companies** (11 
 
 ---
 
+## 🆕 v5.1 更新说明 (2026-06-11)
+
+### 2026 数据补全 & 自动化修复
+
+- **2026Q1 季报全覆盖**：`fetch_yjbb_quarterly.py` 默认年份由硬编码 `[2024, 2025]` 改为动态 `[当前年-1, 当前年]`，19 家 A 股 2026Q1 数据已全部入库
+- **CI 推送竞争修复**：`refresh-yjbb-annual.yml` 和 `smart-sync.yml` 的 commit 步骤改为最多 4 次重试（每次重新 pull rebase），解决两个 workflow 并发运行时的 `fetch first` push 拒绝问题
+- **自动化调度完整覆盖**：Refresh YJBB Annual Data 已配置报告季定时任务（3–5月、8月、10–11月工作日 10:00 北京），2026Q2/Q3/年报均可自动拉取，无需手动触发
+
+| 报告期 | 截止日期 | 触发 workflow |
+|---|---|---|
+| 2026Q1 季报 | 4月30日 | 3–5月 schedule ✅ |
+| 2026 半年报 | 8月31日 | 8月 schedule ✅ |
+| 2026Q3 季报 | 10月31日 | 10–11月 schedule ✅ |
+| 2026 年报 | 2027年4月 | 2027年3–5月 schedule ✅ |
+
+---
+
 ## 🆕 v5.0 更新说明 (2026-06-11)
 
 ### 分部营收 PDF 提取（Sanan / Silan / CR Micro）
@@ -71,7 +88,7 @@ Cloud Run `/refresh` 改为后台线程执行，立即返回 **HTTP 202**，彻�
 
 | 工作流 | 触发方式 | 作用 |
 |---|---|---|
-| **Refresh YJBB Annual Data** | 手动 dispatch，输入 `years`（默认 2025） | 刷新 A 股 yjbb 年报 + 季报，自动 commit |
+| **Refresh YJBB Annual Data** | 手动 dispatch（输入 `years`）；报告季月份自动定时（3–5月、8月、10–11月工作日 10:00 北京） | 刷新 A 股 yjbb 年报 + 季报，自动 commit |
 | **Refresh EDGAR Quarterly** | 手动 dispatch，输入 `tickers`（默认 MPWR NVTS） | 从 SEC EDGAR 拉取 MPWR/NVTS 季度数据，自动 commit |
 | **Smart Sync** | 每工作日 09:00 北京时间自动触发 + 手动 dispatch | 检查披露日历，有新年报/季报才执行同步 |
 
@@ -131,7 +148,7 @@ Cloud Run `/refresh` 改为后台线程执行，立即返回 **HTTP 202**，彻�
 | `dashboard.html` | 主界面：筛选栏、趋势图（含2025季度分段）、Profile 表格、弹窗、排序、导出 |
 | `data.json` | 中央数据库：22 家公司历史营收、净利润、profile、audit |
 | `yjbb_annual.json` | AkShare yjbb 年报：19 家 A 股 2019–2025 营收与净利润率 |
-| `yjbb_quarterly.json` | AkShare yjbb 季报：19 家 A 股 2024–2025 各季度营收与净利润 |
+| `yjbb_quarterly.json` | AkShare yjbb 季报：19 家 A 股 2024–2026 各季度营收与净利润 |
 | `profiles_xq.json` | 雪球 XQ 档案：19 家 A 股注册全称、实控人、发行价等 |
 | `app.py` | Cloud Run Flask 服务：静态文件 + GCS JSON 路由 + /refresh 端点 |
 | `Dockerfile` | 容器构建配置 |
