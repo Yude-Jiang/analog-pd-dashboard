@@ -38,11 +38,7 @@ import requests
 # Config
 # ---------------------------------------------------------------------------
 COMPANIES = {
-    "Sanan": {
-        "code": "600703", "org_id": "gssh0600703", "cn_name": "三安光电",
-        "segment": "集成电路产品", "segment_alt": ["集成电路芯片"],
-        "gcs_dir": "sanan_pdfs",   # keep existing cache location
-    },
+  
     "Silan": {
         "code": "600460", "org_id": "gssh0600460", "cn_name": "士兰微",
         "segment": "分立器件产品", "segment_alt": ["分立器件"],
@@ -52,6 +48,11 @@ COMPANIES = {
         "code": "688396", "org_id": "gshk0000597", "cn_name": "华润微",
         "segment": "产品与方案", "segment_alt": ["产品与方案业务"],
         "gcs_dir": "crmicro_pdfs",
+    }, 
+  "Sanan": {
+        "code": "600703", "org_id": "gssh0600703", "cn_name": "三安光电",
+        "segment": "集成电路产品", "segment_alt": ["集成电路芯片"],
+        "gcs_dir": "sanan_pdfs",   # keep existing cache location
     },
 }
 
@@ -71,7 +72,7 @@ _HERE = Path(__file__).parent
 # ---------------------------------------------------------------------------
 
 def _build_session() -> requests.Session:
-    cookie = os.environ.get("CNINFO_COOKIE", "")
+    cookie = os.environ.get("CNINFO_COOKIE", "").strip()
     s = requests.Session()
     s.headers.update({
         "User-Agent": (
@@ -370,12 +371,31 @@ def update_data_json(dry_run: bool, results: dict):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dry-run",    action="store_true", help="Show proposed changes without writing")
-    parser.add_argument("--redownload", action="store_true", help="Force re-fetch from CNINFO even if GCS has PDF")
-    parser.add_argument("--companies",  nargs="+", default=list(COMPANIES.keys()),
+    parser.add_argument("--dry-run",       action="store_true", help="Show proposed changes without writing")
+    parser.add_argument("--redownload",    action="store_true", help="Force re-fetch from CNINFO even if GCS has PDF")
+    parser.add_argument("--download-only", action="store_true", help="Download PDFs to GCS only; skip Gemini extraction")
+    parser.add_argument("--companies",     nargs="+", default=list(COMPANIES.keys()),
                         choices=list(COMPANIES.keys()))
-    parser.add_argument("--years",      nargs="+", type=int, default=TARGET_YEARS)
+    parser.add_argument("--years",         nargs="+", type=int, default=TARGET_YEARS)
     args = parser.parse_args()
+
+    session = _build_session()
+    tmpdir  = tempfile.mkdtemp()
+
+    if args.download_only:
+        for key in args.companies:
+            co = COMPANIES[key]
+            print(f"\n════ {key} ({co['cn_name']} {co['code']}) ════")
+            print("Fetching announcement list from CNINFO…")
+            announcements = _fetch_all_announcements(session, co["code"], co["org_id"])
+            print(f"  {len(announcements)} announcement(s) found")
+            for year in args.years:
+                print(f"\n── {year} ──────────────────────────────")
+                get_pdf(co, year, tmpdir, session, announcements,
+                        redownload=args.redownload)
+                time.sleep(0.5)
+        print("\n✅ Download complete — GCS cache ready for extraction.")
+        return
 
     api_key = _get_gemini_key()
     if not api_key:
@@ -384,9 +404,7 @@ def main():
     from google import genai
     client = genai.Client(api_key=api_key)
 
-    session = _build_session()
     results: dict = {}
-    tmpdir = tempfile.mkdtemp()
 
     for key in args.companies:
         co = COMPANIES[key]
@@ -405,14 +423,14 @@ def main():
                 print(f"  skipping {year} (no PDF)")
                 continue
 
-            time.sleep(1)   # polite delay
+            time.sleep(1)
 
             result = extract_segment_from_pdf(client, co, pdf_path, year)
             if not result:
                 print(f"  skipping {year} (extraction failed)")
                 continue
 
-            rev_mrm = result["segment_revenue"] / 1e6   # 元 → M RMB
+            rev_mrm = result["segment_revenue"] / 1e6
             print(f"  Segment Rev: {rev_mrm:.1f} M RMB")
             rev_by_year[year] = rev_mrm
 
