@@ -1482,6 +1482,12 @@
             const INFO_COLS = 4;
 
             function getRevMRMB(c, yr) {
+                // segment_note companies: use data.json segment revenue (M RMB); no data before 2021
+                if (c.segment_note) {
+                    if (yr < 2021) return null;
+                    const v = c.revenue[String(yr)];
+                    return (v && v > 0) ? +v.toFixed(4) : null;
+                }
                 const yd = yjbbData[c.code];
                 if (yd) {
                     const d = yd.years[String(yr)];
@@ -1536,7 +1542,8 @@
 
                     const r25raw = getRevUSD(c, 2025);
                     const r24    = getRevUSD(c, 2024) || 0;
-                    const r19    = getRevUSD(c, 2019) || 0;
+                    // segment_note companies have no reliable 2019 segment baseline; suppress CAGR
+                    const r19    = c.segment_note ? 0 : (getRevUSD(c, 2019) || 0);
                     const r25    = r25raw || 0;
                     const yoy    = (r25raw !== null && r24 > 0) ? +((r25/r24-1)*100).toFixed(1) : '';
                     const cagr   = (r25raw !== null && r19 > 0) ? +((Math.pow(r25/r19,1/6)-1)*100).toFixed(1) : '';
@@ -1554,6 +1561,11 @@
 
                     const row = [c.name, c.code, c.currency, src];
                     YEARS.forEach(yr => {
+                        // segment_note companies: no data before 2021 (inconsistent basis)
+                        if (c.segment_note && yr < 2021) {
+                            row.push('', '', '', '', '', '');
+                            return;
+                        }
                         const revRMB = getRevMRMB(c, yr);
                         const revUSD = getRevUSD(c, yr);
                         const niRMB  = getNiMRMB(c, yr);
