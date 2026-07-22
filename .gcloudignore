@@ -1,6 +1,10 @@
 # Exclude virtual environment (largest directory)
 .venv/
 
+# Git metadata (not needed in container)
+.git/
+.github/
+
 # Python bytecode
 __pycache__/
 *.pyc
@@ -13,6 +17,9 @@ __pycache__/
 
 # Claude IDE config
 .claude/
+
+# Jupyter notebooks
+*.ipynb
 
 # Other unnecessary files
 *.zip
