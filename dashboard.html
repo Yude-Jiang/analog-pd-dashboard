@@ -1473,7 +1473,13 @@
         // ── Export Excel ────────────────────────────────────────────────────────
         function exportExcel() {
             const YEARS = [2019,2020,2021,2022,2023,2024,2025];
-            const QTRS  = [1, 2, 3, 4];   // 2025 quarterly breakdown
+            // 2026 quarterly: include only quarters that have actual data for at least one company
+            const all26 = Object.values(rawData);
+            const QTR_YEAR = 2026;
+            const QTRS = [1,2,3,4].filter(q =>
+                all26.some(c => { const d = _qGet(c, QTR_YEAR, q); return d && d.rl != null; })
+            );
+            const HAS_QTRS = QTRS.length > 0;
             // Per year: Rev M RMB | Rev M USD | NI M RMB | NI M USD | Net Margin % | Disclosure Date
             const PER_YEAR_COLS = 6;
             // Per quarter: Rev M USD | NI M USD | Net Margin %
@@ -1482,6 +1488,12 @@
             const INFO_COLS = 4;
 
             function getRevMRMB(c, yr) {
+                // segment_note companies: use data.json segment revenue (M RMB); no data before 2021
+                if (c.segment_note) {
+                    if (yr < 2021) return null;
+                    const v = c.revenue[String(yr)];
+                    return (v && v > 0) ? +v.toFixed(4) : null;
+                }
                 const yd = yjbbData[c.code];
                 if (yd) {
                     const d = yd.years[String(yr)];
@@ -1511,10 +1523,10 @@
                 let companies = Object.values(rawData).filter(c => c.category === cat);
                 companies.sort((a, b) => (getRevUSD(b, 2025) || 0) - (getRevUSD(a, 2025) || 0));
 
-                // Row 1: group header (year spans + 2025 quarter spans)
+                // Row 1: group header (year spans + 2026 quarter spans if available)
                 const row1 = ['Company','Code','Currency','Data Source'];
                 YEARS.forEach(y => { row1.push(String(y)); for(let i=1;i<PER_YEAR_COLS;i++) row1.push(''); });
-                QTRS.forEach(q  => { row1.push(`2025 Q${q}`); for(let i=1;i<PER_QTR_COLS;i++) row1.push(''); });
+                if (HAS_QTRS) QTRS.forEach(q => { row1.push(`${QTR_YEAR} Q${q}`); for(let i=1;i<PER_QTR_COLS;i++) row1.push(''); });
                 row1.push('R&D Staff','Total Emp','R&D%','Foundry','YoY 25%','CAGR 6Y%','Source','Update','注册全称','企业属性','实控人','董事长','高管人数','发行价(元)','主营业务');
 
                 // Row 2: sub-headers
@@ -1522,9 +1534,7 @@
                 YEARS.forEach(() => {
                     row2.push('Rev (M RMB)','Rev (M USD)','NI (M RMB)','NI (M USD)','NI Margin %','Disclosure Date');
                 });
-                QTRS.forEach(() => {
-                    row2.push('Rev (M USD)','NI (M USD)','Net Margin %');
-                });
+                if (HAS_QTRS) QTRS.forEach(() => { row2.push('Rev (M USD)','NI (M USD)','Net Margin %'); });
                 row2.push('','','','','','','','','','','','','','','');
 
                 // Data rows
@@ -1536,7 +1546,8 @@
 
                     const r25raw = getRevUSD(c, 2025);
                     const r24    = getRevUSD(c, 2024) || 0;
-                    const r19    = getRevUSD(c, 2019) || 0;
+                    // segment_note companies have no reliable 2019 segment baseline; suppress CAGR
+                    const r19    = c.segment_note ? 0 : (getRevUSD(c, 2019) || 0);
                     const r25    = r25raw || 0;
                     const yoy    = (r25raw !== null && r24 > 0) ? +((r25/r24-1)*100).toFixed(1) : '';
                     const cagr   = (r25raw !== null && r19 > 0) ? +((Math.pow(r25/r19,1/6)-1)*100).toFixed(1) : '';
@@ -1554,6 +1565,11 @@
 
                     const row = [c.name, c.code, c.currency, src];
                     YEARS.forEach(yr => {
+                        // segment_note companies: no data before 2021 (inconsistent basis)
+                        if (c.segment_note && yr < 2021) {
+                            row.push('', '', '', '', '', '');
+                            return;
+                        }
                         const revRMB = getRevMRMB(c, yr);
                         const revUSD = getRevUSD(c, yr);
                         const niRMB  = getNiMRMB(c, yr);
@@ -1575,15 +1591,17 @@
                             disc
                         );
                     });
-                    // 2025 quarterly breakdown (Rev USD / NI USD / Net Margin %)
-                    const qFX = yjbbData[c.code] ? 7.2 : fxRate(c.currency);
-                    QTRS.forEach(q => {
-                        const qd     = _qGet(c, 2025, q);
-                        const revUSD = (qd && qd.rl != null) ? +(qd.rl / qFX).toFixed(2) : '';
-                        const niUSD  = (qd && qd.ni != null) ? +(qd.ni / qFX).toFixed(2) : '';
-                        const niPct  = (qd && qd.rl  && qd.ni != null) ? +((qd.ni / qd.rl) * 100).toFixed(2) : '';
-                        row.push(revUSD, niUSD, niPct);
-                    });
+                    // 2026 quarterly breakdown (Rev USD / NI USD / Net Margin %) — only if data exists
+                    if (HAS_QTRS) {
+                        const qFX = yjbbData[c.code] ? 7.2 : fxRate(c.currency);
+                        QTRS.forEach(q => {
+                            const qd     = _qGet(c, QTR_YEAR, q);
+                            const revUSD = (qd && qd.rl != null) ? +(qd.rl / qFX).toFixed(2) : '';
+                            const niUSD  = (qd && qd.ni != null) ? +(qd.ni / qFX).toFixed(2) : '';
+                            const niPct  = (qd && qd.rl  && qd.ni != null) ? +((qd.ni / qd.rl) * 100).toFixed(2) : '';
+                            row.push(revUSD, niUSD, niPct);
+                        });
+                    }
                     row.push(
                         p.rd_staff||'', p.total_emp||'', p.rd_weight||'', p.foundry||'',
                         yoy, cagr, sourceTitle, updateTime,
@@ -1609,18 +1627,20 @@
                     const startC = INFO_COLS + i * PER_YEAR_COLS;
                     sheet['!merges'].push({ s:{r:0,c:startC}, e:{r:0,c:startC+PER_YEAR_COLS-1} });
                 });
-                // Merge 2025 quarter header cells (row 0, span PER_QTR_COLS per quarter)
-                const qtrBase = INFO_COLS + YEARS.length * PER_YEAR_COLS;
-                QTRS.forEach((_, i) => {
-                    const startC = qtrBase + i * PER_QTR_COLS;
-                    sheet['!merges'].push({ s:{r:0,c:startC}, e:{r:0,c:startC+PER_QTR_COLS-1} });
-                });
+                // Merge 2026 quarter header cells (row 0, span PER_QTR_COLS per quarter)
+                if (HAS_QTRS) {
+                    const qtrBase = INFO_COLS + YEARS.length * PER_YEAR_COLS;
+                    QTRS.forEach((_, i) => {
+                        const startC = qtrBase + i * PER_QTR_COLS;
+                        sheet['!merges'].push({ s:{r:0,c:startC}, e:{r:0,c:startC+PER_QTR_COLS-1} });
+                    });
+                }
 
                 // Column widths
                 const cols = [
                     {wch:18},{wch:8},{wch:10},{wch:13},       // info
                     ...YEARS.flatMap(()=>[{wch:13},{wch:12},{wch:13},{wch:12},{wch:11},{wch:15}]), // per-year ×7
-                    ...QTRS.flatMap(()=>[{wch:12},{wch:12},{wch:9}]),  // per-quarter ×4
+                    ...(HAS_QTRS ? QTRS.flatMap(()=>[{wch:12},{wch:12},{wch:9}]) : []),  // per-quarter (2026)
                     {wch:10},{wch:10},{wch:7},{wch:22},        // rd/foundry
                     {wch:9},{wch:9},{wch:36},{wch:12},         // yoy/cagr/source/update
                     {wch:22},{wch:10},{wch:24},{wch:10},{wch:8},{wch:10},{wch:34} // profile
