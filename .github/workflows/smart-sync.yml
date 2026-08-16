@@ -31,11 +31,18 @@ jobs:
 
       - name: Run smart sync
         run: |
+          # smart_sync.py exit codes: 0 = no disclosures due, 1 = sync ran,
+          # >=2 = real failure. Only >=2 should fail the job.
+          set +e
           if [ "${{ github.event.inputs.force }}" = "true" ]; then
             python smart_sync.py --force
           else
             python smart_sync.py --window 2
           fi
+          rc=$?
+          set -e
+          echo "smart_sync.py exit code: $rc"
+          if [ "$rc" -ge 2 ]; then exit "$rc"; fi
 
       - name: Commit updated JSON files
         run: |
