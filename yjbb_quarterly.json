@@ -1,7 +1,7 @@
 {
   "meta": {
     "source": "AkShare stock_yjbb_em (Q1/H1/9M/FY cumulative → individual quarters)",
-    "fetched_at": "2026-08-17 02:58:20",
+    "fetched_at": "2026-08-18 02:54:57",
     "years": [
       2024,
       2025,
@@ -186,7 +186,7 @@
           "rev_mrm": 784.9061,
           "ni_mrm": 59.1679,
           "margin": 0.075382,
-          "announced": "2025-08-28"
+          "announced": "2026-08-18"
         },
         "2025Q3": {
           "rev_mrm": 910.2602,
@@ -205,6 +205,12 @@
           "ni_mrm": 3.3383,
           "margin": 0.004409,
           "announced": "2026-04-30"
+        },
+        "2026Q2": {
+          "rev_mrm": 789.3057,
+          "ni_mrm": -48.2106,
+          "margin": -0.06108,
+          "announced": "2026-08-18"
         }
       }
     },
