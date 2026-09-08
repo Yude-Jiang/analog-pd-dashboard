@@ -59,6 +59,39 @@ US_COMPANIES = [
 ]
 
 
+_CIK_MAP: dict | None = None
+
+def resolve_cik(ticker: str, fallback: str) -> str:
+    """Look the ticker up in SEC's official ticker->CIK file.
+
+    The CIKs below were hardcoded, and a wrong one fails silently: EDGAR happily
+    returns some other registrant's filings. NVTS pointed at a shell company
+    whose FY2024 revenue was $135K rather than Navitas's $83.3M. Resolving from
+    the authoritative map removes that whole class of error; the hardcoded value
+    is only a fallback for when sec.gov is unreachable.
+    """
+    global _CIK_MAP
+    if _CIK_MAP is None:
+        try:
+            r = requests.get("https://www.sec.gov/files/company_tickers.json",
+                             headers=HEADERS_SEC, timeout=30)
+            r.raise_for_status()
+            _CIK_MAP = {e["ticker"].upper(): f'{int(e["cik_str"]):010d}'
+                        for e in r.json().values()}
+            log.debug("  Loaded SEC ticker map (%d tickers)", len(_CIK_MAP))
+        except Exception as e:
+            log.warning("  Could not load SEC ticker map (%s) — using hardcoded CIKs", e)
+            _CIK_MAP = {}
+
+    found = _CIK_MAP.get(ticker.upper())
+    if not found:
+        return fallback
+    if found != fallback:
+        log.warning("  [%s] hardcoded CIK %s != SEC's %s — using SEC's",
+                    ticker, fallback, found)
+    return found
+
+
 def _clean(v) -> float | None:
     if v is None or (isinstance(v, float) and math.isnan(v)):
         return None
@@ -201,11 +234,12 @@ def _to_quarterly(df: pd.DataFrame, scale: float = 1e6) -> dict:
     return result
 
 
-def fetch_edgar_quarterly_v2(name: str, cik: str) -> tuple[dict, dict]:
+def fetch_edgar_quarterly_v2(name: str, cik: str, ticker: str) -> tuple[dict, dict]:
     """
     Fetch quarterly revenue and NI from SEC EDGAR XBRL.
     Returns (rev_periods, ni_periods) as {period_label: M_USD} dicts.
     """
+    cik = resolve_cik(ticker, cik)
     url = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json"
     try:
         resp = requests.get(url, headers=HEADERS_SEC, timeout=30)
@@ -214,6 +248,11 @@ def fetch_edgar_quarterly_v2(name: str, cik: str) -> tuple[dict, dict]:
     except Exception as e:
         log.warning("  [%s] EDGAR fetch failed: %s", name, e)
         return {}, {}
+
+    # Always say whose filings these are. A wrong CIK silently returns another
+    # company's numbers, which is how NVTS ended up with a shell company's
+    # revenue ($135K for FY2024 against Navitas's actual $83.3M).
+    log.info("  [%s] CIK %s -> entityName=%r", name, cik, facts.get("entityName"))
 
     rev_raw = _extract_facts(facts, REVENUE_TAGS)
     ni_raw  = _extract_facts(facts, NI_TAGS)
@@ -265,7 +304,7 @@ def main():
             continue
 
         log.info("Fetching %s (%s) from SEC EDGAR …", name, ticker)
-        rev_q, ni_q = fetch_edgar_quarterly_v2(name, cik)
+        rev_q, ni_q = fetch_edgar_quarterly_v2(name, cik, ticker)
         if not rev_q and not ni_q:
             log.warning("  No data returned for %s", name)
             continue
