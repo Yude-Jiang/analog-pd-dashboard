@@ -42,43 +42,70 @@ jobs:
       # MOPS answers Actions runners with its anti-bot page ("FOR SECURITY
       # REASONS, THIS PAGE CAN NOT BE ACCESSED"), so scraping it from CI is a
       # dead end regardless of endpoint. Probe the alternatives before writing
-      # code against any of them: does a session-first GET change anything, and
-      # what does TWSE's official OpenAPI actually expose?
-      - name: Probe TWSE endpoints
+      # code against any of them, and let the services list their own endpoints
+      # rather than guessing paths. Silergy may be TWSE- or TPEx-listed, so
+      # check both and confirm 6415 actually appears in the data.
+      - name: Probe TWSE / TPEx endpoints
         if: github.event.inputs.debug == 'true'
         continue-on-error: true
         run: |
           python - <<'PY'
-          import requests, urllib3
+          import requests, urllib3, json
           urllib3.disable_warnings()
           UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
                 "Accept": "*/*", "Accept-Language": "zh-TW,zh;q=0.9,en;q=0.8"}
+          CODE = "6415"
 
-          def probe(label, method, url, session=None, **kw):
+          def get(url, session=None, **kw):
+              c = session or requests
+              return c.request(kw.pop("method", "GET"), url, timeout=30,
+                               headers=UA, verify=False, **kw)
+
+          def show(label, url, **kw):
               try:
-                  c = session or requests
-                  r = c.request(method, url, timeout=25, headers=UA, verify=False, **kw)
-                  head = " ".join(r.text[:200].split())
+                  r = get(url, **kw)
                   blocked = "SECURITY REASONS" in r.text
-                  print(f"{label:34s} HTTP {r.status_code} {len(r.text):>8d}B "
-                        f"{'[BLOCKED] ' if blocked else ''}{head[:110]}")
+                  head = " ".join(r.text[:200].split())
+                  print(f"{label:32s} HTTP {r.status_code} {len(r.text):>9d}B "
+                        f"{'[BLOCKED] ' if blocked else ''}{head[:100]}")
+                  return None if blocked else r
               except Exception as e:
-                  print(f"{label:34s} ERROR {type(e).__name__}: {str(e)[:90]}")
+                  print(f"{label:32s} ERROR {type(e).__name__}: {str(e)[:80]}")
+                  return None
 
-          print("--- 1. MOPS, plain ---")
-          probe("MOPS t21sc03 page GET", "GET", "https://mops.twse.com.tw/mops/web/t21sc03")
-
-          print("--- 2. MOPS, session first ---")
+          print("=== 1. MOPS (baseline: expect blocked) ===")
+          show("MOPS page GET", "https://mops.twse.com.tw/mops/web/t21sc03")
           sess = requests.Session()
-          probe("  landing page", "GET", "https://mops.twse.com.tw/mops/web/index", session=sess)
-          probe("  then ajax POST", "POST", "https://mops.twse.com.tw/mops/web/ajax_t21sc03",
-                session=sess, data={"encodeURIComponent":"1","step":"1","firstin":"1","off":"1",
-                "queryName":"co_id","inpuType":"co_id","TYPEK":"all","isnew":"false",
-                "co_id":"6415","year":"115","season":"00"})
+          show("MOPS landing (session)", "https://mops.twse.com.tw/mops/web/index", session=sess)
+          show("MOPS ajax after session", "https://mops.twse.com.tw/mops/web/ajax_t21sc03",
+               session=sess, method="POST",
+               data={"encodeURIComponent":"1","step":"1","firstin":"1","off":"1",
+                     "queryName":"co_id","inpuType":"co_id","TYPEK":"all","isnew":"false",
+                     "co_id":CODE,"year":"115","season":"00"})
 
-          print("--- 3. TWSE OpenAPI ---")
-          probe("OpenAPI portal", "GET", "https://openapi.twse.com.tw/")
-          probe("OpenAPI swagger spec", "GET", "https://openapi.twse.com.tw/v1/swagger.json")
+          print("\n=== 2. TWSE OpenAPI ===")
+          spec = show("swagger spec", "https://openapi.twse.com.tw/v1/swagger.json")
+          paths = []
+          if spec is not None:
+              try:
+                  paths = sorted((spec.json().get("paths") or {}).keys())
+                  print(f"  {len(paths)} endpoints published")
+                  kw = ("revenue", "t187ap05", "t187ap06", "ifrs", "financ", "income")
+                  hits = [p for p in paths if any(k in p.lower() for k in kw)]
+                  print("  revenue/financial candidates:")
+                  for p_ in hits: print("    ", p_)
+              except Exception as e:
+                  print("  spec parse failed:", e)
+
+          print("\n=== 3. Does 6415 appear? (TWSE candidates) ===")
+          for p_ in [p for p in paths if any(k in p.lower()
+                     for k in ("revenue","t187ap05","t187ap06"))][:6]:
+              r = show(f"  {p_[:28]}", "https://openapi.twse.com.tw" + p_)
+              if r is not None:
+                  print(f"      contains {CODE}: {CODE in r.text}")
+
+          print("\n=== 4. TPEx (in case 6415 is OTC-listed) ===")
+          show("TPEx openapi index", "https://www.tpex.org.tw/openapi/swagger.json")
           PY
 
       - name: Fetch MOPS quarterly
