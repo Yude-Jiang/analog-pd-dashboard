@@ -5,6 +5,15 @@ name: Refresh Silergy Quarterly (MOPS)
 
 on:
   workflow_dispatch:
+    inputs:
+      years:
+        description: "Fiscal years (space-separated, e.g. 2025 2026). Empty = auto."
+        required: false
+        default: ""
+      debug:
+        description: "Diagnostic run — verbose MOPS logs, nothing committed"
+        type: boolean
+        default: false
   schedule:
     # Silergy 季报披露后自动刷新（台北时间 09:00 = UTC 01:00）
     - cron: '0 1 15 5 *'   # Q1 季报：5 月 15 日
@@ -31,12 +40,30 @@ jobs:
         run: pip install -r requirements_cloudrun.txt
 
       - name: Fetch MOPS quarterly
-        run: python fetch_silergy_to_json.py
+        run: |
+          ARGS=""
+          [ -n "${{ github.event.inputs.years }}" ] && ARGS="--years ${{ github.event.inputs.years }}"
+          [ "${{ github.event.inputs.debug }}" = "true" ] && ARGS="$ARGS --debug"
+          python fetch_silergy_to_json.py $ARGS
+
+      # MOPS endpoints have moved before; show what actually landed.
+      - name: Show extracted quarters
+        run: |
+          python - <<'PY'
+          import json
+          c = json.load(open("data.json"))["Silergy"]
+          rev = c.get("revenue", {}); ni = c.get("net_income", {})
+          print("currency:", c.get("currency"))
+          print("revenue quarters :", {k: v for k, v in sorted(rev.items()) if "Q" in k} or "NONE")
+          print("revenue months   :", {k: v for k, v in sorted(rev.items()) if "M" in k} or "NONE")
+          print("NI quarters      :", {k: v for k, v in sorted(ni.items()) if "Q" in k} or "NONE")
+          PY
 
       - name: Validate data
         run: python validate_data.py || true
 
       - name: Commit updated data.json
+        if: github.event.inputs.debug != 'true'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
