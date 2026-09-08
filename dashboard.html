@@ -655,36 +655,75 @@
             } catch (_) { /* refresh_meta.json not available — silent */ }
         }
 
+        // Fetch one JSON source with a hard timeout. Never rejects — a slow or
+        // broken source resolves to null so it cannot stall the other sources.
+        // (A hanging fetch has no .catch(); only an abort bounds it.)
+        async function _loadJSON(name, v, timeoutMs = 15000) {
+            const ac = new AbortController();
+            const t  = setTimeout(() => ac.abort(), timeoutMs);
+            try {
+                const res = await fetch(`${name}?v=${v}`, { signal: ac.signal });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return await res.json();
+            } catch (e) {
+                console.error(`[load] ${name} failed:`, e.name === 'AbortError'
+                    ? `timed out after ${timeoutMs}ms` : e);
+                return null;
+            } finally {
+                clearTimeout(t);
+            }
+        }
+
+        // Re-render whichever tab is on screen (charts destroy + rebuild, so safe to repeat).
+        function _rerenderActiveTab() {
+            const vis = ['tracker', 'trends', 'quarterly'].find(t => {
+                const el = document.getElementById('pane-' + t);
+                return el && el.style.display !== 'none';
+            });
+            if (vis === 'trends')         renderTrends();
+            else if (vis === 'tracker')   render2026Tracker();
+            else if (vis === 'quarterly') renderQuarterlyProjections();
+        }
+
         async function initDashboard() {
             document.getElementById('trends-loader').style.display = 'block';
             loadRefreshMeta();   // non-blocking — show freshness banner as soon as possible
-            try {
-                const v = Date.now();
-                const [rawRes, yjbbRes, profRes, qtrRes] = await Promise.all([
-                    fetch('data.json?v=' + v),
-                    fetch('yjbb_annual.json?v=' + v),
-                    fetch('profiles_xq.json?v=' + v).catch(() => null),
-                    fetch('yjbb_quarterly.json?v=' + v).catch(() => null)
-                ]);
-                rawData  = await rawRes.json();
-                const yjbbRaw = await yjbbRes.json();
-                yjbbData = yjbbRaw.companies || {};
-                if (profRes && profRes.ok) {
-                    const profRaw = await profRes.json();
-                    profilesXQ = profRaw.profiles || {};
-                }
-                if (qtrRes && qtrRes.ok) {
-                    const qtrRaw = await qtrRes.json();
-                    yjbbQtrData = qtrRaw.companies || {};
-                }
-                document.getElementById('trends-loader').style.display = 'none';
-                _rendered.tracker = false;
-                _rendered.trends  = false;
-                renderTrends();
-            } catch (e) {
-                console.error('Load failed:', e);
-                document.getElementById('trends-loader').style.display = 'none';
-                document.getElementById('trends-error').style.display  = 'block';
+
+            const v = Date.now();
+
+            // Optional sources are started now but must never gate the first paint —
+            // one slow blob used to stall the whole dashboard behind Promise.all.
+            const optional = Promise.all([
+                _loadJSON('profiles_xq.json', v),
+                _loadJSON('yjbb_quarterly.json', v)
+            ]);
+
+            const [rawJson, yjbbRaw] = await Promise.all([
+                _loadJSON('data.json', v),
+                _loadJSON('yjbb_annual.json', v)
+            ]);
+            yjbbData = yjbbRaw?.companies || {};
+
+            document.getElementById('trends-loader').style.display = 'none';
+
+            if (!rawJson || !Object.keys(rawJson).length) {
+                console.error('Load failed: data.json unavailable — dashboard cannot render.');
+                document.getElementById('trends-error').style.display = 'block';
+                return;
+            }
+            rawData = rawJson;
+
+            _rendered.tracker = false;
+            _rendered.trends  = false;
+            renderTrends();
+
+            // Fill in the optional sources whenever they land, then refresh what is visible.
+            const [profRaw, qtrRaw] = await optional;
+            profilesXQ  = profRaw?.profiles  || {};
+            yjbbQtrData = qtrRaw?.companies  || {};
+            if (profRaw || qtrRaw) {
+                _rendered.tracker = _rendered.trends = _rendered.quarterly = false;
+                _rerenderActiveTab();
             }
         }
 

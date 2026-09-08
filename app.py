@@ -37,8 +37,22 @@ FETCH_YEARS   = "2025 2026" if _NOW.year >= 2026 else "2024 2025"
 # GCS helpers
 # ---------------------------------------------------------------------------
 
+_gcs_client = None
+_gcs_lock   = threading.Lock()
+
 def gcs_client():
-    return storage.Client()
+    """Lazily build one shared storage.Client.
+
+    Constructing a Client performs credential discovery and a metadata-server
+    round trip, so doing it per request made every JSON fetch pay that cost —
+    on a cold container the parallel front-end loads stalled for seconds.
+    """
+    global _gcs_client
+    if _gcs_client is None:
+        with _gcs_lock:
+            if _gcs_client is None:
+                _gcs_client = storage.Client()
+    return _gcs_client
 
 def download_blob(blob_name: str, dest_path: str):
     client = gcs_client()
