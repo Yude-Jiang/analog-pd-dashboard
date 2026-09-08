@@ -369,6 +369,79 @@ def auto_fix(data: dict) -> list[str]:
     return fixed
 
 
+
+# ── R16 数据管线存活检查 ────────────────────────────────────────────────────────
+
+def _quarter_index(year: int, q: int) -> int:
+    return year * 4 + (q - 1)
+
+
+def _latest_due_quarter(today=None) -> tuple[int, int]:
+    """最近一个「按理已该披露」的季度。
+
+    以季末 + 75 天为披露期限（A股季报法定 1 个月、半年报 2 个月、年报 4 个月；
+    美股 10-Q 约 40 天。取 75 天足够宽松，不会误报）。
+    """
+    import datetime as _dt
+    today = today or _dt.date.today()
+    y, q = today.year, (today.month - 1) // 3 + 1
+    # 从当前季度往回退，找到第一个期限已过的
+    for _ in range(6):
+        q -= 1
+        if q == 0:
+            y, q = y - 1, 4
+        q_end = _dt.date(y, q * 3, 1) + _dt.timedelta(days=31)
+        q_end = _dt.date(q_end.year, q_end.month, 1) - _dt.timedelta(days=1)
+        if (today - q_end).days >= 75:
+            return y, q
+    return y, q
+
+
+def check_pipeline_liveness(data: dict, yjbb_q: dict):
+    """R16 — 管线存活：每家公司的最新季度不应远落后于日历。
+
+    今天所有静默失败都属于这一类——workflow 全绿而数据几个月没动：
+    NVTS 停在 2025Q3、Silergy 与 MPWR 一条季度记录都没有，而 CI 天天通过。
+    抓取脚本网络失败时仍 exit 0，所以只能从「数据本身有多旧」来判断。
+    """
+    due_y, due_q = _latest_due_quarter()
+    due_idx = _quarter_index(due_y, due_q)
+
+    for name, comp in data.items():
+        if name not in EXPECTED_COMPANIES:
+            continue
+
+        if _is_a_share(comp):
+            store = yjbb_q.get(str(comp.get("code", "")), {}).get("quarters", {})
+            periods = list(store.keys())
+        else:
+            periods = [k for k in comp.get("revenue", {}) if "Q" in str(k)]
+
+        parsed = []
+        for p_ in periods:
+            y_, _, q_ = str(p_).partition("Q")
+            if y_.isdigit() and q_.isdigit():
+                parsed.append(_quarter_index(int(y_), int(q_)))
+
+        if not parsed:
+            report("ERROR", "R16_PIPELINE_DEAD", name,
+                   f"完全没有季度数据；最新应已披露季度为 {due_y}Q{due_q}。"
+                   f"抓取链路可能已失效（脚本失败时仍 exit 0，CI 不会变红）")
+            continue
+
+        lag = due_idx - max(parsed)
+        if lag >= 2:
+            latest = max(parsed)
+            report("ERROR", "R16_PIPELINE_STALE", name,
+                   f"最新季度 {latest // 4}Q{latest % 4 + 1} 落后 {lag} 个季度"
+                   f"（应已有 {due_y}Q{due_q}）——抓取链路可能已断")
+        elif lag == 1:
+            latest = max(parsed)
+            report("WARN", "R16_PIPELINE_LAGGING", name,
+                   f"最新季度 {latest // 4}Q{latest % 4 + 1}，落后 1 个季度"
+                   f"（应已有 {due_y}Q{due_q}）")
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # 主程序
 # ══════════════════════════════════════════════════════════════════════════════
@@ -399,6 +472,7 @@ def run_all_checks(data: dict):
     check_excluded_not_present(data)
     check_quarterly_completeness(data, yjbb_q)
     check_quarterly_consistency(data, yjbb_q)
+    check_pipeline_liveness(data, yjbb_q)
 
 
 def print_report():

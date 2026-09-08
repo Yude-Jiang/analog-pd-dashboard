@@ -71,3 +71,18 @@ jobs:
               sleep $((i * 10))
             done
           fi
+
+      # Data still gets committed above — partial data beats none — but a dead
+      # or stalled pipeline must turn the job red. Every silent failure found on
+      # 2026-09-08 (NVTS frozen at 2025Q3, Silergy and MPWR with no quarters at
+      # all) sat behind a green check for months because the fetchers exit 0 when
+      # the upstream is unreachable.
+      - name: Fail if a pipeline looks dead
+        run: |
+          python validate_data.py 2>&1 | tee /tmp/validate.txt || true
+          if grep -q "R16_PIPELINE_\(DEAD\|STALE\)" /tmp/validate.txt; then
+            echo "::error::A quarterly data pipeline is dead or stale — see R16 above"
+            grep "R16_PIPELINE_" -A1 /tmp/validate.txt
+            exit 1
+          fi
+          echo "All quarterly pipelines are current."

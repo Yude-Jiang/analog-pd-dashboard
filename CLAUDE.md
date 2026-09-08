@@ -67,6 +67,124 @@ Automated: `python smart_sync.py` runs daily at 09:00 weekdays — checks AkShar
 
 Colab 已与 GitHub 集成，打开 `.ipynb` 文件即可直接运行，结果 push 回对应分支。现有 notebook：`extract_segment_revenue.ipynb`（分部营收PDF提取）。
 
+## Failure Modes That Keep Recurring
+
+Every one of these has bitten this repo more than once, in different scripts.
+They recur because each data pipeline (AkShare, EDGAR, MOPS/OpenAPI, Excel,
+PDF) was written separately by copy-paste, so a fix in one never reaches the
+others. **When you fix one of these, grep for the same pattern in every other
+fetcher before you stop.**
+
+### 1. Hardcoded years
+
+Found in `fetch_yjbb_quarterly.py` (`DEFAULT_YEARS`), `fetch_silergy_to_json.py`
+(`YEARS`), `dashboard.html` (Excel export `QTR_YEAR`), `app.py` (`FETCH_YEARS`).
+Each silently stopped covering the current year once the calendar passed it —
+no error, just quietly stale data.
+
+Always derive from `datetime.date.today().year`, and expose `--years`.
+`grep -rn "20[0-9][0-9]" *.py dashboard.html` before adding any new fetcher.
+
+### 2. Derived values written only when absent
+
+`fetch_edgar_to_json.py` had `if q4_key in d_dict: continue`, so a Q4 computed
+from bad quarters (83.234 against a true 17.978) survived the run that fixed
+its inputs. The same trap nearly hit Silergy: placeholder monthly values would
+have had `quarters_from_months` overwrite a real quarter.
+
+**A derived value must be recomputed every run and dropped when its inputs are
+incomplete.** Never "fill in if missing". Q4 = annual − (Q1+Q2+Q3), quarterly
+sums, CAGR and margins are all derived.
+
+### 3. Green CI that does nothing
+
+Four separate instances today:
+- `refresh-quarterly.yml` POSTed to Cloud Run `/refresh`, which returns 202
+  immediately; the workflow asserted on the HTTP code, so it passed every day
+  for months while the fetchers it triggered wrote to a temp dir that was
+  deleted.
+- `/refresh` runs its work in a background thread — exceptions never reach the
+  caller.
+- Both EDGAR and MOPS fetchers `exit 0` when the upstream is unreachable, and
+  the workflow steps are `continue-on-error`.
+- `smart_sync.py` exits 1 by design when a sync runs, which `bash -e` treated
+  as failure, skipping the commit step.
+
+**Assert on the data outcome, not on an exit code or HTTP status.** Every fetch
+workflow ends with a step that prints what actually landed (row counts, latest
+period, quarters-vs-annual reconciliation) so a dead pipeline is visible in the
+log rather than hidden behind a green check.
+
+### 4. A wrong identifier returns someone else's data
+
+`NVTS` was pinned to CIK `0001831868`, which is not Navitas. EDGAR answered
+HTTP 200 with a shell company's filings — FY2024 revenue of $135K against
+Navitas's $83.3M. Nothing errored.
+
+**Resolve identifiers from the authoritative map** (SEC `company_tickers.json`)
+and **log the identity the API echoes back** (`entityName`) on every fetch.
+
+### 5. Debug by dumping the upstream payload, not by reasoning from symptoms
+
+The NVTS diagnosis went wrong twice — first blaming dead code in
+`_to_quarterly`, then the XBRL tag selection — while the cause was the CIK.
+Same with MOPS: a constant 686-byte response looked like a retired endpoint
+and was actually an anti-bot block page. Both were settled in one step by
+printing the raw response.
+
+**When data looks wrong, log the raw upstream payload first.** Every fetcher
+has a `--debug` flag that dumps raw records, matched field names and each
+derivation step. Use it before forming a hypothesis.
+
+### 6. Diagnostics that need a CI round trip must be exhaustive
+
+Each hypothesis tested through GitHub Actions costs a merge, a run and a log
+download. Do not test one guess per run. Make the diagnostic self-describing:
+discover endpoints from the service's own swagger spec, match fields by
+keyword against the record's actual keys, try every candidate, and print
+everything needed to write the final code in one pass.
+
+## Serving Paths — What Needs a Deploy
+
+Two different mechanisms, and confusing them costs a debugging cycle every time:
+
+| File | Served from | Updated by | Live without deploy? |
+|---|---|---|---|
+| `yjbb_annual.json`, `yjbb_quarterly.json`, `profiles_xq.json` | GCS bucket | Cloud Run `/refresh` uploads | **Yes** |
+| `data.json` | bundled container file | GitHub Actions commit | **No — needs `gcloud run deploy`** |
+| `dashboard.html` | bundled container file | commit | **No — needs deploy** |
+
+`data.json` is deliberately excluded from `GCS_BLOBS` so a stale GCS copy can
+never overwrite `segment_note`. The consequence is that MPWR/NVTS/Silergy
+quarterly updates only reach production on the next deploy — roughly 5 windows
+a year, around earnings season. Check with:
+
+```bash
+U=https://analog-dashboard-460989091461.asia-east1.run.app
+[ "$(curl -s $U/data.json | md5sum | cut -d" " -f1)" = "$(md5sum data.json | cut -d" " -f1)" ] \
+  && echo "live is current" || echo "deploy needed"
+```
+
+**One writer per file.** `data.json` is written only by GitHub Actions
+committing to the repo; Cloud Run must never upload it. Two writers is how
+`segment_note` got clobbered, and the fix for that is what orphaned the
+EDGAR/Silergy pipeline for months.
+
+## Git / Cloud Shell Gotchas
+
+- `git pull origin main` does **not** update other remote-tracking branches.
+  Always `git fetch origin <branch>` explicitly before merging it, or you
+  merge a stale ref — or nothing at all.
+- `git merge` opens an editor for the merge commit. In Cloud Shell a pasted
+  multi-line block then feeds its remaining lines into nano instead of the
+  shell, so the push silently never happens. Use `git merge --no-edit`, and
+  paste commands one at a time.
+- Flask sends no `Cache-Control` when `max_age` is unset, so browsers applied
+  heuristic caching to `dashboard.html` and served a pre-deploy copy. `app.py`
+  now sets `no-cache` on every response (revalidate, cheap 304). The JSON
+  fetches were never affected — the front end appends `?v=<timestamp>` — which
+  is exactly what made a caching problem look like a failed deploy.
+
 ## Script Reference
 
 | Script | Purpose | Key flags |
