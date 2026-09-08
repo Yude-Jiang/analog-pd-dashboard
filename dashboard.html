@@ -1921,12 +1921,14 @@
                             position: 'top',
                             labels: {
                                 boxWidth: 8, font:{size:9}, padding:6,
-                                // Show: 2024 + Q1-Q4 actual (both years) + one estimated sample per year
+                                // 2025 is fully reported, so only its actuals are named; 2026 names
+                                // its actuals plus each forecast quarter still outstanding.
                                 filter: item => {
                                     const P = lang === 'zh' ? '预测' : 'Est';
                                     return ['2024',
-                                            '2025 FY','2025 Q1','2025 Q2','2025 Q3','2025 Q4',`2025 Q4 ${P}`,
-                                            '2026 Q1','2026 Q2','2026 Q3','2026 Q4',`2026 Q4 ${P}`].includes(item.text);
+                                            '2025 FY','2025 Q1','2025 Q2','2025 Q3','2025 Q4',
+                                            '2026 Q1','2026 Q2','2026 Q3','2026 Q4',
+                                            `2026 Q2 ${P}`,`2026 Q3 ${P}`,`2026 Q4 ${P}`].includes(item.text);
                                 }
                             }
                         },
