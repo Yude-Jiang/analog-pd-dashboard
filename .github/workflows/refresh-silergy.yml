@@ -1,25 +1,20 @@
-name: Refresh Silergy Quarterly (MOPS)
+name: Refresh Silergy Quarterly (TWSE/TPEx OpenAPI)
 
-# Targeted refresh for Silergy (6415) on the TWSE disclosure dates. The daily job
-# that covers it alongside the US filers is refresh-quarterly.yml.
+# Targeted refresh for Silergy (6415). The daily job that covers it alongside
+# the US filers is refresh-quarterly.yml — and since the open-data tables are
+# current-period snapshots, that daily run is what accumulates the months a
+# quarter is summed from. This workflow is for on-demand runs and diagnosis.
 
 on:
   workflow_dispatch:
     inputs:
-      years:
-        description: "Fiscal years (space-separated, e.g. 2025 2026). Empty = auto."
-        required: false
-        default: ""
       debug:
-        description: "Diagnostic run — verbose MOPS logs, nothing committed"
+        description: "Diagnostic run — verbose schema logs, nothing committed"
         type: boolean
         default: false
   schedule:
-    # Silergy 季报披露后自动刷新（台北时间 09:00 = UTC 01:00）
-    - cron: '0 1 15 5 *'   # Q1 季报：5 月 15 日
-    - cron: '0 1 15 8 *'   # Q2 季报：8 月 15 日
-    - cron: '0 1 15 11 *'  # Q3 季报：11 月 15 日
-    - cron: '0 1 31 3 *'   # Q4/年报：3 月 31 日
+    # Taiwanese monthly revenue is published by the 10th; run once it has landed.
+    - cron: '0 1 12 * *'
 
 permissions:
   contents: write
@@ -39,90 +34,26 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements_cloudrun.txt
 
-      # openapi.twse.com.tw answers Actions runners (MOPS does not) and names
-      # its own endpoints: t187ap05_L is monthly revenue, t187ap06_L_ci the
-      # income statement. The data endpoints came back non-JSON under
-      # Accept: */*, so this pass asks for JSON explicitly and prints the raw
-      # body when that still fails. TPEx is checked in case 6415 is OTC-listed.
-      - name: Probe TWSE / TPEx OpenAPI
-        if: github.event.inputs.debug == 'true'
-        continue-on-error: true
-        run: |
-          python - <<'PY'
-          import requests, urllib3, json
-          urllib3.disable_warnings()
-          H = {"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
-          CODE = "6415"
-
-          def try_ep(base, path, label):
-              url = base + path
-              try:
-                  r = requests.get(url, timeout=40, headers=H, verify=False)
-              except Exception as e:
-                  print(f"  {label:26s} ERROR {type(e).__name__}: {str(e)[:70]}")
-                  return
-              ct = r.headers.get("Content-Type", "?")
-              print(f"  {label:26s} HTTP {r.status_code} {len(r.text):>8d}B  ct={ct}")
-              try:
-                  data = r.json()
-              except Exception:
-                  print(f"      not JSON, body head: {' '.join(r.text[:220].split())}")
-                  return
-              if not isinstance(data, list) or not data:
-                  print(f"      JSON but not a non-empty list: {str(data)[:160]}")
-                  return
-              print(f"      {len(data)} rows, fields: {list(data[0].keys())}")
-              hit = next((row for row in data
-                          if CODE in json.dumps(row, ensure_ascii=False)), None)
-              print(f"      contains {CODE}: {'YES' if hit else 'no'}")
-              if hit:
-                  print(f"      record: {json.dumps(hit, ensure_ascii=False)[:500]}")
-              else:
-                  print(f"      sample: {json.dumps(data[0], ensure_ascii=False)[:260]}")
-
-          print("=== TWSE data endpoints (Accept: application/json) ===")
-          TW = "https://openapi.twse.com.tw/v1"
-          for path, label in [("/opendata/t187ap05_L", "t187ap05_L monthly rev"),
-                              ("/opendata/t187ap06_L_ci", "t187ap06_L_ci income")]:
-              try_ep(TW, path, label)
-
-          print("\n=== TPEx: does its spec list the same datasets? ===")
-          try:
-              spec = requests.get("https://www.tpex.org.tw/openapi/swagger.json",
-                                  timeout=40, headers=H, verify=False).json()
-              paths = spec.get("paths") or {}
-              print(f"  {len(paths)} endpoints published")
-              KW = ("營業收入", "綜合損益", "revenue", "t187ap05", "t187ap06")
-              for path, node in sorted(paths.items()):
-                  summary = ""
-                  for m in ("get", "post"):
-                      if m in node:
-                          summary = node[m].get("summary") or node[m].get("description") or ""
-                          break
-                  if any(k.lower() in (path + " " + summary).lower() for k in KW):
-                      print(f"    {path:46s} {summary[:56]}")
-          except Exception as e:
-              print("  TPEx spec failed:", type(e).__name__, str(e)[:80])
-          PY
-
-      - name: Fetch MOPS quarterly
+      # The fetcher discovers its endpoints from each platform's swagger spec and
+      # logs the record and field names it matched, so a schema change surfaces
+      # here rather than as a silent zero.
+      - name: Fetch from TWSE/TPEx OpenAPI
         run: |
           ARGS=""
-          [ -n "${{ github.event.inputs.years }}" ] && ARGS="--years ${{ github.event.inputs.years }}"
-          [ "${{ github.event.inputs.debug }}" = "true" ] && ARGS="$ARGS --debug"
+          [ "${{ github.event.inputs.debug }}" = "true" ] && ARGS="--debug"
           python fetch_silergy_to_json.py $ARGS
 
-      # MOPS endpoints have moved before; show what actually landed.
-      - name: Show extracted quarters
+      - name: Show what landed
         run: |
           python - <<'PY'
           import json
           c = json.load(open("data.json"))["Silergy"]
-          rev = c.get("revenue", {}); ni = c.get("net_income", {})
-          print("currency:", c.get("currency"))
-          print("revenue quarters :", {k: v for k, v in sorted(rev.items()) if "Q" in k} or "NONE")
-          print("revenue months   :", {k: v for k, v in sorted(rev.items()) if "M" in k} or "NONE")
-          print("NI quarters      :", {k: v for k, v in sorted(ni.items()) if "Q" in k} or "NONE")
+          rev, ni = c.get("revenue", {}), c.get("net_income", {})
+          print("currency        :", c.get("currency"))
+          print("revenue months  :", {k: v for k, v in sorted(rev.items()) if "M" in k} or "NONE")
+          print("revenue quarters:", {k: v for k, v in sorted(rev.items()) if "Q" in k} or "NONE")
+          print("NI cumulative   :", {k: v for k, v in sorted(ni.items()) if "C" in k} or "NONE")
+          print("NI quarters     :", {k: v for k, v in sorted(ni.items()) if "Q" in k} or "NONE")
           PY
 
       - name: Validate data
@@ -135,7 +66,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json
           if git diff --cached --quiet; then
-            echo "No changes — MOPS returned nothing new."
+            echo "No changes — nothing new from the open-data snapshot."
           else
             git commit -m "data: refresh Silergy quarterly $(date -u +%Y-%m-%d)"
             for i in 1 2 3 4; do
