@@ -61,6 +61,20 @@ def _clean(v) -> float | None:
     return round(float(v), 4)
 
 
+def _log_body(resp, label: str, limit: int = 1500) -> None:
+    """Dump a failed response body.
+
+    Every MOPS call returns HTTP 200 with an identical 686-byte payload and no
+    parseable table, which is what a retired endpoint serving a redirect stub
+    looks like. The body names the replacement.
+    """
+    if resp is None:
+        return
+    body = resp.text.strip()
+    log.warning("  [%s] response body (%d bytes):\n%s",
+                label, len(resp.text), body[:limit])
+
+
 # ── Monthly Revenue ────────────────────────────────────────────────────────────
 
 def _fetch_monthly_revenue() -> dict:
@@ -70,6 +84,7 @@ def _fetch_monthly_revenue() -> dict:
 
     for year in YEARS:
         roc = year - 1911
+        r   = None      # reset so a failure cannot log the previous response
         payload = {
             "encodeURIComponent": "1", "step": "1", "firstin": "1",
             "off": "1", "queryName": "co_id", "inpuType": "co_id",
@@ -84,6 +99,7 @@ def _fetch_monthly_revenue() -> dict:
             log.debug("  monthly %d: %d tables parsed", year, len(tables))
         except Exception as e:
             log.warning("  MOPS monthly %d failed: %s", year, e)
+            _log_body(r, f"monthly {year}")
             time.sleep(2)
             continue
 
@@ -168,6 +184,7 @@ def _fetch_cumulative_ni() -> dict:
     for year in YEARS:
         roc = year - 1911
         for season in [1, 2, 3]:
+            r = None    # reset so a failure cannot log the previous response
             payload = {
                 "encodeURIComponent": "1", "step": "1", "firstin": "1",
                 "off": "1", "queryName": "co_id", "inpuType": "co_id",
@@ -182,6 +199,7 @@ def _fetch_cumulative_ni() -> dict:
                 log.debug("  Q%d %d: %d tables parsed", season, year, len(tables))
             except Exception as e:
                 log.warning("  MOPS Q%d %d NI failed: %s", season, year, e)
+                _log_body(r, f"Q{season} {year}")
                 time.sleep(2)
                 continue
 
