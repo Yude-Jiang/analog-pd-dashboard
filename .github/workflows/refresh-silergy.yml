@@ -1,25 +1,20 @@
-name: Refresh Silergy Quarterly (MOPS)
+name: Refresh Silergy Quarterly (TWSE/TPEx OpenAPI)
 
-# Targeted refresh for Silergy (6415) on the TWSE disclosure dates. The daily job
-# that covers it alongside the US filers is refresh-quarterly.yml.
+# Targeted refresh for Silergy (6415). The daily job that covers it alongside
+# the US filers is refresh-quarterly.yml — and since the open-data tables are
+# current-period snapshots, that daily run is what accumulates the months a
+# quarter is summed from. This workflow is for on-demand runs and diagnosis.
 
 on:
   workflow_dispatch:
     inputs:
-      years:
-        description: "Fiscal years (space-separated, e.g. 2025 2026). Empty = auto."
-        required: false
-        default: ""
       debug:
-        description: "Diagnostic run — verbose MOPS logs, nothing committed"
+        description: "Diagnostic run — verbose schema logs, nothing committed"
         type: boolean
         default: false
   schedule:
-    # Silergy 季报披露后自动刷新（台北时间 09:00 = UTC 01:00）
-    - cron: '0 1 15 5 *'   # Q1 季报：5 月 15 日
-    - cron: '0 1 15 8 *'   # Q2 季报：8 月 15 日
-    - cron: '0 1 15 11 *'  # Q3 季报：11 月 15 日
-    - cron: '0 1 31 3 *'   # Q4/年报：3 月 31 日
+    # Taiwanese monthly revenue is published by the 10th; run once it has landed.
+    - cron: '0 1 12 * *'
 
 permissions:
   contents: write
@@ -39,93 +34,26 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements_cloudrun.txt
 
-      # MOPS blocks Actions runners outright ("FOR SECURITY REASONS, THIS PAGE
-      # CAN NOT BE ACCESSED"), but openapi.twse.com.tw answers fine and serves a
-      # full swagger spec. Let the service name its own endpoints and field
-      # names rather than guessing either. Silergy may be TPEx- rather than
-      # TWSE-listed, so confirm 6415 actually appears before committing to a route.
-      - name: Probe TWSE / TPEx OpenAPI
-        if: github.event.inputs.debug == 'true'
-        continue-on-error: true
-        run: |
-          python - <<'PY'
-          import requests, urllib3, json
-          urllib3.disable_warnings()
-          UA = {"User-Agent": "Mozilla/5.0", "Accept": "*/*"}
-          CODE = "6415"
-
-          def get(url, **kw):
-              return requests.get(url, timeout=40, headers=UA, verify=False, **kw)
-
-          print("=== TWSE OpenAPI spec ===")
-          spec = get("https://openapi.twse.com.tw/v1/swagger.json").json()
-          paths = spec.get("paths") or {}
-          print(f"{len(paths)} endpoints published\n")
-
-          KW = ("revenue", "月營業收入", "營業收入", "損益", "綜合損益",
-                "財務", "t187ap05", "t187ap06", "t187ap17")
-          cands = []
-          for path, node in sorted(paths.items()):
-              summary = ""
-              for m in ("get", "post"):
-                  if m in node:
-                      summary = node[m].get("summary") or node[m].get("description") or ""
-                      break
-              blob = (path + " " + summary).lower()
-              if any(k.lower() in blob for k in KW):
-                  cands.append((path, summary))
-
-          print(f"--- {len(cands)} revenue/financial candidates ---")
-          for path, summary in cands:
-              print(f"  {path:44s} {summary[:60]}")
-
-          print(f"\n=== Which ones contain {CODE}? ===")
-          for path, summary in cands[:12]:
-              try:
-                  r = get("https://openapi.twse.com.tw" + path)
-                  data = r.json()
-                  if not isinstance(data, list) or not data:
-                      print(f"  {path:44s} {r.status_code} not-a-list/empty")
-                      continue
-                  hit = next((row for row in data
-                              if CODE in str(row.get("公司代號") or row.get("Code") or
-                                             list(row.values())[0])), None)
-                  print(f"  {path:44s} {len(data):>5d} rows  6415={'YES' if hit else 'no'}")
-                  if hit:
-                      print(f"      summary: {summary[:70]}")
-                      print(f"      fields : {list(hit.keys())}")
-                      print(f"      record : {json.dumps(hit, ensure_ascii=False)[:400]}")
-              except Exception as e:
-                  print(f"  {path:44s} ERROR {type(e).__name__}: {str(e)[:60]}")
-
-          print("\n=== TPEx (if 6415 is OTC-listed) ===")
-          for u in ("https://www.tpex.org.tw/openapi/swagger.json",
-                    "https://www.tpex.org.tw/openapi/v1/"):
-              try:
-                  r = get(u)
-                  print(f"  {u:52s} HTTP {r.status_code} {len(r.text)}B")
-              except Exception as e:
-                  print(f"  {u:52s} ERROR {type(e).__name__}")
-          PY
-
-      - name: Fetch MOPS quarterly
+      # The fetcher discovers its endpoints from each platform's swagger spec and
+      # logs the record and field names it matched, so a schema change surfaces
+      # here rather than as a silent zero.
+      - name: Fetch from TWSE/TPEx OpenAPI
         run: |
           ARGS=""
-          [ -n "${{ github.event.inputs.years }}" ] && ARGS="--years ${{ github.event.inputs.years }}"
-          [ "${{ github.event.inputs.debug }}" = "true" ] && ARGS="$ARGS --debug"
+          [ "${{ github.event.inputs.debug }}" = "true" ] && ARGS="--debug"
           python fetch_silergy_to_json.py $ARGS
 
-      # MOPS endpoints have moved before; show what actually landed.
-      - name: Show extracted quarters
+      - name: Show what landed
         run: |
           python - <<'PY'
           import json
           c = json.load(open("data.json"))["Silergy"]
-          rev = c.get("revenue", {}); ni = c.get("net_income", {})
-          print("currency:", c.get("currency"))
-          print("revenue quarters :", {k: v for k, v in sorted(rev.items()) if "Q" in k} or "NONE")
-          print("revenue months   :", {k: v for k, v in sorted(rev.items()) if "M" in k} or "NONE")
-          print("NI quarters      :", {k: v for k, v in sorted(ni.items()) if "Q" in k} or "NONE")
+          rev, ni = c.get("revenue", {}), c.get("net_income", {})
+          print("currency        :", c.get("currency"))
+          print("revenue months  :", {k: v for k, v in sorted(rev.items()) if "M" in k} or "NONE")
+          print("revenue quarters:", {k: v for k, v in sorted(rev.items()) if "Q" in k} or "NONE")
+          print("NI cumulative   :", {k: v for k, v in sorted(ni.items()) if "C" in k} or "NONE")
+          print("NI quarters     :", {k: v for k, v in sorted(ni.items()) if "Q" in k} or "NONE")
           PY
 
       - name: Validate data
@@ -138,7 +66,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json
           if git diff --cached --quiet; then
-            echo "No changes — MOPS returned nothing new."
+            echo "No changes — nothing new from the open-data snapshot."
           else
             git commit -m "data: refresh Silergy quarterly $(date -u +%Y-%m-%d)"
             for i in 1 2 3 4; do

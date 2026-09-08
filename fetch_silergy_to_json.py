@@ -2,28 +2,42 @@
 """
 fetch_silergy_to_json.py — Silergy (6415) Quarterly Data → data.json
 =====================================================================
-Fetches quarterly revenue and net income for Silergy from Taiwan MOPS,
-then merges period keys (e.g. "2025Q1") into the existing data.json.
+Source: the TWSE / TPEx OpenAPI open-data platforms.
 
-Revenue:  MOPS monthly revenue API (ajax_t21sc03) → summed to quarters.
-Net income: MOPS quarterly earnings API (ajax_t05st01) → cumulative-to-
-            single-quarter via sequential subtraction (Taiwan reports YTD).
+MOPS (mops.twse.com.tw) used to serve this, but it answers CI runners with
+"FOR SECURITY REASONS, THIS PAGE CAN NOT BE ACCESSED" — an IP-based block that
+no change of endpoint, header or payload gets around. openapi.twse.com.tw
+answers the same runner normally, so the data comes from there instead.
+
+Two things are deliberately discovered at runtime rather than hardcoded:
+
+  * Endpoints — resolved from each platform's swagger spec by matching the
+    Chinese dataset titles, so a renamed path does not silently break us.
+  * Field names — matched by keyword against the record's own keys, and every
+    key is logged, so an unexpected schema shows up as a diagnosable warning
+    rather than a KeyError or a silent zero.
+
+The open-data tables are current-period snapshots: one call yields the latest
+month of revenue and the latest quarter of income, not history. So each run
+merges what it sees into data.json and quarters are recomputed from all the
+monthly figures accumulated there. Periods predating the switch cannot be
+back-filled from this source.
 
 Usage:
     python fetch_silergy_to_json.py
+    python fetch_silergy_to_json.py --debug
 """
 
+import io
+import csv
 import json
 import math
+import logging
 import argparse
 import datetime
-import logging
-import time
-import io
 from pathlib import Path
 
 import requests
-import pandas as pd
 import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -38,21 +52,26 @@ log = logging.getLogger("fetch_silergy")
 _HERE      = Path(__file__).parent
 _DATA_JSON = _HERE / "data.json"
 
-CODE  = "6415"
-NAME  = "Silergy"
-
-# Fiscal years to fetch. Hardcoding these meant the script silently stopped
-# covering the current year once the calendar moved past it — the same fault
-# fetch_yjbb_quarterly.py had. Overridable with --years.
-_CY   = datetime.date.today().year
-YEARS = [_CY - 1, _CY]
+CODE = "6415"
+NAME = "Silergy"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Referer": "https://mops.twse.com.tw/",
-    "Accept-Language": "zh-TW,zh;q=0.9,en;q=0.8",
+    "Accept": "application/json",
 }
+
+# (label, swagger spec, api base). Silergy may be listed on either exchange;
+# both are searched and whichever carries 6415 wins.
+PLATFORMS = [
+    ("TWSE", "https://openapi.twse.com.tw/v1/swagger.json", "https://openapi.twse.com.tw/v1"),
+    ("TPEx", "https://www.tpex.org.tw/openapi/swagger.json", "https://www.tpex.org.tw/openapi/v1"),
+]
+
+# Dataset titles to look for in each spec.
+REVENUE_TITLES = ("每月營業收入",)
+INCOME_TITLES  = ("綜合損益表",)
+# ...but skip the sector-specific income tables; Silergy is a general company.
+INCOME_EXCLUDE = ("金融", "證券", "期貨", "金控", "保險", "異業")
 
 
 def _clean(v) -> float | None:
@@ -61,197 +80,237 @@ def _clean(v) -> float | None:
     return round(float(v), 4)
 
 
-def _log_body(resp, label: str, limit: int = 1500) -> None:
-    """Dump a failed response body.
+def _num(s) -> float | None:
+    """Parse an open-data numeric cell: commas, parenthesised negatives, blanks."""
+    if s is None:
+        return None
+    t = str(s).strip().replace(",", "")
+    if not t or t in ("-", "--", "N/A"):
+        return None
+    if t.startswith("(") and t.endswith(")"):
+        t = "-" + t[1:-1]
+    try:
+        return float(t)
+    except ValueError:
+        return None
 
-    Every MOPS call returns HTTP 200 with an identical 686-byte payload and no
-    parseable table, which is what a retired endpoint serving a redirect stub
-    looks like. The body names the replacement.
+
+# ── HTTP ───────────────────────────────────────────────────────────────────────
+
+def _get(url: str, timeout: int = 40):
+    return requests.get(url, headers=HEADERS, timeout=timeout, verify=False)
+
+
+def _rows(url: str) -> list[dict]:
+    """Fetch a dataset as a list of dicts, accepting either JSON or CSV.
+
+    The platform negotiates on Accept and has served non-JSON before, so sniff
+    the body rather than trusting the content type.
     """
-    if resp is None:
-        return
-    body = resp.text.strip()
-    log.warning("  [%s] response body (%d bytes):\n%s",
-                label, len(resp.text), body[:limit])
+    r = _get(url)
+    log.debug("  GET %s -> HTTP %s %dB ct=%s",
+              url, r.status_code, len(r.text), r.headers.get("Content-Type", "?"))
+    r.raise_for_status()
+
+    body = r.text.lstrip("﻿").strip()
+    if body[:1] in ("[", "{"):
+        data = json.loads(body)
+        return data if isinstance(data, list) else [data]
+
+    rows = list(csv.DictReader(io.StringIO(body)))
+    if rows:
+        log.debug("  parsed as CSV (%d rows)", len(rows))
+        return rows
+
+    log.warning("  %s: unrecognised body: %s", url, " ".join(body[:200].split()))
+    return []
 
 
-# ── Monthly Revenue ────────────────────────────────────────────────────────────
+# ── Endpoint discovery ─────────────────────────────────────────────────────────
 
-def _fetch_monthly_revenue() -> dict:
-    """MOPS monthly revenue → {'{year}M{mm}': M_TWD}"""
-    url  = "https://mops.twse.com.tw/mops/web/ajax_t21sc03"
-    result: dict = {}
+def _discover(spec_url: str, include: tuple, exclude: tuple = ()) -> list[tuple[str, str]]:
+    """Return [(path, title)] for spec endpoints whose title matches."""
+    try:
+        spec = _get(spec_url).json()
+    except Exception as e:
+        log.warning("  spec %s failed: %s", spec_url, e)
+        return []
 
-    for year in YEARS:
-        roc = year - 1911
-        r   = None      # reset so a failure cannot log the previous response
-        payload = {
-            "encodeURIComponent": "1", "step": "1", "firstin": "1",
-            "off": "1", "queryName": "co_id", "inpuType": "co_id",
-            "TYPEK": "all", "isnew": "false",
-            "co_id": CODE, "year": str(roc), "season": "00",
-        }
-        try:
-            r = requests.post(url, data=payload, headers=HEADERS, timeout=20, verify=False)
-            log.debug("  monthly %d: HTTP %s, %d bytes", year, r.status_code, len(r.text))
-            r.raise_for_status()
-            tables = pd.read_html(io.StringIO(r.text), flavor="lxml")
-            log.debug("  monthly %d: %d tables parsed", year, len(tables))
-        except Exception as e:
-            log.warning("  MOPS monthly %d failed: %s", year, e)
-            _log_body(r, f"monthly {year}")
-            time.sleep(2)
-            continue
-
-        tbl = next((t for t in tables
-                    if any("月份" in str(c) for c in t.columns)), None)
-        if tbl is None:
-            log.warning("  MOPS monthly %d: no table", year)
-            continue
-
-        tbl.columns = [str(c).strip() for c in tbl.columns]
-        rev_col   = next((c for c in tbl.columns if "當月" in c), None)
-        month_col = next((c for c in tbl.columns if "月份" in c or c == "月"), None)
-        if not rev_col or not month_col:
-            log.warning("  MOPS monthly %d: unexpected columns %s", year, tbl.columns.tolist())
-            continue
-
-        found = 0
-        for _, row in tbl.iterrows():
-            try:
-                m   = int(str(row[month_col]).replace("月", "").strip())
-                rev = float(str(row[rev_col]).replace(",", "").strip()) / 1e6
-            except ValueError:
-                continue
-            if 1 <= m <= 12:
-                result[f"{year}M{m:02d}"] = _clean(rev)
-                found += 1
-
-        log.info("  MOPS monthly %d: %d months", year, found)
-        time.sleep(1)
-
-    return result
+    found = []
+    for path, node in sorted((spec.get("paths") or {}).items()):
+        title = ""
+        for method in ("get", "post"):
+            if method in node:
+                title = node[method].get("summary") or node[method].get("description") or ""
+                break
+        if any(k in title for k in include) and not any(k in title for k in exclude):
+            found.append((path, title))
+    return found
 
 
-def _monthly_to_quarterly(monthly: dict) -> dict:
-    """Sum monthly → quarterly revenue. Only emits complete quarters."""
-    result: dict = {}
-    for year in YEARS:
-        for q, months in [(1, [1,2,3]), (2, [4,5,6]), (3, [7,8,9]), (4, [10,11,12])]:
-            vals = [monthly.get(f"{year}M{m:02d}") for m in months]
-            if all(v is not None for v in vals):
-                result[f"{year}Q{q}"] = _clean(sum(vals))
-    return result
-
-
-# ── Quarterly Net Income ───────────────────────────────────────────────────────
-
-_NI_KEYWORDS = ["歸屬", "母公司", "淨利"]   # all three must appear in the row
-
-def _parse_ni_from_tables(tables: list) -> float | None:
-    """
-    Search MOPS quarterly report HTML tables for parent-attributable net income.
-    MOPS financials are reported in thousands NTD (千元) → divide by 1000 for M TWD.
-    """
-    for t in tables:
-        for _, row in t.iterrows():
-            cells = [str(v) for v in row.values]
-            row_text = " ".join(cells)
-            if all(kw in row_text for kw in _NI_KEYWORDS):
-                # Found the right row; scan cells for a numeric value
-                for cell in cells[1:]:   # skip the label column
-                    clean = cell.replace(",", "").replace("(", "-").replace(")", "").strip()
-                    try:
-                        val = float(clean)
-                        # Sanity: M TWD for Silergy NI ≈ 0–3000, in thousands NTD ≈ 0–3_000_000
-                        if abs(val) < 1e7:
-                            return val / 1000   # thousands NTD → M TWD
-                    except ValueError:
-                        continue
+def _find_company(rows: list[dict]) -> dict | None:
+    """Locate Silergy's row by company code, whatever the code column is named."""
+    for row in rows:
+        for key, val in row.items():
+            if "代號" in key or "代碼" in key.lower() or key.lower() in ("code", "companycode"):
+                if str(val).strip() == CODE:
+                    return row
     return None
 
 
-def _fetch_cumulative_ni() -> dict:
-    """
-    MOPS quarterly earnings (seasons 1/2/3) → cumulative NI {(year, season): M_TWD}.
-    Season 1 = Q1 cumulative (= Q1 actual).
-    Season 2 = H1 cumulative.
-    Season 3 = 9M cumulative.
-    """
-    url    = "https://mops.twse.com.tw/mops/web/ajax_t05st01"
-    result: dict = {}
+def _field(row: dict, *keywords: str) -> tuple[str | None, float | None]:
+    """First field whose name contains every keyword. Returns (key, value)."""
+    for key, val in row.items():
+        if all(k in key for k in keywords):
+            return key, _num(val)
+    return None, None
 
-    for year in YEARS:
-        roc = year - 1911
-        for season in [1, 2, 3]:
-            r = None    # reset so a failure cannot log the previous response
-            payload = {
-                "encodeURIComponent": "1", "step": "1", "firstin": "1",
-                "off": "1", "queryName": "co_id", "inpuType": "co_id",
-                "TYPEK": "all", "isnew": "false",
-                "co_id": CODE, "year": str(roc), "season": str(season),
-            }
+
+# ── Fetch: monthly revenue ─────────────────────────────────────────────────────
+
+def fetch_monthly_revenue() -> dict:
+    """Latest monthly-revenue snapshot → {'YYYYMmm': M_TWD}."""
+    for platform, spec_url, base in PLATFORMS:
+        for path, title in _discover(spec_url, REVENUE_TITLES):
+            log.info("[%s] revenue dataset: %s (%s)", platform, path, title)
             try:
-                r = requests.post(url, data=payload, headers=HEADERS, timeout=25, verify=False)
-                log.debug("  Q%d %d: HTTP %s, %d bytes", season, year, r.status_code, len(r.text))
-                r.raise_for_status()
-                tables = pd.read_html(io.StringIO(r.text), flavor="lxml")
-                log.debug("  Q%d %d: %d tables parsed", season, year, len(tables))
+                rows = _rows(base + path)
             except Exception as e:
-                log.warning("  MOPS Q%d %d NI failed: %s", season, year, e)
-                _log_body(r, f"Q{season} {year}")
-                time.sleep(2)
+                log.warning("  fetch failed: %s", e)
+                continue
+            if not rows:
+                continue
+            log.debug("  %d rows, fields: %s", len(rows), list(rows[0].keys()))
+
+            row = _find_company(rows)
+            if row is None:
+                log.info("  %s not in this dataset", CODE)
                 continue
 
-            ni = _parse_ni_from_tables(tables)
-            if ni is not None:
-                result[(year, season)] = _clean(ni)
-                log.info("  MOPS Q%d %d NI cumulative: %.2f M TWD", season, year, ni)
-            else:
-                log.warning("  MOPS Q%d %d NI: not found", season, year)
+            log.info("  found %s: %s", CODE, json.dumps(row, ensure_ascii=False)[:300])
+            ym_key, ym = _field(row, "資料年月")
+            rev_key, rev = _field(row, "當月營收")
+            if rev is None:
+                rev_key, rev = _field(row, "營business收入")   # unlikely, keeps _field honest
+            if ym is None or rev is None:
+                log.warning("  could not locate 資料年月/當月營收 in keys: %s",
+                            list(row.keys()))
+                continue
 
-            time.sleep(1)
+            # 資料年月 is ROC-based YYYMM (e.g. 11509 = 2026-09).
+            ym_i  = int(ym)
+            month = ym_i % 100
+            year  = ym_i // 100
+            if year < 1911:            # ROC year
+                year += 1911
+            period = f"{year}M{month:02d}"
+            # Open data reports revenue in NTD thousands.
+            value = _clean(rev / 1000)
+            log.info("  %s (%s=%s) -> %s = %.4f M TWD",
+                     platform, ym_key, ym, period, value)
+            return {period: value}
 
-    return result
+    log.warning("No monthly revenue found for %s on any platform", CODE)
+    return {}
 
 
-def _cumulative_to_quarterly_ni(cumul: dict, annual_ni: dict) -> dict:
+# ── Fetch: quarterly income ────────────────────────────────────────────────────
+
+def fetch_cumulative_ni() -> dict:
+    """Latest income-statement snapshot → {'YYYY': {'season': n, 'ni': M_TWD}}."""
+    for platform, spec_url, base in PLATFORMS:
+        for path, title in _discover(spec_url, INCOME_TITLES, INCOME_EXCLUDE):
+            log.info("[%s] income dataset: %s (%s)", platform, path, title)
+            try:
+                rows = _rows(base + path)
+            except Exception as e:
+                log.warning("  fetch failed: %s", e)
+                continue
+            if not rows:
+                continue
+            log.debug("  %d rows, fields: %s", len(rows), list(rows[0].keys()))
+
+            row = _find_company(rows)
+            if row is None:
+                log.info("  %s not in this dataset", CODE)
+                continue
+
+            log.info("  found %s: %s", CODE, json.dumps(row, ensure_ascii=False)[:400])
+            _, year   = _field(row, "年度")
+            _, season = _field(row, "季別")
+            ni_key, ni = _field(row, "母公司業主")
+            if ni is None:
+                ni_key, ni = _field(row, "本期淨利")
+            if None in (year, season) or ni is None:
+                log.warning("  could not locate 年度/季別/淨利 in keys: %s", list(row.keys()))
+                continue
+
+            y = int(year) + 1911 if int(year) < 1911 else int(year)
+            value = _clean(ni / 1000)     # NTD thousands → M TWD
+            log.info("  %s Q%d cumulative NI (%s) = %.4f M TWD",
+                     y, int(season), ni_key, value)
+            return {str(y): {"season": int(season), "ni": value}}
+
+    log.warning("No income statement found for %s on any platform", CODE)
+    return {}
+
+
+# ── Derivation ─────────────────────────────────────────────────────────────────
+
+def quarters_from_months(rev_dict: dict) -> dict:
+    """Recompute every complete quarter from the monthly figures on file.
+
+    Derived from the accumulated months rather than this run's snapshot, and
+    recomputed rather than filled in only when absent — a derived value left
+    untouched goes stale the moment its inputs change.
     """
-    Convert cumulative NI (YTD) to single-quarter NI via subtraction.
-    Q4 = Annual - 9M (if 9M and annual are both available).
+    months = {}
+    for key, val in rev_dict.items():
+        if "M" in key and val is not None:
+            y, _, m = key.partition("M")
+            if y.isdigit() and m.isdigit():
+                months[(int(y), int(m))] = val
+
+    out = {}
+    for (year, _), _ in list(months.items()):
+        for q, ms in ((1, (1, 2, 3)), (2, (4, 5, 6)), (3, (7, 8, 9)), (4, (10, 11, 12))):
+            vals = [months.get((year, m)) for m in ms]
+            if all(v is not None for v in vals):
+                out[f"{year}Q{q}"] = _clean(sum(vals))
+    return out
+
+
+def quarters_from_cumulative_ni(latest: dict, ni_dict: dict) -> dict:
+    """Single-quarter NI from a cumulative snapshot (Taiwan reports YTD).
+
+    Season 1 is Q1 outright; later seasons need the preceding cumulative total,
+    which is only available once earlier snapshots have been recorded.
     """
-    result: dict = {}
-    for year in YEARS:
-        c1 = cumul.get((year, 1))   # Q1 (= single quarter)
-        c2 = cumul.get((year, 2))   # H1 cumulative
-        c3 = cumul.get((year, 3))   # 9M cumulative
-        ann = annual_ni.get(str(year))
-
-        if c1 is not None:
-            result[f"{year}Q1"] = c1
-        if c2 is not None and c1 is not None:
-            result[f"{year}Q2"] = _clean(c2 - c1)
-        if c3 is not None and c2 is not None:
-            result[f"{year}Q3"] = _clean(c3 - c2)
-        if ann is not None and c3 is not None:
-            result[f"{year}Q4"] = _clean(ann - c3)
-
-    return result
+    out = {}
+    for year, info in latest.items():
+        season, cumul = info["season"], info["ni"]
+        if cumul is None:
+            continue
+        if season == 1:
+            out[f"{year}Q1"] = cumul
+            continue
+        prev = ni_dict.get(f"{year}C{season - 1}")     # stored cumulative
+        if prev is None:
+            log.info("  %s Q%d: no Q%d cumulative on file yet — single quarter "
+                     "cannot be derived this run", year, season, season - 1)
+            continue
+        out[f"{year}Q{season}"] = _clean(cumul - prev)
+    return out
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main():
-    global YEARS
-    ap = argparse.ArgumentParser(description="Fetch Silergy quarterly data from MOPS")
-    ap.add_argument("--years", nargs="+", type=int, default=YEARS,
-                    help=f"Fiscal years to fetch (default: {YEARS})")
-    ap.add_argument("--debug", action="store_true", help="Verbose MOPS request logging")
+    ap = argparse.ArgumentParser(description="Fetch Silergy quarterly data from TWSE/TPEx OpenAPI")
+    ap.add_argument("--debug", action="store_true", help="Verbose request and schema logging")
     args = ap.parse_args()
-    YEARS = args.years
     if args.debug:
         logging.getLogger().setLevel(logging.DEBUG)
-    log.info("Target years: %s", YEARS)
 
     with open(_DATA_JSON, encoding="utf-8") as f:
         data = json.load(f)
@@ -261,34 +320,32 @@ def main():
         log.error("%s not found in data.json", NAME)
         return
 
-    log.info("=== Silergy (6415) quarterly data via MOPS ===")
-
-    log.info("Step 1: monthly revenue → quarterly")
-    monthly     = _fetch_monthly_revenue()
-    q_rev       = _monthly_to_quarterly(monthly)
-    log.info("  Revenue periods: %s", sorted(q_rev))
-
-    log.info("Step 2: quarterly earnings → NI")
-    cumul_ni    = _fetch_cumulative_ni()
-    annual_ni   = entry.get("net_income", {})
-    q_ni        = _cumulative_to_quarterly_ni(cumul_ni, annual_ni)
-    log.info("  NI periods: %s", sorted(q_ni))
-
-    rev_dict = entry.setdefault("revenue",    {})
+    log.info("=== Silergy (%s) via TWSE/TPEx OpenAPI ===", CODE)
+    rev_dict = entry.setdefault("revenue", {})
     ni_dict  = entry.setdefault("net_income", {})
-    changed  = False
+    before   = json.dumps({"r": rev_dict, "n": ni_dict}, sort_keys=True, ensure_ascii=False)
 
+    log.info("Step 1: monthly revenue snapshot")
+    for period, val in fetch_monthly_revenue().items():
+        rev_dict[period] = val
+
+    log.info("Step 2: quarterly revenue from accumulated months")
+    q_rev = quarters_from_months(rev_dict)
     for period, val in q_rev.items():
-        if val is not None:
-            rev_dict[period] = val
-            changed = True
+        rev_dict[period] = val
+    log.info("  revenue quarters: %s", sorted(q_rev) or "none complete yet")
 
+    log.info("Step 3: cumulative net income snapshot")
+    latest_ni = fetch_cumulative_ni()
+    for year, info in latest_ni.items():
+        ni_dict[f"{year}C{info['season']}"] = info["ni"]     # keep the cumulative
+    q_ni = quarters_from_cumulative_ni(latest_ni, ni_dict)
     for period, val in q_ni.items():
-        if val is not None:
-            ni_dict[period] = val
-            changed = True
+        ni_dict[period] = val
+    log.info("  NI quarters: %s", sorted(q_ni) or "none derivable yet")
 
-    if changed:
+    after = json.dumps({"r": rev_dict, "n": ni_dict}, sort_keys=True, ensure_ascii=False)
+    if after != before:
         with open(_DATA_JSON, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         log.info("data.json updated.")
