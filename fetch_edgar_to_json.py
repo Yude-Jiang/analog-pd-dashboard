@@ -111,7 +111,15 @@ def _extract_facts(facts: dict, tags: list, unit: str = "USD") -> pd.DataFrame:
         _FP_DUR = {"Q1": 91, "Q2": 182, "Q3": 273, "H1": 182, "9M": 273, "FY": 365}
         nan_mask = df["dur"].isna()
         df.loc[nan_mask, "dur"] = df.loc[nan_mask, "fp"].map(_FP_DUR)
-    return df[["end", "start", "dur", "val", "form"]].reset_index(drop=True)
+    out = df[["end", "start", "dur", "val", "form"]].reset_index(drop=True)
+    if log.isEnabledFor(logging.DEBUG):
+        log.debug("  raw facts for %s:", tags[0])
+        for _, r in out.sort_values(["end", "dur"]).iterrows():
+            log.debug("    end=%s start=%s dur=%s form=%s val=%s",
+                      r["end"].date(),
+                      r["start"].date() if pd.notna(r["start"]) else "—",
+                      r["dur"], r["form"], f'{r["val"]:,.0f}')
+    return out
 
 
 def _to_quarterly(df: pd.DataFrame, scale: float = 1e6) -> dict:
@@ -176,13 +184,17 @@ def _to_quarterly(df: pd.DataFrame, scale: float = 1e6) -> dict:
             if dur <= 95:
                 # Single-quarter entry: use directly
                 single_q = val_scaled
+                branch   = "single"
                 cumul += single_q
             else:
                 # YTD entry: subtract running cumulative
                 single_q = val_scaled - cumul
+                branch   = "ytd"
                 cumul = val_scaled
 
             period = _period_label(row["end"])
+            log.debug("    %s dur=%-5s %-6s val=%9.3f -> q=%9.3f cumul=%9.3f",
+                      period, dur, branch, val_scaled, single_q, cumul)
             if period not in result:
                 result[period] = single_q
 
