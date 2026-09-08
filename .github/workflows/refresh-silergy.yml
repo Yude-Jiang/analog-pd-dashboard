@@ -39,11 +39,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements_cloudrun.txt
 
-      # MOPS blocks Actions runners outright ("FOR SECURITY REASONS, THIS PAGE
-      # CAN NOT BE ACCESSED"), but openapi.twse.com.tw answers fine and serves a
-      # full swagger spec. Let the service name its own endpoints and field
-      # names rather than guessing either. Silergy may be TPEx- rather than
-      # TWSE-listed, so confirm 6415 actually appears before committing to a route.
+      # openapi.twse.com.tw answers Actions runners (MOPS does not) and names
+      # its own endpoints: t187ap05_L is monthly revenue, t187ap06_L_ci the
+      # income statement. The data endpoints came back non-JSON under
+      # Accept: */*, so this pass asks for JSON explicitly and prints the raw
+      # body when that still fails. TPEx is checked in case 6415 is OTC-listed.
       - name: Probe TWSE / TPEx OpenAPI
         if: github.event.inputs.debug == 'true'
         continue-on-error: true
@@ -51,61 +51,58 @@ jobs:
           python - <<'PY'
           import requests, urllib3, json
           urllib3.disable_warnings()
-          UA = {"User-Agent": "Mozilla/5.0", "Accept": "*/*"}
+          H = {"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
           CODE = "6415"
 
-          def get(url, **kw):
-              return requests.get(url, timeout=40, headers=UA, verify=False, **kw)
-
-          print("=== TWSE OpenAPI spec ===")
-          spec = get("https://openapi.twse.com.tw/v1/swagger.json").json()
-          paths = spec.get("paths") or {}
-          print(f"{len(paths)} endpoints published\n")
-
-          KW = ("revenue", "月營業收入", "營業收入", "損益", "綜合損益",
-                "財務", "t187ap05", "t187ap06", "t187ap17")
-          cands = []
-          for path, node in sorted(paths.items()):
-              summary = ""
-              for m in ("get", "post"):
-                  if m in node:
-                      summary = node[m].get("summary") or node[m].get("description") or ""
-                      break
-              blob = (path + " " + summary).lower()
-              if any(k.lower() in blob for k in KW):
-                  cands.append((path, summary))
-
-          print(f"--- {len(cands)} revenue/financial candidates ---")
-          for path, summary in cands:
-              print(f"  {path:44s} {summary[:60]}")
-
-          print(f"\n=== Which ones contain {CODE}? ===")
-          for path, summary in cands[:12]:
+          def try_ep(base, path, label):
+              url = base + path
               try:
-                  r = get("https://openapi.twse.com.tw" + path)
+                  r = requests.get(url, timeout=40, headers=H, verify=False)
+              except Exception as e:
+                  print(f"  {label:26s} ERROR {type(e).__name__}: {str(e)[:70]}")
+                  return
+              ct = r.headers.get("Content-Type", "?")
+              print(f"  {label:26s} HTTP {r.status_code} {len(r.text):>8d}B  ct={ct}")
+              try:
                   data = r.json()
-                  if not isinstance(data, list) or not data:
-                      print(f"  {path:44s} {r.status_code} not-a-list/empty")
-                      continue
-                  hit = next((row for row in data
-                              if CODE in str(row.get("公司代號") or row.get("Code") or
-                                             list(row.values())[0])), None)
-                  print(f"  {path:44s} {len(data):>5d} rows  6415={'YES' if hit else 'no'}")
-                  if hit:
-                      print(f"      summary: {summary[:70]}")
-                      print(f"      fields : {list(hit.keys())}")
-                      print(f"      record : {json.dumps(hit, ensure_ascii=False)[:400]}")
-              except Exception as e:
-                  print(f"  {path:44s} ERROR {type(e).__name__}: {str(e)[:60]}")
+              except Exception:
+                  print(f"      not JSON, body head: {' '.join(r.text[:220].split())}")
+                  return
+              if not isinstance(data, list) or not data:
+                  print(f"      JSON but not a non-empty list: {str(data)[:160]}")
+                  return
+              print(f"      {len(data)} rows, fields: {list(data[0].keys())}")
+              hit = next((row for row in data
+                          if CODE in json.dumps(row, ensure_ascii=False)), None)
+              print(f"      contains {CODE}: {'YES' if hit else 'no'}")
+              if hit:
+                  print(f"      record: {json.dumps(hit, ensure_ascii=False)[:500]}")
+              else:
+                  print(f"      sample: {json.dumps(data[0], ensure_ascii=False)[:260]}")
 
-          print("\n=== TPEx (if 6415 is OTC-listed) ===")
-          for u in ("https://www.tpex.org.tw/openapi/swagger.json",
-                    "https://www.tpex.org.tw/openapi/v1/"):
-              try:
-                  r = get(u)
-                  print(f"  {u:52s} HTTP {r.status_code} {len(r.text)}B")
-              except Exception as e:
-                  print(f"  {u:52s} ERROR {type(e).__name__}")
+          print("=== TWSE data endpoints (Accept: application/json) ===")
+          TW = "https://openapi.twse.com.tw/v1"
+          for path, label in [("/opendata/t187ap05_L", "t187ap05_L monthly rev"),
+                              ("/opendata/t187ap06_L_ci", "t187ap06_L_ci income")]:
+              try_ep(TW, path, label)
+
+          print("\n=== TPEx: does its spec list the same datasets? ===")
+          try:
+              spec = requests.get("https://www.tpex.org.tw/openapi/swagger.json",
+                                  timeout=40, headers=H, verify=False).json()
+              paths = spec.get("paths") or {}
+              print(f"  {len(paths)} endpoints published")
+              KW = ("營業收入", "綜合損益", "revenue", "t187ap05", "t187ap06")
+              for path, node in sorted(paths.items()):
+                  summary = ""
+                  for m in ("get", "post"):
+                      if m in node:
+                          summary = node[m].get("summary") or node[m].get("description") or ""
+                          break
+                  if any(k.lower() in (path + " " + summary).lower() for k in KW):
+                      print(f"    {path:46s} {summary[:56]}")
+          except Exception as e:
+              print("  TPEx spec failed:", type(e).__name__, str(e)[:80])
           PY
 
       - name: Fetch MOPS quarterly
