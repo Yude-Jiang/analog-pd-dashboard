@@ -1859,6 +1859,9 @@
                 mk(`Q3 ${P}`,      'yr2025', b25.map(b=>b.q3e), EST25.Q3),
                 mk(`Q4 ${P}`,      'yr2025', b25.map(b=>b.q4e), EST25.Q4),
                 mk('26 Q1',        'yr2026', b26.map(b=>b.q1a), QC26.Q1),
+                mk('26 Q2',        'yr2026', b26.map(b=>b.q2a), QC26.Q2),
+                mk('26 Q3',        'yr2026', b26.map(b=>b.q3a), QC26.Q3),
+                mk('26 Q4',        'yr2026', b26.map(b=>b.q4a), QC26.Q4),
                 mk(`26 Q2 ${P}`,   'yr2026', b26.map(b=>b.q2e), EST26.Q2),
                 mk(`26 Q3 ${P}`,   'yr2026', b26.map(b=>b.q3e), EST26.Q3),
                 mk(`26 Q4 ${P}`,   'yr2026', b26.map(b=>b.q4e), EST26.Q4),
@@ -1879,8 +1882,12 @@
                             position: 'top',
                             labels: {
                                 boxWidth: 8, font:{size:9}, padding:6,
-                                // Show: 2024 + Q1-Q4 (actual) + one estimated sample
-                                filter: item => ['2024','Q1','Q2','Q3','Q4','2025 FY',`Q4 ${lang==='zh'?'预测':'Est'}`].includes(item.text)
+                                // Show: 2024 + Q1-Q4 actual (both years) + one estimated sample per year
+                                filter: item => {
+                                    const P = lang === 'zh' ? '预测' : 'Est';
+                                    return ['2024','Q1','Q2','Q3','Q4','2025 FY',`Q4 ${P}`,
+                                            '26 Q1','26 Q2','26 Q3','26 Q4',`26 Q4 ${P}`].includes(item.text);
+                                }
                             }
                         },
                         tooltip: { bodyFont:{size:10} }
