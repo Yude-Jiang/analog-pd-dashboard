@@ -39,46 +39,73 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements_cloudrun.txt
 
-      # MOPS answers Actions runners with its anti-bot page ("FOR SECURITY
-      # REASONS, THIS PAGE CAN NOT BE ACCESSED"), so scraping it from CI is a
-      # dead end regardless of endpoint. Probe the alternatives before writing
-      # code against any of them: does a session-first GET change anything, and
-      # what does TWSE's official OpenAPI actually expose?
-      - name: Probe TWSE endpoints
+      # MOPS blocks Actions runners outright ("FOR SECURITY REASONS, THIS PAGE
+      # CAN NOT BE ACCESSED"), but openapi.twse.com.tw answers fine and serves a
+      # full swagger spec. Let the service name its own endpoints and field
+      # names rather than guessing either. Silergy may be TPEx- rather than
+      # TWSE-listed, so confirm 6415 actually appears before committing to a route.
+      - name: Probe TWSE / TPEx OpenAPI
         if: github.event.inputs.debug == 'true'
         continue-on-error: true
         run: |
           python - <<'PY'
-          import requests, urllib3
+          import requests, urllib3, json
           urllib3.disable_warnings()
-          UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                "Accept": "*/*", "Accept-Language": "zh-TW,zh;q=0.9,en;q=0.8"}
+          UA = {"User-Agent": "Mozilla/5.0", "Accept": "*/*"}
+          CODE = "6415"
 
-          def probe(label, method, url, session=None, **kw):
+          def get(url, **kw):
+              return requests.get(url, timeout=40, headers=UA, verify=False, **kw)
+
+          print("=== TWSE OpenAPI spec ===")
+          spec = get("https://openapi.twse.com.tw/v1/swagger.json").json()
+          paths = spec.get("paths") or {}
+          print(f"{len(paths)} endpoints published\n")
+
+          KW = ("revenue", "月營業收入", "營業收入", "損益", "綜合損益",
+                "財務", "t187ap05", "t187ap06", "t187ap17")
+          cands = []
+          for path, node in sorted(paths.items()):
+              summary = ""
+              for m in ("get", "post"):
+                  if m in node:
+                      summary = node[m].get("summary") or node[m].get("description") or ""
+                      break
+              blob = (path + " " + summary).lower()
+              if any(k.lower() in blob for k in KW):
+                  cands.append((path, summary))
+
+          print(f"--- {len(cands)} revenue/financial candidates ---")
+          for path, summary in cands:
+              print(f"  {path:44s} {summary[:60]}")
+
+          print(f"\n=== Which ones contain {CODE}? ===")
+          for path, summary in cands[:12]:
               try:
-                  c = session or requests
-                  r = c.request(method, url, timeout=25, headers=UA, verify=False, **kw)
-                  head = " ".join(r.text[:200].split())
-                  blocked = "SECURITY REASONS" in r.text
-                  print(f"{label:34s} HTTP {r.status_code} {len(r.text):>8d}B "
-                        f"{'[BLOCKED] ' if blocked else ''}{head[:110]}")
+                  r = get("https://openapi.twse.com.tw" + path)
+                  data = r.json()
+                  if not isinstance(data, list) or not data:
+                      print(f"  {path:44s} {r.status_code} not-a-list/empty")
+                      continue
+                  hit = next((row for row in data
+                              if CODE in str(row.get("公司代號") or row.get("Code") or
+                                             list(row.values())[0])), None)
+                  print(f"  {path:44s} {len(data):>5d} rows  6415={'YES' if hit else 'no'}")
+                  if hit:
+                      print(f"      summary: {summary[:70]}")
+                      print(f"      fields : {list(hit.keys())}")
+                      print(f"      record : {json.dumps(hit, ensure_ascii=False)[:400]}")
               except Exception as e:
-                  print(f"{label:34s} ERROR {type(e).__name__}: {str(e)[:90]}")
+                  print(f"  {path:44s} ERROR {type(e).__name__}: {str(e)[:60]}")
 
-          print("--- 1. MOPS, plain ---")
-          probe("MOPS t21sc03 page GET", "GET", "https://mops.twse.com.tw/mops/web/t21sc03")
-
-          print("--- 2. MOPS, session first ---")
-          sess = requests.Session()
-          probe("  landing page", "GET", "https://mops.twse.com.tw/mops/web/index", session=sess)
-          probe("  then ajax POST", "POST", "https://mops.twse.com.tw/mops/web/ajax_t21sc03",
-                session=sess, data={"encodeURIComponent":"1","step":"1","firstin":"1","off":"1",
-                "queryName":"co_id","inpuType":"co_id","TYPEK":"all","isnew":"false",
-                "co_id":"6415","year":"115","season":"00"})
-
-          print("--- 3. TWSE OpenAPI ---")
-          probe("OpenAPI portal", "GET", "https://openapi.twse.com.tw/")
-          probe("OpenAPI swagger spec", "GET", "https://openapi.twse.com.tw/v1/swagger.json")
+          print("\n=== TPEx (if 6415 is OTC-listed) ===")
+          for u in ("https://www.tpex.org.tw/openapi/swagger.json",
+                    "https://www.tpex.org.tw/openapi/v1/"):
+              try:
+                  r = get(u)
+                  print(f"  {u:52s} HTTP {r.status_code} {len(r.text)}B")
+              except Exception as e:
+                  print(f"  {u:52s} ERROR {type(e).__name__}")
           PY
 
       - name: Fetch MOPS quarterly
