@@ -11,6 +11,10 @@ on:
         description: "Tickers to refresh (space-separated, e.g. NVTS). Empty = all."
         required: false
         default: ""
+      debug:
+        description: "Diagnostic run — verbose EDGAR logs, nothing committed"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -32,16 +36,37 @@ jobs:
 
       - name: Fetch EDGAR quarterly
         run: |
-          if [ -n "${{ github.event.inputs.tickers }}" ]; then
-            python fetch_edgar_to_json.py --tickers ${{ github.event.inputs.tickers }}
-          else
-            python fetch_edgar_to_json.py
-          fi
+          ARGS=""
+          [ -n "${{ github.event.inputs.tickers }}" ] && ARGS="--tickers ${{ github.event.inputs.tickers }}"
+          [ "${{ github.event.inputs.debug }}" = "true" ] && ARGS="$ARGS --debug"
+          python fetch_edgar_to_json.py $ARGS
+
+      # What actually landed, so a wrong-magnitude extraction is obvious in the log.
+      - name: Show extracted quarters
+        run: |
+          python - <<'PY'
+          import json
+          d = json.load(open("data.json"))
+          for name, c in d.items():
+              if c.get("code") in ("MPWR", "NVTS"):
+                  rev = c.get("revenue", {})
+                  yrs = {k: v for k, v in rev.items() if k.isdigit()}
+                  qs  = {k: v for k, v in sorted(rev.items()) if "Q" in k}
+                  print(f"\n{name} ({c['code']}) — {c.get('currency')}")
+                  print(f"  annual  : {yrs}")
+                  print(f"  quarters: {qs}")
+                  for y in sorted(yrs):
+                      sub = [v for k, v in qs.items() if k.startswith(y)]
+                      if sub:
+                          print(f"  {y}: sum(Q)={sum(sub):.3f} vs annual={yrs[y]:.3f}"
+                                f"  ratio={yrs[y]/sum(sub):.1f}x" if sum(sub) else "")
+          PY
 
       - name: Validate data
         run: python validate_data.py || true
 
       - name: Commit updated data.json
+        if: github.event.inputs.debug != 'true'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
