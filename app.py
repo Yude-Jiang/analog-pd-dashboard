@@ -86,6 +86,18 @@ def serve_blob(blob_name: str) -> Response:
 # Routes
 # ---------------------------------------------------------------------------
 
+@app.after_request
+def _no_stale_cache(resp: Response) -> Response:
+    """Force revalidation on every asset.
+
+    Flask sends no Cache-Control when max_age is unset, so browsers fall back
+    to heuristic caching and can serve a stale dashboard.html for hours after
+    a deploy. Everything here is live content; "no-cache" still allows the
+    cached copy to be reused, it just has to revalidate first (cheap 304).
+    """
+    resp.headers.setdefault("Cache-Control", "no-cache")
+    return resp
+
 @app.route("/")
 def index():
     return send_from_directory(".", "dashboard.html")
