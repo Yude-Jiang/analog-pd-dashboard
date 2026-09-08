@@ -1,5 +1,8 @@
 name: Refresh Silergy Quarterly (MOPS)
 
+# Targeted refresh for Silergy (6415) on the TWSE disclosure dates. The daily job
+# that covers it alongside the US filers is refresh-quarterly.yml.
+
 on:
   workflow_dispatch:
   schedule:
@@ -9,16 +12,42 @@ on:
     - cron: '0 1 15 11 *'  # Q3 季报：11 月 15 日
     - cron: '0 1 31 3 *'   # Q4/年报：3 月 31 日
 
+permissions:
+  contents: write
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Cloud Run /refresh
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements_cloudrun.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements_cloudrun.txt
+
+      - name: Fetch MOPS quarterly
+        run: python fetch_silergy_to_json.py
+
+      - name: Validate data
+        run: python validate_data.py || true
+
+      - name: Commit updated data.json
         run: |
-          HTTP_CODE=$(curl -s -o /tmp/body.json -w "%{http_code}" -X POST \
-            "https://analog-dashboard-460989091461.asia-east1.run.app/refresh" \
-            -H "Authorization: Bearer ${{ secrets.REFRESH_SECRET }}")
-          echo "HTTP 状态码: $HTTP_CODE"
-          echo "--- 响应内容 ---"
-          python3 -m json.tool /tmp/body.json 2>/dev/null || cat /tmp/body.json
-          [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "202" ] || exit 1
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          if git diff --cached --quiet; then
+            echo "No changes — MOPS returned nothing new."
+          else
+            git commit -m "data: refresh Silergy quarterly $(date -u +%Y-%m-%d)"
+            for i in 1 2 3 4; do
+              git pull --rebase origin main && git push && break
+              echo "Push attempt $i failed, retrying in ${i}0s..."
+              sleep $((i * 10))
+            done
+          fi

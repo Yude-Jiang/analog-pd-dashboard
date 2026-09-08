@@ -150,6 +150,12 @@ def _do_refresh(job_id: str):
                     shutil.copy(bundled, dest)
                     print(f"[refresh] {blob_name} not in GCS ({e}), using bundled copy")
 
+        # data.json is deliberately not a GCS blob, but validate_data.py reads it,
+        # so give the run a read-only copy. It is never uploaded from here — the
+        # only writer is the GitHub Actions job that commits it to the repo.
+        shutil.copy(os.path.join(src_dir, "data.json"),
+                    os.path.join(tmpdir, "data.json"))
+
         env   = {**os.environ, "PYTHONPATH": src_dir}
         years = FETCH_YEARS
         ts    = datetime.datetime.utcnow()
@@ -176,30 +182,28 @@ def _do_refresh(job_id: str):
         _run("fetch_yjbb_quarterly",
              [sys.executable, "fetch_yjbb_quarterly.py", "--years"] + years.split())
 
-        # 3. US quarterly — MPWR / NVTS via SEC EDGAR
-        _run("fetch_edgar",
-             [sys.executable, "fetch_edgar_to_json.py"], timeout=120)
+        # MPWR / NVTS (EDGAR) and Silergy (MOPS) are NOT fetched here. Both write
+        # into data.json, which this job cannot persist — it is not a GCS blob, so
+        # the result would die with tmpdir. The .github/workflows/refresh-quarterly
+        # job runs them instead and commits data.json to the repo.
 
-        # 4. Taiwan quarterly — Silergy via MOPS
-        _run("fetch_silergy",
-             [sys.executable, "fetch_silergy_to_json.py"], timeout=120)
-
-        # 5. Company profiles (XQ)
+        # 3. Company profiles (XQ)
         _run("fetch_profiles",
              [sys.executable, "fetch_profiles.py"])
 
-        # 6. Validate data quality
+        # 4. Validate data quality
         _run("validate",
              [sys.executable, "validate_data.py"], timeout=60)
 
-        # 7. Write refresh metadata
+        # 5. Write refresh metadata
         meta["refresh_completed"] = datetime.datetime.utcnow().isoformat() + "Z"
         meta["status"] = "ok"
         meta_path = os.path.join(tmpdir, "refresh_meta.json")
         with open(meta_path, "w", encoding="utf-8") as f:
             json.dump(meta, f, ensure_ascii=False, indent=2)
 
-        # 8. Upload all updated JSON blobs back to GCS
+        # 6. Upload all updated JSON blobs back to GCS (data.json is not one of
+        #    them — see GCS_BLOBS — so the repo stays its single source of truth)
         for blob_name in GCS_BLOBS:
             local_path = os.path.join(tmpdir, blob_name)
             if os.path.exists(local_path):

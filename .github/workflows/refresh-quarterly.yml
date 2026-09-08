@@ -1,20 +1,73 @@
 name: Refresh Quarterly Data (MPWR / NVTS / Silergy)
 
+# These three companies are not on AkShare — their quarterly figures come from
+# SEC EDGAR (MPWR/NVTS) and TWSE MOPS (Silergy), and both fetchers merge into
+# data.json. This job therefore runs them here and commits the result: data.json
+# is served from the bundled container file, never from GCS, so a run inside
+# Cloud Run's /refresh would write to a temp dir that is thrown away.
+
 on:
   workflow_dispatch:
   schedule:
     - cron: "0 1 * * 1-5"   # 09:00 Beijing weekdays
 
+permissions:
+  contents: write
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Cloud Run /refresh
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements_cloudrun.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements_cloudrun.txt
+
+      # Each source is independent — one site being down must not skip the other.
+      - name: Fetch EDGAR quarterly (MPWR / NVTS)
+        run: python fetch_edgar_to_json.py
+        continue-on-error: true
+
+      - name: Fetch MOPS quarterly (Silergy)
+        run: python fetch_silergy_to_json.py
+        continue-on-error: true
+
+      # Both fetchers exit 0 even when the upstream site is unreachable, and the
+      # steps above are continue-on-error, so print the resulting coverage: a
+      # silently dead pipeline would otherwise stay green indefinitely.
+      - name: Report quarterly coverage
         run: |
-          HTTP_CODE=$(curl -s -o /tmp/body.json -w "%{http_code}" -X POST \
-            "https://analog-dashboard-460989091461.asia-east1.run.app/refresh" \
-            -H "Authorization: Bearer ${{ secrets.REFRESH_SECRET }}")
-          echo "HTTP 状态码: $HTTP_CODE"
-          echo "--- 响应内容 ---"
-          python3 -m json.tool /tmp/body.json 2>/dev/null || cat /tmp/body.json
-          [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "202" ] || exit 1
+          python - <<'PY'
+          import json
+          d = json.load(open("data.json"))
+          for name, c in d.items():
+              if c.get("code") in ("MPWR", "NVTS", "6415"):
+                  qs = sorted(k for k in c.get("revenue", {}) if "Q" in k)
+                  print(f"{name:10s} ({c['code']:5s}) {len(qs):2d} quarters"
+                        f"  latest={qs[-1] if qs else 'NONE'}")
+          PY
+
+      - name: Validate data
+        run: python validate_data.py || true
+
+      - name: Commit updated data.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          if git diff --cached --quiet; then
+            echo "No changes — no new US/TW quarterly filings."
+          else
+            git commit -m "data: refresh MPWR/NVTS/Silergy quarterly $(date -u +%Y-%m-%d)"
+            for i in 1 2 3 4; do
+              git pull --rebase origin main && git push && break
+              echo "Push attempt $i failed, retrying in ${i}0s..."
+              sleep $((i * 10))
+            done
+          fi
