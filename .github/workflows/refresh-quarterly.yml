@@ -29,15 +29,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements_cloudrun.txt
 
-      # DISABLED — fetch_edgar_to_json.py mis-derives quarterly revenue: NVTS 2025
-      # quarters sum to 0.814 against an annual 45.916, and 2024 to 0.068 against
-      # 83.302, with several quarters at exactly 0.0. Running it here would write
-      # those values over more periods every day. Diagnose first with
-      # refresh-edgar.yml (debug: true, which does not commit), fix _to_quarterly,
-      # then restore this step.
-      # - name: Fetch EDGAR quarterly (MPWR / NVTS)
-      #   run: python fetch_edgar_to_json.py
-      #   continue-on-error: true
+      # Each source is independent — one site being down must not skip the other.
+      - name: Fetch EDGAR quarterly (MPWR / NVTS)
+        run: python fetch_edgar_to_json.py
+        continue-on-error: true
 
       - name: Fetch MOPS quarterly (Silergy)
         run: python fetch_silergy_to_json.py
