@@ -15,6 +15,8 @@ Usage:
 
 import json
 import math
+import argparse
+import datetime
 import logging
 import time
 import io
@@ -38,7 +40,12 @@ _DATA_JSON = _HERE / "data.json"
 
 CODE  = "6415"
 NAME  = "Silergy"
-YEARS = [2024, 2025]
+
+# Fiscal years to fetch. Hardcoding these meant the script silently stopped
+# covering the current year once the calendar moved past it — the same fault
+# fetch_yjbb_quarterly.py had. Overridable with --years.
+_CY   = datetime.date.today().year
+YEARS = [_CY - 1, _CY]
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -71,8 +78,10 @@ def _fetch_monthly_revenue() -> dict:
         }
         try:
             r = requests.post(url, data=payload, headers=HEADERS, timeout=20, verify=False)
+            log.debug("  monthly %d: HTTP %s, %d bytes", year, r.status_code, len(r.text))
             r.raise_for_status()
             tables = pd.read_html(io.StringIO(r.text), flavor="lxml")
+            log.debug("  monthly %d: %d tables parsed", year, len(tables))
         except Exception as e:
             log.warning("  MOPS monthly %d failed: %s", year, e)
             time.sleep(2)
@@ -167,8 +176,10 @@ def _fetch_cumulative_ni() -> dict:
             }
             try:
                 r = requests.post(url, data=payload, headers=HEADERS, timeout=25, verify=False)
+                log.debug("  Q%d %d: HTTP %s, %d bytes", season, year, r.status_code, len(r.text))
                 r.raise_for_status()
                 tables = pd.read_html(io.StringIO(r.text), flavor="lxml")
+                log.debug("  Q%d %d: %d tables parsed", season, year, len(tables))
             except Exception as e:
                 log.warning("  MOPS Q%d %d NI failed: %s", season, year, e)
                 time.sleep(2)
@@ -213,6 +224,17 @@ def _cumulative_to_quarterly_ni(cumul: dict, annual_ni: dict) -> dict:
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main():
+    global YEARS
+    ap = argparse.ArgumentParser(description="Fetch Silergy quarterly data from MOPS")
+    ap.add_argument("--years", nargs="+", type=int, default=YEARS,
+                    help=f"Fiscal years to fetch (default: {YEARS})")
+    ap.add_argument("--debug", action="store_true", help="Verbose MOPS request logging")
+    args = ap.parse_args()
+    YEARS = args.years
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+    log.info("Target years: %s", YEARS)
+
     with open(_DATA_JSON, encoding="utf-8") as f:
         data = json.load(f)
 
